@@ -1,7 +1,6 @@
 package io.tanker.api
 
 import android.util.Log
-import com.sun.jna.Callback
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.StringArray
@@ -10,7 +9,6 @@ import io.tanker.bindings.TankerEvent
 import io.tanker.bindings.TankerLib
 import io.tanker.bindings.TankerUnlockMethod
 import io.tanker.jni.KVMx86Bug
-import java.util.concurrent.Callable
 
 /**
  * Main entry point for the Tanker SDK. Can open a TankerSession.
@@ -101,6 +99,13 @@ class Tanker(tankerOptions: TankerOptions) {
             lib.tanker_free_buffer(ptr)
             str
         })
+    }
+
+    /**
+     * Revoke a device by device id.
+     */
+    fun revokeDevice(deviceId: String): TankerFuture<Unit> {
+        return TankerFuture(lib.tanker_revoke_device(tanker, deviceId), Unit::class.java)
     }
 
     /**
@@ -485,7 +490,7 @@ class Tanker(tankerOptions: TankerOptions) {
                     try {
                         eventCallback.call()
                     } catch (e: Throwable) {
-                        Log.w(LOG_TAG, e)
+                        Log.e(LOG_TAG, "Caught exception in event handler:", e)
                     }
                 })
             }
@@ -509,7 +514,7 @@ class Tanker(tankerOptions: TankerOptions) {
                 try {
                     eventCallback.call()
                 } catch (e: Throwable) {
-                    Log.w(LOG_TAG, e)
+                    Log.e(LOG_TAG, "Caught exception in event handler:", e)
                 }
             }
         }
@@ -532,7 +537,7 @@ class Tanker(tankerOptions: TankerOptions) {
                 try {
                     eventCallback.call()
                 } catch (e: Throwable) {
-                    Log.w(LOG_TAG, e)
+                    Log.e(LOG_TAG, "Caught exception in event handler:", e)
                 }
             }
         }
@@ -555,7 +560,7 @@ class Tanker(tankerOptions: TankerOptions) {
                 try {
                     eventCallback.call()
                 } catch (e: Throwable) {
-                    Log.w(LOG_TAG, e)
+                    Log.e(LOG_TAG, "Caught exception in event handler:", e)
                 }
             }
         }
