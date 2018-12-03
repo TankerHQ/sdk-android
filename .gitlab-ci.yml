@@ -1,0 +1,37 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+before_script:
+  - dmenv install
+  - dmenv run -- python run-ci.py update-conan-config --platform linux
+
+stages:
+  - check
+  - deploy
+
+check/native-stable:
+  when: manual
+  stage: check
+  script:
+    - dmenv run -- python run-ci.py check
+  tags:
+    - linux
+
+check/native-from-sources:
+  when: manual
+  stage: check
+  script:
+    - dmenv run -- python run-ci.py check --native-from-sources
+  tags:
+    - linux
+
+
+deploy:
+  stage: deploy
+  only:
+    - tags
+  when: manual
+  script:
+    - dmenv  run -- python run-ci.py deploy
+  tags:
+    - linux

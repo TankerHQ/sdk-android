@@ -1,0 +1,244 @@
+import javax.inject.Inject
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.dokka'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+group 'io.tanker'
+version '1.9.0'
+
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            moduleName "tanker-bindings-jni"
+        }
+    }
+    buildToolsVersion '28.0.3'
+    buildTypes {
+        release {
+            debuggable false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            packagingOptions {
+                doNotStrip "**/*.so"
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path 'CMakeLists.txt'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    testOptions {
+        unitTests.all {
+            testLogging {
+                events "passed", "skipped", "failed", "standardOut", "standardError"
+                outputs.upToDateWhen {false}
+                showStandardStreams = true
+            }
+            systemProperty "jna.library.path", projectDir.absolutePath + "/conan/host/lib"
+            systemProperty "TANKER_CONFIG_NAME", System.getProperty("TANKER_CONFIG_NAME")
+            systemProperty "TANKER_CONFIG_FILEPATH", System.getProperty("TANKER_CONFIG_FILEPATH")
+        }
+    }
+
+    sourceSets.main {
+        java.srcDirs += 'src/main/kotlin'
+    }
+
+    sourceSets.test {
+        java.srcDirs += 'src/test/kotlin'
+    }
+
+    sourceSets.debug {
+        jni.srcDirs = []
+        jniLibs.srcDir 'src/debug/jniLibs'
+    }
+
+    sourceSets.release {
+        jni.srcDirs = []
+        jniLibs.srcDir 'src/release/jniLibs'
+    }
+}
+
+class Helper {
+    public static def runCmd(cmd, path) {
+        print("${path}: ${cmd} \n")
+        def sout = new StringBuilder(), serr = new StringBuilder()
+        def proc = cmd.execute(null, path)
+        proc.consumeProcessOutput(sout, serr)
+        proc.waitFor()
+        println "$sout $serr"
+        if (proc.exitValue() != 0) {
+            throw new Exception("out> $sout err> $serr" + "\nCommand: ${cmd}")
+        }
+    }
+}
+
+class BuildNativeFromSourcesTask extends DefaultTask {
+    String projectPath
+    String buildType
+
+    static def runConan(buildPath, installPath, sourcePath, buildType, arch, profile) {
+        buildPath.mkdirs()
+        installPath.mkdirs()
+        Helper.runCmd("conan install $sourcePath --profile $profile --build missing --options shared=True --settings build_type=$buildType --settings arch=$arch --install-folder $buildPath", sourcePath)
+        Helper.runCmd("conan build --configure --build --install $sourcePath --package-folder $installPath --build-folder $buildPath", sourcePath)
+    }
+
+    @TaskAction
+    void compile() {
+        def androidBuildType = buildType.toLowerCase()
+        def buildPathBase = projectPath+"/../../Native/build/android/$buildType"
+        def installPathBase = projectPath+"/src/$androidBuildType/jniLibs/"
+        def sourcePath = new File(projectPath+"/../../Native")
+
+        // Run each known android arch (except x86, known bug)
+        def conanAndroidArchs = ["x86_64": "x86_64", "x86": "x86", "armeabi-v7a":"armv7", "arm64-v8a": "armv8"]
+        conanAndroidArchs.each{ k, v ->
+            def buildPath = new File("$buildPathBase/$k")
+            def installPath = new File("$installPathBase/$k")
+            runConan(buildPath, installPath, sourcePath, buildType, v, "android")
+            Helper.runCmd("cp lib/libtanker.so .", installPath)
+        }
+
+        // Last run for host build (used for unit testing)
+        def buildPath = new File(projectPath+"/../../Native/build/host/$buildType/")
+        def installPath = new File(projectPath+"/conan/host/")
+        def profile = System.getenv("CI") ? "gcc8" : "default"
+        runConan(buildPath, installPath, sourcePath, buildType, "x86_64", profile)
+    }
+}
+
+class FetchNativeBinariesTask extends DefaultTask {
+    String projectPath
+    String buildType
+
+    static def runConan(installPath, sourcePath, buildType, arch, profile) {
+        installPath.mkdirs()
+        Helper.runCmd("conan install $sourcePath --profile $profile --build missing --settings build_type=$buildType --settings arch=$arch --install-folder $installPath", sourcePath)
+    }
+
+    @TaskAction
+    void compile() {
+        def androidBuildType = buildType.toLowerCase()
+        def installPathBase = projectPath+"/src/$androidBuildType/jniLibs/"
+        def sourcePath = new File(projectPath+"/conan")
+
+        // Run each known android arch (except x86, known bug)
+        def conanAndroidArchs = ["x86_64": "x86_64", "x86": "x86", "armeabi-v7a":"armv7", "arm64-v8a": "armv8"]
+        conanAndroidArchs.each{ k, v ->
+            def installPath = new File("$installPathBase/$k")
+            runConan(installPath, sourcePath, buildType, v, "android")
+        }
+
+        // Last run for host build (used for unit testing)
+        def installPath = new File(projectPath+"/conan/host/lib")
+        def profile = System.getenv("CI") ? "gcc8" : "default"
+        runConan(installPath, sourcePath, buildType, "x86_64", profile)
+    }
+}
+
+task buildNativeFromSourcesDebug(type: BuildNativeFromSourcesTask) {
+    projectPath = projectDir.absolutePath
+    buildType = "Debug"
+}
+
+task buildNativeFromSourcesRelease(type: BuildNativeFromSourcesTask) {
+    projectPath = projectDir.absolutePath
+    buildType = "Release"
+}
+
+task fetchNativeBinariesDebug(type: FetchNativeBinariesTask) {
+    projectPath = projectDir.absolutePath
+    buildType = "Debug"
+}
+
+task fetchNativeBinariesRelease(type: FetchNativeBinariesTask) {
+    projectPath = projectDir.absolutePath
+    buildType = "Release"
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javaDocJar(type: Jar, dependsOn: dokka) {
+    from dokka.outputDirectory
+    classifier = 'javadoc'
+}
+
+dependencies {
+    api "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.17'
+    testImplementation "io.kotlintest:kotlintest:2.0.7"
+    api "net.java.dev.jna:jna:4.5.1@aar"
+    testImplementation "net.java.dev.jna:jna:4.5.1"
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7'
+}
+
+clean {
+    delete "conan/build"
+}
+
+dokka {
+    outputFormat = 'javadoc'
+
+    // Exclude JNA R class
+    packageOptions {
+        prefix = "com.sun.jna"
+        suppress = true
+    }
+
+    // Exclude our R class
+    packageOptions {
+        prefix = "io.tanker.tanker_bindings"
+        suppress = true
+    }
+
+    // Exclude low-level JNA bindings
+    packageOptions {
+        prefix = "io.tanker.bindings"
+        suppress = true
+    }
+
+    // Exclude UserToken api
+    packageOptions {
+        prefix = "io.tanker.api.UserToken"
+        suppress = true
+    }
+}
+
+artifacts {
+    archives javaDocJar
+    archives sourcesJar
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "file:///${findProperty("artifactsPath")}")
+        }
+    }
+}
