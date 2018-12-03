@@ -9,4 +9,5 @@ enum class TankerEvent(val value: Int) {
     SESSION_CLOSED(1),
     DEVICE_CREATED(2),
     UNLOCK_REQUIRED(3),
+    DEVICE_REVOKED(4),
 }

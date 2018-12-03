@@ -1,6 +1,7 @@
 package io.tanker.api
 
 import android.util.Log
+import com.sun.jna.Callback
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.StringArray
@@ -9,6 +10,7 @@ import io.tanker.bindings.TankerEvent
 import io.tanker.bindings.TankerLib
 import io.tanker.bindings.TankerUnlockMethod
 import io.tanker.jni.KVMx86Bug
+import java.util.concurrent.Callable
 
 /**
  * Main entry point for the Tanker SDK. Can open a TankerSession.
@@ -535,6 +537,29 @@ class Tanker(tankerOptions: TankerOptions) {
             }
         }
         val fut = lib.tanker_event_connect(tanker, TankerEvent.DEVICE_CREATED, callbackWrapper, Pointer(0))
+        return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
+            val connection = it.get()
+            eventCallbackLifeSupport[connection] = callbackWrapper
+            TankerConnection(connection)
+        }).get()
+    }
+
+    /**
+     * Subscribes to the "Device Revoked" Tanker event.
+     * @param callback The function to call when the event happens.
+     * @return A connection, which can be passed to disconnectEvent.
+     */
+    fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler): TankerConnection {
+        val callbackWrapper = object : TankerLib.EventCallback {
+            override fun callback(arg: Pointer?) {
+                try {
+                    eventCallback.call()
+                } catch (e: Throwable) {
+                    Log.w(LOG_TAG, e)
+                }
+            }
+        }
+        val fut = lib.tanker_event_connect(tanker, TankerEvent.DEVICE_REVOKED, callbackWrapper, Pointer(0))
         return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
             val connection = it.get()
             eventCallbackLifeSupport[connection] = callbackWrapper
