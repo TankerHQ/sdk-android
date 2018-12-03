@@ -5,6 +5,7 @@ import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kotlintest.TestCaseConfig
 import io.kotlintest.seconds
+import io.tanker.bindings.TankerErrorCode
 import io.tanker.bindings.TankerLib
 import java.util.*
 import io.tanker.utils.Base64
@@ -127,6 +128,72 @@ class TankerTests : StringSpec() {
             val encryptOptions = TankerEncryptOptions().setRecipients(bobId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+
+            tankerAlice.close().get()
+            tankerBob.close().get()
+        }
+
+        "Can self-revoke" {
+            val aliceId = UUID.randomUUID().toString()
+            var revoked = false
+
+            val tankerAlice = Tanker(options)
+            tankerAlice.open(aliceId, tc.generateUserToken(aliceId)).get()
+            tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
+                revoked = true
+            })
+            tankerAlice.revokeDevice(tankerAlice.getDeviceId().get()).get()
+            Thread.sleep(500)
+            tankerAlice.getStatus() shouldEqual TankerStatus.IDLE
+            revoked shouldEqual true
+
+            tankerAlice.close().get()
+        }
+
+        "Can revoke another device of the same user" {
+            val aliceId = UUID.randomUUID().toString()
+            var revoked = false
+
+            val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
+            tankerAlice1.open(aliceId, tc.generateUserToken(aliceId)).get()
+            val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
+            tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
+                revoked = true
+            })
+
+            val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
+            tankerAlice2.connectUnlockRequiredHandler(TankerUnlockRequiredHandler{
+                tankerAlice2.unlockCurrentDeviceWithUnlockKey(unlockKey).get()
+            })
+            tankerAlice2.open(aliceId, tc.generateUserToken(aliceId)).get()
+            tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
+            Thread.sleep(500)
+            tankerAlice1.getStatus() shouldEqual TankerStatus.IDLE
+            revoked shouldEqual true
+
+            tankerAlice1.close().get()
+            tankerAlice2.close().get()
+        }
+
+        "Cannot revoke a device of another user" {
+            val aliceId = UUID.randomUUID().toString()
+            val bobId = UUID.randomUUID().toString()
+
+            val tankerAlice = Tanker(options)
+            tankerAlice.open(aliceId, tc.generateUserToken(aliceId)).get()
+            tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
+                assert(false)
+            })
+
+            val tankerBob = Tanker(options)
+            tankerBob.open(bobId, tc.generateUserToken(bobId)).get()
+
+            val aliceDevId = tankerAlice.getDeviceId().get()
+            val e = shouldThrow<TankerFutureException> {
+                tankerBob.revokeDevice(aliceDevId).get()
+            }
+            assert(e.cause is TankerException)
+            assert((e.cause as TankerException).errorCode == TankerErrorCode.DEVICE_NOT_FOUND)
 
             tankerAlice.close().get()
             tankerBob.close().get()
