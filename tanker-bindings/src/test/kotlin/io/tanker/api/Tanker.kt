@@ -1,14 +1,13 @@
 package io.tanker.api
+import io.kotlintest.TestCaseConfig
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldEqual
 import io.kotlintest.matchers.shouldThrow
-import io.kotlintest.specs.StringSpec
-import io.kotlintest.TestCaseConfig
 import io.kotlintest.seconds
+import io.kotlintest.specs.StringSpec
 import io.tanker.bindings.TankerErrorCode
-import io.tanker.bindings.TankerLib
-import java.util.*
 import io.tanker.utils.Base64
+import java.util.*
 
 class TankerTests : StringSpec() {
     private val options = TankerOptions()
@@ -155,17 +154,18 @@ class TankerTests : StringSpec() {
             var revoked = false
 
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tankerAlice1.open(aliceId, tc.generateUserToken(aliceId)).get()
-            val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
             tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
                 revoked = true
             })
+            tankerAlice1.open(aliceId, tc.generateUserToken(aliceId)).get()
+            val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
 
             val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice2.connectUnlockRequiredHandler(TankerUnlockRequiredHandler{
                 tankerAlice2.unlockCurrentDeviceWithUnlockKey(unlockKey).get()
             })
             tankerAlice2.open(aliceId, tc.generateUserToken(aliceId)).get()
+
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
             Thread.sleep(500)
             tankerAlice1.getStatus() shouldEqual TankerStatus.IDLE

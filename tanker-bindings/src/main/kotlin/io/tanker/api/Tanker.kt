@@ -470,12 +470,7 @@ class Tanker(tankerOptions: TankerOptions) {
         })
     }
 
-    /**
-     * Subscribes to the "Unlock Required" Tanker event.
-     * @param callback The function to call when the event happens.
-     * @return A connection future, whose result can be passed to disconnectEvent.
-     */
-    fun connectUnlockRequiredHandler(eventCallback: TankerUnlockRequiredHandler): TankerConnection {
+    private fun connectGenericHandler(cb: (Pointer?) -> Unit, event: TankerEvent): TankerConnection {
         // We don't want to let the user run code directly on the callback thread,
         // because blocking in the callback prevents progress and could deadlock us.
         // Instead we wrap in a future to move the handler to another thread, and run asynchronously
@@ -488,19 +483,28 @@ class Tanker(tankerOptions: TankerOptions) {
             override fun callback(arg: Pointer?) {
                 moveThreadFuture.then(TankerVoidCallback {
                     try {
-                        eventCallback.call()
+                        cb(arg)
                     } catch (e: Throwable) {
                         Log.e(LOG_TAG, "Caught exception in event handler:", e)
                     }
                 })
             }
         }
-        val fut = lib.tanker_event_connect(tanker, TankerEvent.UNLOCK_REQUIRED, callbackWrapper, Pointer(0))
+        val fut = lib.tanker_event_connect(tanker, event, callbackWrapper, Pointer(0))
         return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
             val connection = it.get()
             eventCallbackLifeSupport[connection] = callbackWrapper
             TankerConnection(connection)
         }).get()
+    }
+
+    /**
+     * Subscribes to the "Unlock Required" Tanker event.
+     * @param callback The function to call when the event happens.
+     * @return A connection future, whose result can be passed to disconnectEvent.
+     */
+    fun connectUnlockRequiredHandler(eventCallback: TankerUnlockRequiredHandler): TankerConnection {
+        return connectGenericHandler({eventCallback.call()}, TankerEvent.UNLOCK_REQUIRED)
     }
 
     /**
@@ -509,21 +513,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A connection future, whose result can be passed to disconnectEvent.
      */
     fun connectSessionClosedHandler(eventCallback: TankerSessionClosedHandler): TankerConnection {
-        val callbackWrapper = object : TankerLib.EventCallback {
-            override fun callback(arg: Pointer?) {
-                try {
-                    eventCallback.call()
-                } catch (e: Throwable) {
-                    Log.e(LOG_TAG, "Caught exception in event handler:", e)
-                }
-            }
-        }
-        val fut = lib.tanker_event_connect(tanker, TankerEvent.SESSION_CLOSED, callbackWrapper, Pointer(0))
-        return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
-            val connection = it.get()
-            eventCallbackLifeSupport[connection] = callbackWrapper
-            TankerConnection(connection)
-        }).get()
+        return connectGenericHandler({eventCallback.call()}, TankerEvent.SESSION_CLOSED)
     }
 
     /**
@@ -532,21 +522,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A connection, which can be passed to disconnectEvent.
      */
     fun connectDeviceCreatedHandler(eventCallback: TankerDeviceCreatedHandler): TankerConnection {
-        val callbackWrapper = object : TankerLib.EventCallback {
-            override fun callback(arg: Pointer?) {
-                try {
-                    eventCallback.call()
-                } catch (e: Throwable) {
-                    Log.e(LOG_TAG, "Caught exception in event handler:", e)
-                }
-            }
-        }
-        val fut = lib.tanker_event_connect(tanker, TankerEvent.DEVICE_CREATED, callbackWrapper, Pointer(0))
-        return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
-            val connection = it.get()
-            eventCallbackLifeSupport[connection] = callbackWrapper
-            TankerConnection(connection)
-        }).get()
+        return connectGenericHandler({eventCallback.call()}, TankerEvent.DEVICE_CREATED)
     }
 
     /**
@@ -555,21 +531,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A connection, which can be passed to disconnectEvent.
      */
     fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler): TankerConnection {
-        val callbackWrapper = object : TankerLib.EventCallback {
-            override fun callback(arg: Pointer?) {
-                try {
-                    eventCallback.call()
-                } catch (e: Throwable) {
-                    Log.e(LOG_TAG, "Caught exception in event handler:", e)
-                }
-            }
-        }
-        val fut = lib.tanker_event_connect(tanker, TankerEvent.DEVICE_REVOKED, callbackWrapper, Pointer(0))
-        return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
-            val connection = it.get()
-            eventCallbackLifeSupport[connection] = callbackWrapper
-            TankerConnection(connection)
-        }).get()
+        return connectGenericHandler({eventCallback.call()}, TankerEvent.DEVICE_REVOKED)
     }
 
     /**
