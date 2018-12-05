@@ -28,7 +28,7 @@ class GroupTests : StringSpec() {
             tankerAlice.open(aliceId, tc.generateUserToken(aliceId)).get()
 
             val e = shouldThrow<TankerFutureException> {
-                tankerAlice.createGroup(arrayOf()).get()
+                tankerAlice.createGroup().get()
             }
             (e.cause is TankerException) shouldBe true
             (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_GROUP_SIZE
@@ -46,7 +46,7 @@ class GroupTests : StringSpec() {
             val tankerBob = Tanker(options)
             tankerBob.open(bobId, tc.generateUserToken(bobId)).get()
 
-            tankerAlice.createGroup(arrayOf(aliceId, bobId)).get()
+            tankerAlice.createGroup(aliceId, bobId).get()
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -62,7 +62,7 @@ class GroupTests : StringSpec() {
 
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
-            val groupId = tankerAlice.createGroup(arrayOf(aliceId, bobId)).get()
+            val groupId = tankerAlice.createGroup(aliceId, bobId).get()
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
 
             String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
@@ -80,7 +80,7 @@ class GroupTests : StringSpec() {
             tankerBob.open(bobId, tc.generateUserToken(bobId)).get()
 
             val plaintext = "Two's company, three's a crowd"
-            val groupId = tankerAlice.createGroup(arrayOf(aliceId, bobId)).get()
+            val groupId = tankerAlice.createGroup(aliceId, bobId).get()
             val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
@@ -98,7 +98,7 @@ class GroupTests : StringSpec() {
             val tankerBob = Tanker(options)
             tankerBob.open(bobId, tc.generateUserToken(bobId)).get()
 
-            val groupId = tankerAlice.createGroup(arrayOf(aliceId)).get()
+            val groupId = tankerAlice.createGroup(aliceId).get()
 
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerBob.encrypt(plaintext.toByteArray()).get()
@@ -119,7 +119,7 @@ class GroupTests : StringSpec() {
             tankerBob.open(bobId, tc.generateUserToken(bobId)).get()
 
             val plaintext = "Two's company, three's a crowd"
-            val groupId = tankerAlice.createGroup(arrayOf(aliceId)).get()
+            val groupId = tankerAlice.createGroup(aliceId).get()
             val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
@@ -142,7 +142,7 @@ class GroupTests : StringSpec() {
             val tankerCharlie = Tanker(options)
             tankerCharlie.open(charlieId, tc.generateUserToken(charlieId)).get()
 
-            val groupId = tankerAlice.createGroup(arrayOf(bobId)).get()
+            val groupId = tankerAlice.createGroup(bobId).get()
             tankerBob.updateGroupMembers(groupId, usersToAdd = arrayOf(charlieId)).get()
             tankerCharlie.updateGroupMembers(groupId, usersToAdd = arrayOf(aliceId)).get()
 

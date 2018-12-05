@@ -401,7 +401,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * Create a group with the given members
      * @return A future of the group ID
      */
-    fun createGroup(memberUserIds: Array<String>): TankerFuture<String>
+    fun createGroup(vararg memberUserIds: String): TankerFuture<String>
     {
         val fut = lib.tanker_create_group(tanker, StringArray(memberUserIds), memberUserIds.size.toLong())
         return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback{
