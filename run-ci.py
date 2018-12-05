@@ -3,6 +3,7 @@ import argparse
 
 import ci.android
 import ci.cpp
+import ci.git
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
 
     subparsers.add_parser("deploy")
 
+    subparsers.add_parser("mirror")
+
     args = parser.parse_args()
 
     if args.command == "update-conan-config":
@@ -27,6 +30,11 @@ def main():
         ci.android.check(native_from_sources=args.native_from_sources)
     elif args.command == "deploy":
         ci.android.deploy()
+    elif args.command == "mirror":
+        ci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
+    else:
+        parser.print_help()
+        sys.exit(1)
 
 
 if __name__ == "__main__":
