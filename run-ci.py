@@ -19,7 +19,8 @@ def main():
         "--native-from-sources", action="store_true", dest="native_from_sources"
     )
 
-    subparsers.add_parser("deploy")
+    deploy_parser = subparsers.add_parser("deploy")
+    deploy_parser.add_argument("--git-tag", required=True)
 
     subparsers.add_parser("mirror")
 
@@ -30,7 +31,7 @@ def main():
     elif args.command == "check":
         ci.android.check(native_from_sources=args.native_from_sources)
     elif args.command == "deploy":
-        ci.android.deploy()
+        ci.android.deploy(git_tag=args.git_tag)
     elif args.command == "mirror":
         ci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
     else:
