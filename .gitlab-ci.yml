@@ -12,6 +12,8 @@ stages:
 check/native-stable:
   when: manual
   stage: check
+  except:
+    - tags
   script:
     - dmenv run -- python run-ci.py check
   tags:
@@ -20,6 +22,8 @@ check/native-stable:
 check/native-from-sources:
   when: manual
   stage: check
+  except:
+    - tags
   script:
     - dmenv run -- python run-ci.py check --native-from-sources
   tags:
