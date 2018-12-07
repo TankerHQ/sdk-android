@@ -105,9 +105,9 @@ class BuildNativeFromSourcesTask extends DefaultTask {
     @TaskAction
     void compile() {
         def androidBuildType = buildType.toLowerCase()
-        def buildPathBase = projectPath+"/../../Native/build/android/$buildType"
+        def buildPathBase = projectPath+"/../../sdk-native/build/android/$buildType"
         def installPathBase = projectPath+"/src/$androidBuildType/jniLibs/"
-        def sourcePath = new File(projectPath+"/../../Native")
+        def sourcePath = new File(projectPath+"/../../sdk-native")
 
         // Run each known android arch (except x86, known bug)
         def conanAndroidArchs = ["x86_64": "x86_64", "x86": "x86", "armeabi-v7a":"armv7", "arm64-v8a": "armv8"]
@@ -119,7 +119,7 @@ class BuildNativeFromSourcesTask extends DefaultTask {
         }
 
         // Last run for host build (used for unit testing)
-        def buildPath = new File(projectPath+"/../../Native/build/host/$buildType/")
+        def buildPath = new File(projectPath+"/../../sdk-native/build/host/$buildType/")
         def installPath = new File(projectPath+"/conan/host/")
         def profile = System.getenv("CI") ? "gcc8" : "default"
         runConan(buildPath, installPath, sourcePath, buildType, "x86_64", profile)
