@@ -18,6 +18,7 @@ class TankerTests : StringSpec() {
         options.setTrustchainId(tc.id())
                 .setTrustchainUrl(tc.url)
                 .setWritablePath(createTmpDir().toString())
+                .setSdkType("test")
         setupTestEnv()
     }
 
