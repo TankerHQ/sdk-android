@@ -7,7 +7,7 @@ apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 group 'io.tanker'
-version '1.9.0'
+version 'dev'
 
 
 android {
