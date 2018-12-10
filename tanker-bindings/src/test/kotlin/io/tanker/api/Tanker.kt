@@ -1,11 +1,11 @@
 package io.tanker.api
-import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldEqual
 import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.specs.StringSpec
 import io.kotlintest.TestCaseConfig
+import io.kotlintest.matchers.haveLength
+import io.kotlintest.matchers.shouldNot
 import io.kotlintest.seconds
-import io.tanker.bindings.TankerLib
 import java.util.*
 import io.tanker.utils.Base64
 
@@ -33,8 +33,8 @@ class TankerTests : StringSpec() {
         }
 
         "Can get a valid version string" {
-            val numbersAndDotsThenAnything = Regex("^([0-9]+\\.)+.*$")
-            Tanker.getVersionString().matches(numbersAndDotsThenAnything) shouldBe true
+            val versionString: String = Tanker.getNativeVersionString()
+            versionString shouldNot haveLength(0)
         }
 
         "Can open a Tanker session with a new token" {

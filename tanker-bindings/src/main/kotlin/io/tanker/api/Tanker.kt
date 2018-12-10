@@ -16,7 +16,7 @@ import io.tanker.jni.KVMx86Bug
 class Tanker(tankerOptions: TankerOptions) {
     companion object {
         private const val LOG_TAG = "io.tanker.sdk"
-        private const val TANKER_ANDROID_VERSION = "1.9.0"
+        private const val TANKER_ANDROID_VERSION = "dev"
 
         private val lib = TankerLib.create()
         private var logCallbackLifeSupport: TankerLib.LogHandlerCallback? = null
