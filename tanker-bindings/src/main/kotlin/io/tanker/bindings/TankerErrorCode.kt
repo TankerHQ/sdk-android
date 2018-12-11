@@ -27,4 +27,5 @@ enum class TankerErrorCode(val value: Int) {
     INVALID_GROUP_SIZE(19),
     RECIPIENT_NOT_FOUND(20),
     GROUP_NOT_FOUND(21),
+    DEVICE_NOT_FOUND(22),
 }
