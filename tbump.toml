@@ -30,3 +30,7 @@ search = "version '{current_version}'"
 [[file]]
 src = "tanker-bindings/src/main/kotlin/io/tanker/api/Tanker.kt"
 search = 'TANKER_ANDROID_VERSION = "{current_version}"'
+
+[[file]]
+src = "tanker-bindings/src/main/kotlin/io/tanker/api/TankerOptions.kt"
+search = 'sdkVersion: String = "{current_version}"'

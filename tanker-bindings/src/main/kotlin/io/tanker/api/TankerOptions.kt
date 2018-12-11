@@ -10,10 +10,12 @@ import com.sun.jna.Structure
  */
 open class TankerOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
-    @JvmField var version: Byte = 1
+    @JvmField var version: Byte = 2
     @JvmField var trustchainId: String? = null
     @JvmField var trustchainUrl: String? = null
     @JvmField var writablePath: String? = null
+    @JvmField var sdkType: String = "client-android"
+    @JvmField var sdkVersion: String = "1.9.0"
 
     /**
      * Mandatory. Sets the trustchain to use for the TankerSession.
@@ -29,6 +31,11 @@ open class TankerOptions : Structure() {
         return this
     }
 
+    internal fun setSdkType(sdkType: String): TankerOptions {
+        this.sdkType = sdkType
+        return this
+    }
+
     /**
      * Mandatory. The path on disk where the Tanker SDK will save data and key material.
      */
@@ -38,6 +45,6 @@ open class TankerOptions : Structure() {
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "trustchainId", "trustchainUrl", "writablePath")
+        return listOf("version", "trustchainId", "trustchainUrl", "writablePath", "sdkType", "sdkVersion")
     }
 }
