@@ -15,7 +15,7 @@ open class TankerOptions : Structure() {
     @JvmField var trustchainUrl: String? = null
     @JvmField var writablePath: String? = null
     @JvmField var sdkType: String = "client-android"
-    @JvmField var sdkVersion: String = "1.9.0"
+    @JvmField var sdkVersion: String = "dev"
 
     /**
      * Mandatory. Sets the trustchain to use for the TankerSession.
