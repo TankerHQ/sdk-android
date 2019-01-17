@@ -9,7 +9,7 @@ stages:
   - check
   - deploy
 
-check/native-stable:
+check/deployed-native:
   when: manual
   stage: check
   except:

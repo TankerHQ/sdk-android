@@ -126,7 +126,7 @@ class BuildNativeFromSourcesTask extends DefaultTask {
     }
 }
 
-class FetchNativeBinariesTask extends DefaultTask {
+class UseDeployedNative extends DefaultTask {
     String projectPath
     String buildType
 
@@ -165,12 +165,12 @@ task buildNativeFromSourcesRelease(type: BuildNativeFromSourcesTask) {
     buildType = "Release"
 }
 
-task fetchNativeBinariesDebug(type: FetchNativeBinariesTask) {
+task useDeployedNativeDebug(type: UseDeployedNative) {
     projectPath = projectDir.absolutePath
     buildType = "Debug"
 }
 
-task fetchNativeBinariesRelease(type: FetchNativeBinariesTask) {
+task useDeployedNativeRelease(type: UseDeployedNative) {
     projectPath = projectDir.absolutePath
     buildType = "Release"
 }
