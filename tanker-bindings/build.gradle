@@ -186,7 +186,7 @@ task javaDocJar(type: Jar, dependsOn: dokka) {
 }
 
 dependencies {
-    api "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.17'
     testImplementation "io.kotlintest:kotlintest:2.0.7"
