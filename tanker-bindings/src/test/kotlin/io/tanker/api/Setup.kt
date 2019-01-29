@@ -1,11 +1,11 @@
 package io.tanker.api
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.tanker.bindings.TankerLib
+import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
-import com.fasterxml.jackson.module.kotlin.*
-import java.io.File
 
 data class ConfigData(val idToken: String, val url: String)
 

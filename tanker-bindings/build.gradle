@@ -16,8 +16,6 @@ android {
         minSdkVersion 21
         targetSdkVersion 28
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
         ndk {
             moduleName "tanker-bindings-jni"
         }
@@ -46,7 +44,9 @@ android {
     }
 
     testOptions {
+
         unitTests.all {
+            useJUnitPlatform()
             testLogging {
                 events "passed", "skipped", "failed", "standardOut", "standardError"
                 outputs.upToDateWhen {false}
@@ -189,7 +189,8 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.17'
-    testImplementation "io.kotlintest:kotlintest:2.0.7"
+    testImplementation "io.kotlintest:kotlintest-core:3.1.11"
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:3.1.11"
     api "net.java.dev.jna:jna:4.5.1@aar"
     testImplementation "net.java.dev.jna:jna:4.5.1"
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

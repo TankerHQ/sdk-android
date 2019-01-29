@@ -1,25 +1,11 @@
 package io.tanker.api
-import io.kotlintest.TestCaseConfig
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldEqual
-import io.kotlintest.matchers.shouldThrow
-import io.kotlintest.seconds
-import io.kotlintest.specs.StringSpec
-import io.tanker.bindings.TankerError
+
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
 import java.util.*
 
-class GroupTests : StringSpec() {
-    private val options = TankerOptions()
-    override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
-    private val tc = TestTrustchain.get()
-
-    init {
-        options.setTrustchainId(tc.id())
-                .setTrustchainUrl(tc.url)
-                .setWritablePath(createTmpDir().toString())
-        setupTestEnv()
-    }
+class GroupTests : TankerSpec() {
 
     init {
         "Cannot create an empty group" {
@@ -65,7 +51,7 @@ class GroupTests : StringSpec() {
             val groupId = tankerAlice.createGroup(aliceId, bobId).get()
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
 
-            String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -84,7 +70,7 @@ class GroupTests : StringSpec() {
             val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
-            String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -104,7 +90,7 @@ class GroupTests : StringSpec() {
             val encrypted = tankerBob.encrypt(plaintext.toByteArray()).get()
             tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
 
-            String(tankerAlice.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -125,7 +111,7 @@ class GroupTests : StringSpec() {
 
             tankerAlice.updateGroupMembers(groupId, usersToAdd = arrayOf(bobId)).get()
 
-            String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -149,7 +135,7 @@ class GroupTests : StringSpec() {
             val plaintext = "plain text"
             val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerCharlie.encrypt(plaintext.toByteArray(), encryptOptions).get()
-            String(tankerAlice.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()

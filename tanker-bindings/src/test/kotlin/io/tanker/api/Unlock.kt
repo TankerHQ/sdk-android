@@ -1,32 +1,21 @@
 package io.tanker.api
 
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.Description
+import io.kotlintest.Spec
 import io.kotlintest.matchers.shouldThrow
-import io.kotlintest.specs.StringSpec
-import io.kotlintest.TestCaseConfig
-import io.kotlintest.seconds
+import io.kotlintest.shouldBe
 import io.tanker.bindings.TankerErrorCode
-import io.tanker.bindings.TankerLib
 import io.tanker.bindings.TankerUnlockMethod
 import java.util.*
 
 
-class UnlockTests : StringSpec() {
-    private val options = TankerOptions()
-    private val userId: String
-    private val token: String
-    private val tanker1: Tanker
-    private val tanker2: Tanker
-    override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
+class UnlockTests : TankerSpec() {
+    lateinit var userId: String
+    lateinit var token: String
+    lateinit var tanker1: Tanker
+    lateinit var tanker2: Tanker
 
-    init {
-        val tc = TestTrustchain.get()
-        options.setTrustchainId(tc.id())
-                .setTrustchainUrl(tc.url)
-                .setWritablePath(createTmpDir().toString())
-        setupTestEnv()
-
+    override fun beforeTest(description: Description) {
         userId = UUID.randomUUID().toString()
         token = tc.generateUserToken(userId)
         tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
@@ -42,7 +31,7 @@ class UnlockTests : StringSpec() {
                 tanker2.unlockCurrentDeviceWithUnlockKey(unlockKey).get()
             })
             tanker2.open(userId, token).get()
-            tanker2.getStatus() shouldEqual TankerStatus.OPEN
+            tanker2.getStatus() shouldBe TankerStatus.OPEN
             tanker2.close().get()
         }
 
@@ -55,7 +44,7 @@ class UnlockTests : StringSpec() {
                 tanker2.unlockCurrentDevice(UnlockKey(unlockKey)).get()
             })
             tanker2.open(userId, token).get()
-            tanker2.getStatus() shouldEqual TankerStatus.OPEN
+            tanker2.getStatus() shouldBe TankerStatus.OPEN
             tanker2.close().get()
         }
 
@@ -71,7 +60,7 @@ class UnlockTests : StringSpec() {
                 tanker2.unlockCurrentDeviceWithPassword(pass).get()
             })
             tanker2.open(userId, token).get()
-            tanker2.getStatus() shouldEqual TankerStatus.OPEN
+            tanker2.getStatus() shouldBe TankerStatus.OPEN
             tanker2.isUnlockAlreadySetUp().get() shouldBe true
             tanker2.close().get()
         }
@@ -89,7 +78,7 @@ class UnlockTests : StringSpec() {
                 tanker2.unlockCurrentDevice(Password(pass)).get()
             })
             tanker2.open(userId, token).get()
-            tanker2.getStatus() shouldEqual TankerStatus.OPEN
+            tanker2.getStatus() shouldBe TankerStatus.OPEN
             tanker2.isUnlockAlreadySetUp().get() shouldBe true
             tanker2.close().get()
         }
@@ -153,7 +142,7 @@ class UnlockTests : StringSpec() {
                 tanker2.unlockCurrentDeviceWithPassword(pass).get()
             })
             tanker2.open(userId, token).get()
-            String(tanker2.decrypt(secret).get()) shouldEqual plainText
+            String(tanker2.decrypt(secret).get()) shouldBe plainText
             tanker2.close().get()
         }
 
