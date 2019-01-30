@@ -1,27 +1,17 @@
 package io.tanker.api
 
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
-import io.kotlintest.specs.StringSpec
-import io.kotlintest.TestCaseConfig
-import io.kotlintest.seconds
+import io.kotlintest.Description
+import io.kotlintest.Spec
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
-import io.tanker.bindings.TankerLib
-import org.junit.Test
 import java.util.*
 
-class ChunkEncryptorTests : StringSpec() {
-    private val options = TankerOptions()
-    private val tanker: Tanker
-    override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
+class ChunkEncryptorTests : TankerSpec() {
+    lateinit var tanker: Tanker
 
-    init {
-        val tc = TestTrustchain.get()
-        options.setTrustchainId(tc.id())
-                .setTrustchainUrl(Config.getTrustchainUrl())
-                .setWritablePath(createTmpDir().toString())
-        setupTestEnv()
-
+    override fun beforeSpec(spec: Spec) {
+        super.beforeSpec(spec)
         tanker = Tanker(options)
         val userId = UUID.randomUUID().toString()
         val token = tc.generateUserToken(userId)

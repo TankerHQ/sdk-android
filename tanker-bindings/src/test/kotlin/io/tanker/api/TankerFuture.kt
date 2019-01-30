@@ -1,24 +1,27 @@
 package io.tanker.api
 
 import com.sun.jna.Pointer
-import io.kotlintest.matchers.should
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldThrow
+import io.kotlintest.*
 import io.kotlintest.specs.StringSpec
-import io.kotlintest.TestCaseConfig
-import io.kotlintest.seconds
+import io.tanker.bindings.FuturePointer
+import io.tanker.bindings.PromisePointer
 import io.tanker.bindings.TankerLib
 
 class FutureTests : StringSpec() {
     private val lib = TankerLib.create()
-    private val tankerPromise = lib.tanker_promise_create()
-    private val tankerFuture = lib.tanker_promise_get_future(tankerPromise)
+    lateinit var tankerPromise: PromisePointer
+    lateinit var tankerFuture: FuturePointer
     override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
 
-    init {
+    override fun beforeTest(description: Description) {
+        tankerPromise = lib.tanker_promise_create()
+        tankerFuture = lib.tanker_promise_get_future(tankerPromise)
         lib.tanker_promise_set_value(tankerPromise, Pointer(0))
     }
 
+    override fun afterTest(description: Description, result: TestResult) {
+        lib.tanker_promise_destroy(tankerPromise)
+    }
     init {
         "Constructing a TankerFuture should not fail" {
             TankerFuture<Unit>(tankerFuture, Unit::class.java)
@@ -291,10 +294,6 @@ class FutureTests : StringSpec() {
             val except = shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
             except.cause!!.cause!!.message shouldBe "Error"
         }
-    }
-
-    init {
-        lib.tanker_promise_destroy(tankerPromise)
     }
 }
 

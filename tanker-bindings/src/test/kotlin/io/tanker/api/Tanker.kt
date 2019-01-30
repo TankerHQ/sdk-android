@@ -1,26 +1,18 @@
 package io.tanker.api
-import io.kotlintest.TestCaseConfig
-import io.kotlintest.matchers.shouldEqual
-import io.kotlintest.matchers.shouldThrow
+
+import io.kotlintest.Description
 import io.kotlintest.matchers.haveLength
-import io.kotlintest.matchers.shouldNot
-import io.kotlintest.seconds
-import io.kotlintest.specs.StringSpec
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldNot
+import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
 import io.tanker.utils.Base64
 import java.util.*
 
-class TankerTests : StringSpec() {
-    private val options = TankerOptions()
-    override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
-    private val tc = TestTrustchain.get()
+class TankerTests : TankerSpec() {
 
-    init {
+    override fun beforeTest(description: Description) {
         options.setTrustchainId(tc.id())
-                .setTrustchainUrl(tc.url)
-                .setWritablePath(createTmpDir().toString())
-                .setSdkType("test")
-        setupTestEnv()
     }
 
     init {
@@ -31,7 +23,7 @@ class TankerTests : StringSpec() {
 
         "Can create a Tanker object" {
             val tanker = Tanker(options)
-            tanker.getStatus() shouldEqual TankerStatus.IDLE
+            tanker.getStatus() shouldBe TankerStatus.IDLE
         }
 
         "Can get a valid version string" {
@@ -44,7 +36,7 @@ class TankerTests : StringSpec() {
             val userId = UUID.randomUUID().toString()
             val token = tc.generateUserToken(userId)
             tanker.open(userId, token).get()
-            tanker.getStatus() shouldEqual TankerStatus.OPEN
+            tanker.getStatus() shouldBe TankerStatus.OPEN
             tanker.close().get()
         }
 
@@ -57,7 +49,7 @@ class TankerTests : StringSpec() {
             val devId = tanker.getDeviceId().get()
             val devIdRoundtrip = Base64.encodeToString(Base64.decode(devId))
 
-            devId shouldEqual devIdRoundtrip
+            devId shouldBe devIdRoundtrip
 
             tanker.close().get()
         }
@@ -70,7 +62,7 @@ class TankerTests : StringSpec() {
 
             val plaintext = "plain text"
             val decrypted = tanker.decrypt(tanker.encrypt(plaintext.toByteArray()).get()).get()
-            String(decrypted) shouldEqual plaintext
+            String(decrypted) shouldBe plaintext
 
             tanker.close().get()
         }
@@ -89,7 +81,7 @@ class TankerTests : StringSpec() {
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
             val shareOptions = TankerShareOptions().shareWithUsers(bobId)
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), shareOptions).get()
-            String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -108,7 +100,7 @@ class TankerTests : StringSpec() {
             val plaintext = "There are no mistakes, just happy accidents"
             val encryptOptions = TankerEncryptOptions().shareWithUsers(bobId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
-            String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -128,7 +120,7 @@ class TankerTests : StringSpec() {
             @Suppress("DEPRECATION")
             val encryptOptions = TankerEncryptOptions().setRecipients(bobId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
-            String(tankerBob.decrypt(encrypted).get()) shouldEqual plaintext
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.close().get()
             tankerBob.close().get()
@@ -145,8 +137,8 @@ class TankerTests : StringSpec() {
             })
             tankerAlice.revokeDevice(tankerAlice.getDeviceId().get()).get()
             Thread.sleep(500)
-            tankerAlice.getStatus() shouldEqual TankerStatus.IDLE
-            revoked shouldEqual true
+            tankerAlice.getStatus() shouldBe TankerStatus.IDLE
+            revoked shouldBe true
 
             tankerAlice.close().get()
         }
@@ -170,8 +162,8 @@ class TankerTests : StringSpec() {
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
             Thread.sleep(500)
-            tankerAlice1.getStatus() shouldEqual TankerStatus.IDLE
-            revoked shouldEqual true
+            tankerAlice1.getStatus() shouldBe TankerStatus.IDLE
+            revoked shouldBe true
 
             tankerAlice1.close().get()
             tankerAlice2.close().get()

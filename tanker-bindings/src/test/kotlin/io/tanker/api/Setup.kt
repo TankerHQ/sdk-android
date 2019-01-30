@@ -1,11 +1,11 @@
 package io.tanker.api
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.tanker.bindings.TankerLib
+import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
-import com.fasterxml.jackson.module.kotlin.*
-import java.io.File
 
 data class ConfigData(val idToken: String, val url: String)
 
@@ -75,28 +75,17 @@ class Trustchain {
         )
     }
 
-    fun id(): String
-    {
+    fun id(): String {
         return descriptor.id!!
     }
+
+    fun delete() {
+        admin.deleteTrustchain(id()).get()
+    }
+
     val url: String = Config.getTrustchainUrl()
 
 }
-
-class TestTrustchain {
-    companion object {
-        var instance: Trustchain? = null
-
-        fun get(): Trustchain {
-            if(instance == null) {
-                instance = Trustchain()
-            }
-            return instance!!
-        }
-    }
-
-}
-
 
 fun createTmpDir(): Path {
     val path = Files.createTempDirectory("tmp-tanker-tests")
