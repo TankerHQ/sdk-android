@@ -1,6 +1,5 @@
 package io.tanker.api
 
-import io.kotlintest.Description
 import io.kotlintest.Spec
 import io.kotlintest.TestCaseConfig
 import io.kotlintest.seconds
@@ -12,7 +11,7 @@ abstract class TankerSpec : StringSpec() {
     lateinit var tc: Trustchain
 
 
-    override fun beforeSpec(description: Description, spec: Spec) {
+    override fun beforeSpec(spec: Spec) {
         tc = Trustchain()
         options.setTrustchainId(tc.id())
                 .setTrustchainUrl(tc.url)
@@ -21,7 +20,7 @@ abstract class TankerSpec : StringSpec() {
         setupTestEnv()
     }
 
-    override fun afterSpec(description: Description, spec: Spec) {
+    override fun afterSpec(spec: Spec) {
         tc.delete()
     }
 }

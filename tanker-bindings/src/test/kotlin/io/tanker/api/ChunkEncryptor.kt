@@ -1,14 +1,17 @@
 package io.tanker.api
 
-import io.kotlintest.*
+import io.kotlintest.Description
+import io.kotlintest.Spec
+import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
 import java.util.*
 
 class ChunkEncryptorTests : TankerSpec() {
     lateinit var tanker: Tanker
 
-    override fun beforeSpec(description: Description, spec: Spec) {
-        super.beforeSpec(description, spec)
+    override fun beforeSpec(spec: Spec) {
+        super.beforeSpec(spec)
         tanker = Tanker(options)
         val userId = UUID.randomUUID().toString()
         val token = tc.generateUserToken(userId)
