@@ -11,12 +11,17 @@ abstract class TankerSpec : StringSpec() {
     override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
     lateinit var tc: Trustchain
 
+
     override fun beforeSpec(description: Description, spec: Spec) {
-        tc = TestTrustchain.get()
+        tc = Trustchain()
         options.setTrustchainId(tc.id())
                 .setTrustchainUrl(tc.url)
                 .setWritablePath(createTmpDir().toString())
                 .setSdkType("test")
         setupTestEnv()
+    }
+
+    override fun afterSpec(description: Description, spec: Spec) {
+        tc.delete()
     }
 }

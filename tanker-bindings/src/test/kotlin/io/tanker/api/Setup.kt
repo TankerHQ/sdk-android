@@ -75,28 +75,17 @@ class Trustchain {
         )
     }
 
-    fun id(): String
-    {
+    fun id(): String {
         return descriptor.id!!
     }
+
+    fun delete() {
+        admin.deleteTrustchain(id()).get()
+    }
+
     val url: String = Config.getTrustchainUrl()
 
 }
-
-class TestTrustchain {
-    companion object {
-        var instance: Trustchain? = null
-
-        fun get(): Trustchain {
-            if(instance == null) {
-                instance = Trustchain()
-            }
-            return instance!!
-        }
-    }
-
-}
-
 
 fun createTmpDir(): Path {
     val path = Files.createTempDirectory("tmp-tanker-tests")
