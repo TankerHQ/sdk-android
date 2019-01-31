@@ -1,5 +1,4 @@
-# Generated with dmenv 0.4.2, python 3.6.7, on Linux
--e git+ssh://git@tanker.gitlab.local/Tanker/ci@1c5094c09a3ce0510cfc14cd417be391bcddac94#egg=ci
+-e git+ssh://git@tanker.gitlab.local/Tanker/ci@81f57fb0f75359dad5da5bb824011029ec66661b#egg=ci
 astroid==2.0.4
 bottle==0.12.13
 certifi==2018.10.15
@@ -19,8 +18,8 @@ lazy-object-proxy==1.3.1
 mandrill==1.0.57
 mccabe==0.6.1
 monotonic==1.5
-mypy==0.641
 mypy-extensions==0.4.1
+mypy==0.641
 node-semver==0.2.0
 packaging==18.0
 patch==1.16
