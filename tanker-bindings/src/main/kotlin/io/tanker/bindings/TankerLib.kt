@@ -40,6 +40,7 @@ interface TankerLib : Library {
         fun callback(category: String, level: Byte, message: String)
     }
 
+    fun tanker_init(): Void
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
     fun tanker_destroy(tanker: Pointer): FuturePointer

@@ -45,6 +45,8 @@ class Tanker(tankerOptions: TankerOptions) {
     private var eventCallbackLifeSupport = HashMap<Pointer, TankerLib.EventCallback>()
 
     init {
+        lib.tanker_init()
+
         if (KVMx86Bug.hasBug()) {
             Log.w("io.tanker.sdk", "Warning: The tanker SDK detected that it is running on an x86 emulator with KVM enabled.\n"
                     +"A hardware-acceleration bug in some versions of the x86_32 Android emulator causes it to crash when starting Tanker.\n"
