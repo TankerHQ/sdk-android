@@ -1,8 +1,11 @@
+image: 10.100.0.1:5000/ci-android:1
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 before_script:
   - dmenv install
+  - export PATH=$(dmenv show:venv_path)/bin:$PATH
   - dmenv run -- python run-ci.py update-conan-config --platform linux
 
 stages:
