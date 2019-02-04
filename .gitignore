@@ -27,6 +27,8 @@ local.properties
 .gradle
 captures
 
+# Kotlintest
+tanker-bindings/.kotlintest
 
 #NDK
 obj/
