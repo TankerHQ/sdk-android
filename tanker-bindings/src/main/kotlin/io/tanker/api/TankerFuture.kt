@@ -1,10 +1,12 @@
 package io.tanker.api
 
+import android.os.Looper
+import android.os.NetworkOnMainThreadException
 import com.sun.jna.Pointer
-import io.tanker.bindings.TankerErrorCode
 import io.tanker.bindings.TankerLib
 import java.lang.reflect.Type
 import java.util.concurrent.Executors
+import android.support.annotation.WorkerThread
 
 class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type) {
     private sealed class ThenResult {
@@ -100,7 +102,12 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
      * Blocks until the future is ready and returns its result
      * Throws if there is an error
      */
+    @WorkerThread
     fun get(): T {
+        val isAndroid = System.getProperty("java.specification.vendor") == "The Android Project"
+        if (isAndroid && Looper.getMainLooper().thread == Thread.currentThread())
+            throw NetworkOnMainThreadException()
+
         lib.tanker_future_wait(cfuture)
         getError()?.let {
             throw TankerFutureException(it)
