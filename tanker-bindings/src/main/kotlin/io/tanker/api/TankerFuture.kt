@@ -1,5 +1,7 @@
 package io.tanker.api
 
+import android.os.Looper
+import android.os.NetworkOnMainThreadException
 import com.sun.jna.Pointer
 import io.tanker.bindings.TankerErrorCode
 import io.tanker.bindings.TankerLib
@@ -101,6 +103,10 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
      * Throws if there is an error
      */
     fun get(): T {
+        val isAndroid = System.getProperty("java.specification.vendor") == "The Android Project"
+        if (isAndroid && Looper.getMainLooper().thread == Thread.currentThread())
+            throw NetworkOnMainThreadException()
+
         lib.tanker_future_wait(cfuture)
         getError()?.let {
             throw TankerFutureException(it)
