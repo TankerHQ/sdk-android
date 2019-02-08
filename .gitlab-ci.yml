@@ -1,4 +1,4 @@
-image: 10.100.0.1:5000/ci-android:latest
+image: docker.local:5000/ci-android:latest
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
