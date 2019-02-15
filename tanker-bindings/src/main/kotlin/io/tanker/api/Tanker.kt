@@ -436,6 +436,9 @@ class Tanker(tankerOptions: TankerOptions) {
      * Creates an empty chunk encryptor.
      * @return A future of the ChunkEncryptor.
      */
+    @Deprecated("Use simple encryption API",
+            ReplaceWith("this.encrypt(data)"),
+            DeprecationLevel.WARNING)
     fun makeChunkEncryptor(): TankerFuture<ChunkEncryptor>
     {
         val fut = lib.tanker_make_chunk_encryptor(tanker)
@@ -449,6 +452,9 @@ class Tanker(tankerOptions: TankerOptions) {
      * Reopen a chunk encryptor using its seal, assuming you can access it.
      * @return A future of the ChunkEncryptor.
      */
+    @Deprecated("Use simple encryption API",
+            ReplaceWith("this.encrypt(data)"),
+            DeprecationLevel.WARNING)
     fun makeChunkEncryptor(seal: ByteArray): TankerFuture<ChunkEncryptor>
     {
         return makeChunkEncryptor(seal, null)
@@ -458,6 +464,9 @@ class Tanker(tankerOptions: TankerOptions) {
      * Reopen a chunk encryptor using its seal and decryption options, assuming you can access it.
      * @return A future of the ChunkEncryptor.
      */
+    @Deprecated("Use simple encryption API",
+            ReplaceWith("this.encrypt(data)"),
+            DeprecationLevel.WARNING)
     fun makeChunkEncryptor(seal: ByteArray,
                            decryptOptions: TankerDecryptOptions?): TankerFuture<ChunkEncryptor>
     {
