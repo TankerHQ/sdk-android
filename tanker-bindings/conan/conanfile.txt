@@ -1,5 +1,5 @@
 [requires]
-tanker/1.9.3@tanker/stable
+tanker/1.10.0@tanker/stable
 
 [imports]
 lib, *tanker*.* -> .
