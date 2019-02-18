@@ -48,8 +48,11 @@ mirror:
     - linux
   stage: deploy
   only:
-    - /\Av[0-9.]+\z/   # public release tags only
+    # mirror public tags, releases branches
+    # and master
+    - /\Av[0-9.]+\z/
     - master
+    - /\Arelease/.*\z/
   except:
     - schedules
   script:
