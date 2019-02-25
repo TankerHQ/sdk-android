@@ -432,55 +432,6 @@ class Tanker(tankerOptions: TankerOptions) {
         return TankerFuture(fut, Unit::class.java)
     }
 
-    /**
-     * Creates an empty chunk encryptor.
-     * @return A future of the ChunkEncryptor.
-     */
-    @Deprecated("Use simple encryption API",
-            ReplaceWith("this.encrypt(data)"),
-            DeprecationLevel.WARNING)
-    fun makeChunkEncryptor(): TankerFuture<ChunkEncryptor>
-    {
-        val fut = lib.tanker_make_chunk_encryptor(tanker)
-
-        return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
-            ChunkEncryptor(lib, it.get())
-        })
-    }
-
-    /**
-     * Reopen a chunk encryptor using its seal, assuming you can access it.
-     * @return A future of the ChunkEncryptor.
-     */
-    @Deprecated("Use simple encryption API",
-            ReplaceWith("this.encrypt(data)"),
-            DeprecationLevel.WARNING)
-    fun makeChunkEncryptor(seal: ByteArray): TankerFuture<ChunkEncryptor>
-    {
-        return makeChunkEncryptor(seal, null)
-    }
-
-    /**
-     * Reopen a chunk encryptor using its seal and decryption options, assuming you can access it.
-     * @return A future of the ChunkEncryptor.
-     */
-    @Deprecated("Use simple encryption API",
-            ReplaceWith("this.encrypt(data)"),
-            DeprecationLevel.WARNING)
-    fun makeChunkEncryptor(seal: ByteArray,
-                           decryptOptions: TankerDecryptOptions?): TankerFuture<ChunkEncryptor>
-    {
-        val inBuf = Memory(seal.size.toLong())
-        inBuf.write(0, seal, 0, seal.size)
-        val fut = lib.tanker_make_chunk_encryptor_from_seal(tanker, inBuf, inBuf.size(), decryptOptions)
-
-        return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
-            @Suppress("UNUSED_VARIABLE")
-            val keepalive = inBuf
-            ChunkEncryptor(lib, it.get())
-        })
-    }
-
     private fun connectGenericHandler(cb: (Pointer?) -> Unit, event: TankerEvent): TankerConnection {
         // We don't want to let the user run code directly on the callback thread,
         // because blocking in the callback prevents progress and could deadlock us.
