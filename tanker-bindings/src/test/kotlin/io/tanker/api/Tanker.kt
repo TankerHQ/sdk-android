@@ -106,26 +106,6 @@ class TankerTests : TankerSpec() {
             tankerBob.close().get()
         }
 
-        "Can encrypt-and-share with the deprecated TankerEncryptOptions APIs" {
-            val aliceId = UUID.randomUUID().toString()
-            val bobId = UUID.randomUUID().toString()
-
-            val tankerAlice = Tanker(options)
-            tankerAlice.open(aliceId, tc.generateUserToken(aliceId)).get()
-
-            val tankerBob = Tanker(options)
-            tankerBob.open(bobId, tc.generateUserToken(bobId)).get()
-
-            val plaintext = "There are no mistakes, just happy accidents"
-            @Suppress("DEPRECATION")
-            val encryptOptions = TankerEncryptOptions().setRecipients(bobId)
-            val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
-            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
-
-            tankerAlice.close().get()
-            tankerBob.close().get()
-        }
-
         "Can self-revoke" {
             val aliceId = UUID.randomUUID().toString()
             var revoked = false
