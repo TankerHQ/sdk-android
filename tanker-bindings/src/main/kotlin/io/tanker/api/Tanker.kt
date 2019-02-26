@@ -140,18 +140,6 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Unlocks this device with the user unlock password.
-     * Must be called after a "Waiting for Validation" event has been triggered.
-     * @return A future that resolves if and when the device has been unlocked.
-     */
-    @Deprecated("Use unlockCurrentDeviceWithPassword",
-            ReplaceWith("this.unlockCurrentDeviceWithPassword(password)"),
-            DeprecationLevel.WARNING)
-    fun unlockCurrentDevice(password: Password): TankerFuture<Unit> {
-        return unlockCurrentDeviceWithPassword(password.string())
-    }
-
-    /**
      * Unlocks this device with the user's unlock key.
      * Must be called after a "Unlock Required" event has been triggered.
      * @return A future that resolves if and when the device has been unlocked.
@@ -167,18 +155,6 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Unlocks this device with the user's unlock key.
-     * Must be called after a "Unlock Required" event has been triggered.
-     * @return A future that resolves if and when the device has been unlocked.
-     */
-    @Deprecated("Use unlockCurrentDeviceWithUnlockKey",
-            ReplaceWith("this.unlockCurrentDeviceWithUnlockKey(unlockKey)"),
-            DeprecationLevel.WARNING)
-    fun unlockCurrentDevice(unlockKey: UnlockKey): TankerFuture<Unit> {
-        return unlockCurrentDeviceWithUnlockKey(unlockKey.string())
-    }
-
-    /**
      * Unlocks this device with the user's verification code.
      * Must be called after a "Waiting for Validation" event has been triggered.
      * @return A future that resolves if and when the device has been unlocked.
@@ -191,52 +167,6 @@ class Tanker(tankerOptions: TankerOptions) {
                 ),
                 Unit::class.java
         )
-    }
-
-    /**
-     * Set-up an unlock for the user.
-     * Must be called on an already opened Session, once.
-     * @return A future that resolves if and when the operation succeed.
-     */
-    @Deprecated("Use registerUnlock instead",
-            ReplaceWith("this.registerUnlock(null, password)"),
-            DeprecationLevel.WARNING)
-    fun setupUnlock(password: Password): TankerFuture<Unit> {
-        return TankerFuture(
-                lib.tanker_setup_unlock(
-                        tanker = tanker,
-                        password = password.string(),
-                        email = null
-                ),
-                Unit::class.java
-        )
-    }
-
-    /**
-     * Update the unlock password for the user.
-     * Must be called on an already opened Session after unlock has been setup.
-     * @return A future that resolves if and when the operation succeed.
-     */
-    @Deprecated("Use registerUnlock instead",
-            ReplaceWith("this.registerUnlock(null, password)"),
-            DeprecationLevel.WARNING)
-    fun updateUnlock(password: Password): TankerFuture<Unit> {
-        return TankerFuture(
-                lib.tanker_update_unlock(
-                        tanker = tanker,
-                        email = null,
-                        password = password.string(),
-                        unlock_key = null
-                ),
-                Unit::class.java
-        )
-    }
-
-    @Deprecated("Use registerUnlock instead",
-                ReplaceWith("this.registerUnlock(null, password)"),
-                DeprecationLevel.WARNING)
-    fun updateUnlockPassword(password: Password): TankerFuture<Unit> {
-        return updateUnlock(password)
     }
 
     /**
@@ -390,20 +320,6 @@ class Tanker(tankerOptions: TankerOptions) {
                                     StringArray(shareOptions.recipientGids), shareOptions.recipientGids.size.toLong(),
                                     StringArray(resourceIDs), resourceIDs.size.toLong())
         return TankerFuture(fut, Unit::class.java)
-    }
-
-    /**
-     * Shares the key for an encrypted resource with another Tanker user.
-     * @param resourceIDs The IDs of the encrypted resources to share (base64 encoded each).
-     * @param recipientsUids The user IDs of the receiving Tanker users.
-     * @param recipientsGids The group IDs of the receiving Tanker groups.
-     * @return A future that resolves when the share is complete.
-     */
-    @Deprecated("Use share with TankerShareOptions instead",
-            ReplaceWith("this.share(resourceIDs, TankerShareOptions())"),
-            DeprecationLevel.WARNING)
-    fun share(resourceIDs: Array<String>, recipientsUids: Array<String>, recipientsGids: Array<String>): TankerFuture<Unit> {
-        return share(resourceIDs, TankerShareOptions().shareWithUsers(*recipientsUids).shareWithGroups(*recipientsGids))
     }
 
     /**

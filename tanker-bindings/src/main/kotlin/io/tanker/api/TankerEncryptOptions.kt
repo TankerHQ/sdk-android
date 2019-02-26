@@ -48,15 +48,6 @@ open class TankerEncryptOptions : Structure() {
         return this
     }
 
-    /**
-     * Sets the list of recipients User IDs
-     * @param recipientUids A list of the recipients user IDs
-     */
-    @Deprecated("Please use shareWithUsers() instead", ReplaceWith("shareWithUsers(*recipientUids)"))
-    fun setRecipients(vararg recipientUids: String): TankerEncryptOptions {
-        return shareWithUsers(*recipientUids)
-    }
-
     override fun getFieldOrder(): List<String> {
         return listOf("version", "recipientUids", "nbRecipientUids", "recipientGids", "nbRecipientGids")
     }

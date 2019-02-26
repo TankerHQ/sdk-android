@@ -35,19 +35,6 @@ class UnlockTests : TankerSpec() {
             tanker2.close().get()
         }
 
-        "Can validate a new device with a passphrase using the deprecated API" {
-            tanker1.open(userId, token).get()
-            val unlockKey = tanker1.generateAndRegisterUnlockKey().get()
-            tanker1.close().get()
-            tanker2.connectUnlockRequiredHandler(TankerUnlockRequiredHandler{
-                @Suppress("DEPRECATION")
-                tanker2.unlockCurrentDevice(UnlockKey(unlockKey)).get()
-            })
-            tanker2.open(userId, token).get()
-            tanker2.getStatus() shouldBe TankerStatus.OPEN
-            tanker2.close().get()
-        }
-
         "Can setup and use an unlock password" {
             val pass = "this is a password"
 
@@ -65,68 +52,20 @@ class UnlockTests : TankerSpec() {
             tanker2.close().get()
         }
 
-        "Can unlock with a password using the deprecated API" {
-            val pass = "this is a password"
-
-            tanker1.open(userId, token).get()
-            tanker1.isUnlockAlreadySetUp().get() shouldBe false
-            tanker1.registerUnlock(TankerUnlockOptions().setPassword(pass)).get()
-            tanker1.close().get()
-
-            tanker2.connectUnlockRequiredHandler(TankerUnlockRequiredHandler{
-                @Suppress("DEPRECATION")
-                tanker2.unlockCurrentDevice(Password(pass)).get()
-            })
-            tanker2.open(userId, token).get()
-            tanker2.getStatus() shouldBe TankerStatus.OPEN
-            tanker2.isUnlockAlreadySetUp().get() shouldBe true
-            tanker2.close().get()
-        }
-
-        @Suppress("DEPRECATION")
-        "Cannot setup unlock several times" {
-            val pass = Password("*******")
-            tanker1.open(userId, token).get()
-            tanker1.setupUnlock(password = pass).get()
-
-            val otherPass = Password("p4ssw0rd")
-            val e = shouldThrow<TankerFutureException> {
-                tanker1.setupUnlock(password = otherPass).get()
-            }
-            (e.cause is TankerException) shouldBe true
-            (e.cause as TankerException).errorCode shouldBe TankerErrorCode.UNLOCK_KEY_ALREADY_EXISTS
-            tanker1.close().get()
-        }
-
-        @Suppress("DEPRECATION")
         "Can update the unlock password" {
-            val oldpass = Password("This is an old password")
-            val newpass = Password("This is a new password")
+            val oldpass = "This is an old password"
+            val newpass = "This is a new password"
 
             tanker1.open(userId, token).get()
-            tanker1.setupUnlock(password = oldpass).get()
-            tanker1.updateUnlock(password = newpass).get()
+            tanker1.registerUnlock(TankerUnlockOptions().setPassword(oldpass)).get()
+            tanker1.registerUnlock(TankerUnlockOptions().setPassword(newpass)).get()
             tanker1.close().get()
 
             tanker2.connectUnlockRequiredHandler(TankerUnlockRequiredHandler{
-                tanker2.unlockCurrentDeviceWithPassword(newpass.string()).get()
+                tanker2.unlockCurrentDeviceWithPassword(newpass).get()
             })
             tanker2.open(userId, token).get()
             tanker2.close().get()
-        }
-
-        @Suppress("DEPRECATION")
-        "Cannot update the unlock password before setting it up" {
-            val newpass = Password("Anachronique")
-
-            val tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tanker1.open(userId, token).get()
-            val e = shouldThrow<TankerFutureException> {
-                tanker1.updateUnlock(password = newpass).get()
-            }
-            (e.cause is TankerException) shouldBe true
-            (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_UNLOCK_KEY
-            tanker1.close().get()
         }
 
         "Alice's second device can decrypt old resources" {
