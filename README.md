@@ -1,45 +1,56 @@
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[gradle-badge]: https://img.shields.io/static/v1.svg?label=Gradle&message=compatible&color=brightgreen
+[last-commit-badge]: https://img.shields.io/github/last-commit/TankerHQ/sdk-android.svg?label=Last%20commit&logo=github
+[license-badge]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+[license-link]: https://opensource.org/licenses/Apache-2.0
+[maven-badge]: https://img.shields.io/static/v1.svg?label=Maven&message=compatible&color=brightgreen
 
-# Tanker Android SDK
+<img src="https://cdn.jsdelivr.net/gh/TankerHQ/sdk-js@v1.10.1/src/public/tanker.png" alt="Tanker logo" width="180" />
 
-## Table of Contents
+[![License][license-badge]][license-link]
+![Maven][maven-badge]
+![Gradle][gradle-badge]
+![Last Commit][last-commit-badge]
 
- * [Overview](#overview)
- * [Setup](#setup)
- * [Contributing](#contributing)
- * [Documentation](#documentation)
- * [License and Terms](#license-and-terms)
+# Encryption SDK for Android
+
+[Overview](#overview) · [Getting started](#getting-started) · [Documentation](#documentation) · [Release notes](#release-notes) · [Contributing](#contributing) · [License](#license)
 
 ## Overview
 
-[The Tanker SDK](https://tanker.io) provides an easy-to-use SDK allowing you to protect your users'
-data.
+Tanker is an open-source client SDK that can be embedded in any application.
 
-The Tanker SDK consists of the following package, which is distributed on maven:
+It leverages powerful **client-side encryption** of any type of data, textual or binary, but without performance loss and assuring a **seamless end-user experience**. No cryptographic skills are required.
 
-- `io.tanker:tanker-bindings:1.9.0`
+## Getting started
 
-For more information about usage, visit the
-[Tanker SDK guide](https://tanker.io/docs/latest/guide/getting-started/?language=android).
+The Tanker SDK consists of the following package, which is distributed on https://maven.tanker.io:
 
-This repository only contains java bindings. The core library can be found [here](https://github.com/TankerHQ/sdk-native).
+- `io.tanker:tanker-bindings:X.Y.Z`
 
-### Setup
+For setup instructions in an Android Studio project, please refer to the [SDK implementation guide](https://tanker.io/docs/latest/guide/getting-started/?language=android).
 
-We are actively working to allow external developers to build and test this sdk from source.
+Tanker also provides open-source **[iOS](https://github.com/TankerHQ/sdk-ios)** and **[JavaScript](https://github.com/TankerHQ/sdk-js)** SDKs.
+
+## Documentation
+
+For more details and code examples, please refer to:
+
+* [SDK implementation guide](https://tanker.io/docs/latest/guide/getting-started/?language=android)
+* [API reference](https://tanker.io/docs/latest/api/tanker/?language=android)
+* [Product overview](https://tanker.io/product)
+
+Or fiddle with the [quickstart examples](https://github.com/TankerHQ/quickstart-examples) to see the Tanker SDKs integrated in a collection of demo apps.
+
+## Release notes
+
+Detailed changes for each release are documented in the [release notes](https://github.com/TankerHQ/sdk-android/releases).
 
 ## Contributing
 
 We welcome feedback. Feel free to open any issue on the Github bug tracker.
 
-## Documentation
+We are actively working to allow external developers to build and test this sdk from source.
 
-* [Guide](https://tanker.io/docs/latest/guide/getting-started/?language=android)
-* [API Documentation](https://tanker.io/docs/latest/api/tanker/?language=android)
-* [Changelog](https://tanker.io/docs/latest/changelog/?language=android)
+## License
 
-
-## License and Terms
-
-The Tanker Android SDK is licensed under the
-[Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+The Tanker Android SDK is licensed under the [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
