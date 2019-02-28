@@ -5,9 +5,7 @@ package io.tanker.bindings
  * @see Tanker
  */
 enum class TankerEvent(val value: Int) {
-    // Event 0 is unused
-    SESSION_CLOSED(1),
-    DEVICE_CREATED(2),
-    UNLOCK_REQUIRED(3),
-    DEVICE_REVOKED(4),
+    SESSION_CLOSED(0),
+    DEVICE_CREATED(1),
+    DEVICE_REVOKED(2),
 }

@@ -119,6 +119,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
             ThenResultType::class.java -> (thenResult as ThenResult.Object).result
             Pointer::class.java -> lib.tanker_future_get_voidptr(cfuture)
             Boolean::class.java -> Pointer.nativeValue(lib.tanker_future_get_voidptr(cfuture)) != 0L
+            Int::class.java -> Pointer.nativeValue(lib.tanker_future_get_voidptr(cfuture)).toInt()
             Unit::class.java -> Unit
             else -> throw RuntimeException("Tried to get() a TankerFuture of unknown type")
         } as T

@@ -2,10 +2,7 @@ package io.tanker.bindings
 
 import com.sun.jna.*
 import com.sun.jna.ptr.LongByReference
-import io.tanker.api.TankerDecryptOptions
-import io.tanker.api.TankerEncryptOptions
-import io.tanker.api.TankerOptions
-import io.tanker.api.TankerStatus
+import io.tanker.api.*
 
 const val HASH_SIZE = 32
 const val PRIVATE_SIGNATURE_KEY_SIZE = 64
@@ -44,8 +41,9 @@ interface TankerLib : Library {
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
     fun tanker_destroy(tanker: Pointer): FuturePointer
-    fun tanker_open(tanker: Pointer, user_id: String, user_token: String): FuturePointer
-    fun tanker_close(tanker: Pointer): FuturePointer
+    fun tanker_sign_up(tanker: Pointer, identity: String, tankerAuthenticationMethods: TankerAuthenticationMethods?): FuturePointer
+    fun tanker_sign_in(tanker: Pointer, identity: String, tankerSignInOptions: TankerSignInOptions?): FuturePointer
+    fun tanker_sign_out(tanker: Pointer): FuturePointer
     fun tanker_get_status(tanker: Pointer): TankerStatus
     fun tanker_generate_and_register_unlock_key(tanker: Pointer): FuturePointer
     fun tanker_unlock_current_device_with_unlock_key(tanker: Pointer, unlock_key: String): FuturePointer
@@ -85,7 +83,7 @@ interface TankerLib : Library {
                        data: Pointer, data_size: Long, encrypt_options: TankerEncryptOptions?): FuturePointer
     fun tanker_decrypt(session: SessionPointer, decrypted_data: Pointer,
                        data: Pointer, data_size: Long, decrypt_options: TankerDecryptOptions?): FuturePointer
-    fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbRecipientUids: Long,
+    fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
                      recipient_gids: StringArray, nbRecipientGids: Long,
                      resource_ids: StringArray, nbResourceIds: Long): FuturePointer
 

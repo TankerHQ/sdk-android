@@ -4,15 +4,15 @@ package io.tanker.api
  * Options used for sharing to users and groups
  */
 class TankerShareOptions {
-    internal var recipientUids: Array<out String> = arrayOf()
+    internal var recipientPublicIdentities: Array<out String> = arrayOf()
     internal var recipientGids: Array<out String> = arrayOf()
 
     /**
     * Sets the list of recipients User IDs
-    * @param recipientUids A list of the recipients user IDs
+    * @param recipientPublicIdentities A list of the recipients user IDs
     */
-    fun shareWithUsers(vararg recipientUids: String): TankerShareOptions {
-        this.recipientUids = recipientUids
+    fun shareWithUsers(vararg recipientPublicIdentities: String): TankerShareOptions {
+        this.recipientPublicIdentities = recipientPublicIdentities
         return this
     }
 
