@@ -103,6 +103,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
      * Blocks until the future is ready and returns its result
      * Throws if there is an error
      */
+    @Throws(TankerFutureException::class)
     @WorkerThread
     fun get(): T {
         val isAndroid = System.getProperty("java.specification.vendor") == "The Android Project"
