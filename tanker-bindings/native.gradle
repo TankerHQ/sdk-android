@@ -16,14 +16,11 @@ class NativeHelper {
 
     static def runCmd(cmd, path) {
         print("${path}: ${cmd} \n")
-        def sout = new StringBuilder(), serr = new StringBuilder()
         def proc = cmd.execute(null, path)
-        proc.consumeProcessOutput(sout, serr)
+        proc.consumeProcessOutput(System.out, System.err)
         proc.waitFor()
-        println "$sout $serr"
-        if (proc.exitValue() != 0) {
-            throw new Exception("out> $sout err> $serr" + "\nCommand: ${cmd}")
-        }
+        if (proc.exitValue() != 0)
+            throw new Exception("Command failed: ${cmd}")
     }
 }
 
