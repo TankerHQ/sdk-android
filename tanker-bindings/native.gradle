@@ -47,6 +47,16 @@ class NativeHelper {
                 sourcePath
         )
     }
+
+    // This creates a .jar with our .so inside, so we can put it in the classpath for tests
+    static def createNativeLibJar(File libPath, String jarName) {
+        def platformPrefix = Platform.getNativeLibraryResourcePrefix()
+        def relPrefixedPath = platformPrefix + '/' + libPath.name
+        def prefixedLibPath = new File(libPath.parent + '/' + relPrefixedPath)
+        prefixedLibPath.parentFile.mkdirs()
+        prefixedLibPath.bytes = libPath.bytes // This is just a file copy in Groovy
+        runCmd("jar cf ${jarName} -C ${libPath.parent} $relPrefixedPath", libPath.parentFile)
+    }
 }
 
 class BuildNative extends DefaultTask {
@@ -72,18 +82,6 @@ class BuildNative extends DefaultTask {
             }
         }
     }
-
-    // This creates a .jar with our .so inside, so we can put it in the classpath for tests
-    static def createNativeLibJar(File libPath, String jarName) {
-        def platformPrefix = Platform.getNativeLibraryResourcePrefix()
-        def relPrefixedPath = platformPrefix + '/' + libPath.name
-        def prefixedLibPath = new File(libPath.parent + '/' + relPrefixedPath)
-        prefixedLibPath.parentFile.mkdirs()
-        prefixedLibPath.bytes = libPath.bytes // This is just a file copy in Groovy
-        NativeHelper.runCmd("jar cf ${jarName} -C ${libPath.parent} $relPrefixedPath", libPath.parentFile)
-    }
-
-
 
     void compileForAndroid() {
         def androidBuildType = buildType.toLowerCase()
@@ -112,7 +110,7 @@ class BuildNative extends DefaultTask {
         NativeHelper.conanBuild(buildPath, installPath, sourcePath)
 
         def hostLibDir = new File(installPath, "lib/libtanker.so")
-        createNativeLibJar(hostLibDir, 'tanker-native.jar')
+        NativeHelper.createNativeLibJar(hostLibDir, 'tanker-native.jar')
     }
 
     @TaskAction
@@ -142,6 +140,11 @@ class UseDeployedNative extends DefaultTask {
             def profileName = NativeHelper.getAndroidProfile(v, buildType)
             NativeHelper.conanInstall(installPath, sourcePath, profileName)
         }
+
+        def installPath = new File(projectPath + "/conan/host/lib/")
+        def profile = System.getenv("CI") ? "gcc8-release" : "default"
+        NativeHelper.conanInstall(installPath, sourcePath, profile)
+        NativeHelper.createNativeLibJar(new File(installPath, 'libtanker.so'), 'tanker-native.jar')
     }
 }
 
