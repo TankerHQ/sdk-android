@@ -146,18 +146,29 @@ class UseDeployedNative extends DefaultTask {
 }
 
 // If we didn't already fetch or build Native libs, we need to build them now
-class RequireAndroidNativeLibs extends DefaultTask {
-    @Inject RequireAndroidNativeLibs(String buildType) {
+class RequireNativeLibs extends DefaultTask {
+    @Inject RequireNativeLibs(String buildType, String buildFor) {
+        boolean hasNativeLibs = true
         String projectPath = getProject().getProjectDir().absolutePath
-        String installPathBase = projectPath + "/src/${buildType.toLowerCase()}/jniLibs"
+        if (buildFor == 'android') {
+            String installPathBase = projectPath + "/src/${buildType.toLowerCase()}/jniLibs"
 
-        boolean haveAndroidNativeLibs = true
-        NativeHelper.conanAndroidArchs.each { k, v ->
-            File lib = new File("$installPathBase/$k/libtanker.so")
-            haveAndroidNativeLibs &= lib.exists()
+            NativeHelper.conanAndroidArchs.each { k, v ->
+                File lib = new File("$installPathBase/$k/libtanker.so")
+                if (!lib.exists()) {
+                    getLogger().warn("$lib not found, triggering build")
+                    hasNativeLibs = false
+		}
+            }
+        } else {
+            File expectedPath = new File(projectPath + "/conan/host/lib/libtanker.so")
+            if (!expectedPath.exists()) {
+                getLogger().warn("$expectedPath not found, triggering build")
+                hasNativeLibs = false
+            }
         }
-        if (!haveAndroidNativeLibs)
-            dependsOn(getProject().getTasks().create("requireAndroidNativeBuild$buildType", BuildNative, buildType, 'android'))
+        if (!hasNativeLibs)
+            dependsOn(getProject().getTasks().create("requireAndroidNativeBuild$buildType", BuildNative, buildType, buildFor))
     }
 }
 
@@ -169,13 +180,13 @@ task useDeployedNativeRelease(type: UseDeployedNative, constructorArgs: ['Releas
 // Setup regular tasks to depend on Native
 tasks.whenTaskAdded { task ->
     if (task.name == 'compileDebugUnitTestKotlin') {
-        task.dependsOn tasks.create('buildHostNativeDebug', BuildNative, 'Debug', 'host')
+        task.dependsOn tasks.create('buildHostNativeDebug', RequireNativeLibs, 'Debug', 'host')
     } else if (task.name == 'compileReleaseUnitTestKotlin') {
-        task.dependsOn tasks.create('buildHostNativeRelease', BuildNative, 'Release', 'host')
+        task.dependsOn tasks.create('buildHostNativeRelease', RequireNativeLibs, 'Release', 'host')
     } else if (task.name == 'bundleDebugAar') {
-        task.dependsOn tasks.create('requireAndroidNativeDebug', RequireAndroidNativeLibs, 'Debug')
+        task.dependsOn tasks.create('requireAndroidNativeDebug', RequireNativeLibs, 'Debug', 'android')
     } else if (task.name == 'bundleReleaseAar') {
-        task.dependsOn tasks.create('requireAndroidNativeRelease', RequireAndroidNativeLibs, 'Release')
+        task.dependsOn tasks.create('requireAndroidNativeRelease', RequireNativeLibs, 'Release', 'android')
     }
 }
 
