@@ -168,7 +168,7 @@ class RequireNativeLibs extends DefaultTask {
             }
         }
         if (!hasNativeLibs)
-            dependsOn(getProject().getTasks().create("requireAndroidNativeBuild$buildType", BuildNative, buildType, buildFor))
+            dependsOn(getProject().getTasks().create("require${buildFor}NativeBuild${buildType}", BuildNative, buildType, buildFor));
     }
 }
 
@@ -180,9 +180,9 @@ task useDeployedNativeRelease(type: UseDeployedNative, constructorArgs: ['Releas
 // Setup regular tasks to depend on Native
 tasks.whenTaskAdded { task ->
     if (task.name == 'compileDebugUnitTestKotlin') {
-        task.dependsOn tasks.create('buildHostNativeDebug', RequireNativeLibs, 'Debug', 'host')
+        task.dependsOn tasks.create('requireHostNativeDebug', RequireNativeLibs, 'Debug', 'host')
     } else if (task.name == 'compileReleaseUnitTestKotlin') {
-        task.dependsOn tasks.create('buildHostNativeRelease', RequireNativeLibs, 'Release', 'host')
+        task.dependsOn tasks.create('requireHostNativeRelease', RequireNativeLibs, 'Release', 'host')
     } else if (task.name == 'bundleDebugAar') {
         task.dependsOn tasks.create('requireAndroidNativeDebug', RequireNativeLibs, 'Debug', 'android')
     } else if (task.name == 'bundleReleaseAar') {
