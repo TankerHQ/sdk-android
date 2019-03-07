@@ -159,19 +159,19 @@ class RequireNativeLibs extends DefaultTask {
             NativeHelper.conanAndroidArchs.each { k, v ->
                 File lib = new File("$installPathBase/$k/libtanker.so")
                 if (!lib.exists()) {
-                    getLogger().warn("$lib not found, triggering build")
+                    doFirst { getLogger().warn("$lib not found, triggering build") }
                     hasNativeLibs = false
 		}
             }
         } else {
             File expectedPath = new File(projectPath + "/conan/host/lib/libtanker.so")
             if (!expectedPath.exists()) {
-                getLogger().warn("$expectedPath not found, triggering build")
+                doFirst { getLogger().warn("$expectedPath not found, triggering build") }
                 hasNativeLibs = false
             }
         }
         if (!hasNativeLibs)
-            dependsOn(getProject().getTasks().create("require${buildFor}NativeBuild${buildType}", BuildNative, buildType, buildFor));
+            finalizedBy(getProject().getTasks().create("require${buildFor}NativeBuild${buildType}", BuildNative, buildType, buildFor))
     }
 }
 
