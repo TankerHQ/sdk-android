@@ -32,7 +32,7 @@ class NativeHelper {
         runCmd("conan install $sourcePath " +
                 "--install-folder $buildPath " +
                 "--profile $profile " +
-                "--option tankerlib_shared=True " +
+                "--option tanker:tankerlib_shared=True " +
                 "--build missing ",
                 sourcePath
         )
