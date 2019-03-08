@@ -38,6 +38,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
             for (elem in futures)
                 acc = acc.thenUnwrap(TankerUnwrapCallback {
                     it.getError()?.let { firstErr = firstErr ?: it }
+                    @Suppress("UNCHECKED_CAST") // Discarding results of the future is safe
                     elem as TankerFuture<Unit>
                 })
             return acc.then(TankerVoidCallback {
@@ -113,6 +114,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
             throw TankerFutureException(it)
         }
 
+        @Suppress("UNCHECKED_CAST") // As T cast is checked by when statement
         return when (valueType) {
             ThenResultType::class.java -> (thenResult as ThenResult.Object).result
             Pointer::class.java -> lib.tanker_future_get_voidptr(cfuture)
@@ -284,6 +286,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
 
     // Please note that this function is incredibly unsafe/useful.
     // To avoid explosions, it should only be called on futures that have resolved to an error.
+    @Suppress("UNCHECKED_CAST") // Internal functions may throw if badly misused, that's ok
     internal fun<U> transmute(newValueType: Type): TankerFuture<U> {
         assert(getError() != null)
         valueType = newValueType
