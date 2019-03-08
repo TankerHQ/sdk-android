@@ -71,16 +71,6 @@ class BuildNative extends DefaultTask {
 
         this.projectPath = getProject().getProjectDir().absolutePath
         this.sourcePath = new File(projectPath+"/../../sdk-native")
-
-        if (buildFor == "host" || buildFor == "all") {
-            getOutputs().file(new File("conan/host/lib/libtanker.so"))
-        }
-        if (buildFor == "android" || buildFor == "all") {
-            String installPathBase = projectPath+"/src/${buildType.toLowerCase()}/jniLibs"
-            NativeHelper.conanAndroidArchs.each{ k, v ->
-                getOutputs().file(new File("$installPathBase/$k/libtanker.so"))
-            }
-        }
     }
 
     void compileForAndroid() {
