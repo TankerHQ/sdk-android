@@ -1,0 +1,188 @@
+import javax.inject.Inject
+import com.sun.jna.Platform
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'javax.inject:javax.inject:1'
+        classpath 'net.java.dev.jna:jna-platform:4.5.1'
+    }
+}
+
+class NativeHelper {
+    static def conanAndroidArchs = ["x86_64": "x86_64", "x86": "x86", "armeabi-v7a":"armv7", "arm64-v8a": "armv8"]
+
+    static def runCmd(cmd, path) {
+        print("${path}: ${cmd} \n")
+        def proc = cmd.execute(null, path)
+        proc.consumeProcessOutput(System.out, System.err)
+        proc.waitFor()
+        if (proc.exitValue() != 0)
+            throw new Exception("Command failed: ${cmd}")
+    }
+
+    static def getAndroidProfile(arch, buildType) {
+        return "android-$arch-${buildType.toLowerCase()}"
+    }
+
+    static def conanInstall(buildPath, sourcePath, profile) {
+        buildPath.mkdirs()
+        runCmd("conan install $sourcePath " +
+                "--install-folder $buildPath " +
+                "--profile $profile " +
+                "--option tanker:tankerlib_shared=True " +
+                "--build missing ",
+                sourcePath
+        )
+    }
+
+    static def conanBuild(buildPath, installPath, sourcePath) {
+        installPath.mkdirs()
+        runCmd("conan build --configure --build " +
+                "--install $sourcePath " +
+                "--package-folder $installPath " +
+                "--build-folder $buildPath",
+                sourcePath
+        )
+    }
+
+    // This creates a .jar with our .so inside, so we can put it in the classpath for tests
+    static def createNativeLibJar(File libPath, String jarName) {
+        def platformPrefix = Platform.getNativeLibraryResourcePrefix()
+        def relPrefixedPath = platformPrefix + '/' + libPath.name
+        def prefixedLibPath = new File(libPath.parent + '/' + relPrefixedPath)
+        prefixedLibPath.parentFile.mkdirs()
+        prefixedLibPath.bytes = libPath.bytes // This is just a file copy in Groovy
+        runCmd("jar cf ${jarName} -C ${libPath.parent} $relPrefixedPath", libPath.parentFile)
+    }
+}
+
+class BuildNative extends DefaultTask {
+    final String buildType
+    final String buildFor
+    final String projectPath
+    final File sourcePath
+
+    @Inject BuildNative(String buildType, String buildFor) {
+        this.buildType = buildType
+        this.buildFor = buildFor
+
+        this.projectPath = getProject().getProjectDir().absolutePath
+        this.sourcePath = new File(projectPath+"/../../sdk-native")
+    }
+
+    void compileForAndroid() {
+        def androidBuildType = buildType.toLowerCase()
+        def buildPathBase = projectPath+"/../../sdk-native/build/android/$buildType"
+        def installPathBase = projectPath+"/src/$androidBuildType/jniLibs/"
+
+        // Run each known android arch
+        NativeHelper.conanAndroidArchs.each { k, v ->
+            def buildPath = new File("$buildPathBase/$k")
+            def installPath = new File("$installPathBase/$k")
+
+            def profileName = NativeHelper.getAndroidProfile(v, buildType)
+            NativeHelper.conanInstall(buildPath, sourcePath, profileName)
+            NativeHelper.conanBuild(buildPath, installPath, sourcePath)
+            NativeHelper.runCmd("cp lib/libtanker.so .", installPath)
+        }
+    }
+
+    void compileForHost() {
+        // Last run for host build (used for unit testing)
+        def buildPath = new File(projectPath + "/../../sdk-native/build/host/$buildType/")
+        def installPath = new File(projectPath + "/conan/host/")
+        def profile = System.getenv("CI") ? "gcc8-release" : "default"
+
+        NativeHelper.conanInstall(buildPath, sourcePath, profile)
+        NativeHelper.conanBuild(buildPath, installPath, sourcePath)
+
+        def hostLibDir = new File(installPath, "lib/libtanker.so")
+        NativeHelper.createNativeLibJar(hostLibDir, 'tanker-native.jar')
+    }
+
+    @TaskAction
+    void compile() {
+        if (buildFor == 'android' || buildFor == 'all')
+            compileForAndroid()
+        if (buildFor == 'host' || buildFor == 'all')
+            compileForHost()
+    }
+}
+
+class UseDeployedNative extends DefaultTask {
+    String buildType
+
+    @Inject UseDeployedNative(String buildType) {
+        this.buildType = buildType
+    }
+
+    @TaskAction
+    void compile() {
+        def projectPath = getProject().getProjectDir().absolutePath
+        def installPathBase = projectPath+"/src/${buildType.toLowerCase()}/jniLibs/"
+        def sourcePath = new File(projectPath+"/conan")
+
+        NativeHelper.conanAndroidArchs.each{ k, v ->
+            def installPath = new File("$installPathBase/$k")
+            def profileName = NativeHelper.getAndroidProfile(v, buildType)
+            NativeHelper.conanInstall(installPath, sourcePath, profileName)
+        }
+
+        def installPath = new File(projectPath + "/conan/host/lib/")
+        def profile = System.getenv("CI") ? "gcc8-release" : "default"
+        NativeHelper.conanInstall(installPath, sourcePath, profile)
+        NativeHelper.createNativeLibJar(new File(installPath, 'libtanker.so'), 'tanker-native.jar')
+    }
+}
+
+// If we didn't already fetch or build Native libs, we need to build them now
+class RequireNativeLibs extends DefaultTask {
+    @Inject RequireNativeLibs(String buildType, String buildFor) {
+        boolean hasNativeLibs = true
+        String projectPath = getProject().getProjectDir().absolutePath
+        if (buildFor == 'android') {
+            String installPathBase = projectPath + "/src/${buildType.toLowerCase()}/jniLibs"
+
+            NativeHelper.conanAndroidArchs.each { k, v ->
+                File lib = new File("$installPathBase/$k/libtanker.so")
+                if (!lib.exists()) {
+                    doFirst { getLogger().warn("$lib not found, triggering build") }
+                    hasNativeLibs = false
+		}
+            }
+        } else {
+            File expectedPath = new File(projectPath + "/conan/host/lib/libtanker.so")
+            if (!expectedPath.exists()) {
+                doFirst { getLogger().warn("$expectedPath not found, triggering build") }
+                hasNativeLibs = false
+            }
+        }
+        if (!hasNativeLibs)
+            finalizedBy(getProject().getTasks().create("require${buildFor}NativeBuild${buildType}", BuildNative, buildType, buildFor))
+    }
+}
+
+task buildNativeDebug(type: BuildNative, constructorArgs: ['Debug', 'all'])
+task buildNativeRelease(type: BuildNative, constructorArgs: ['Release', 'all'])
+task useDeployedNativeDebug(type: UseDeployedNative, constructorArgs: ['Debug'])
+task useDeployedNativeRelease(type: UseDeployedNative, constructorArgs: ['Release'])
+
+// Setup regular tasks to depend on Native
+tasks.whenTaskAdded { task ->
+    if (task.name == 'compileDebugUnitTestKotlin') {
+        task.dependsOn tasks.create('requireHostNativeDebug', RequireNativeLibs, 'Debug', 'host')
+    } else if (task.name == 'compileReleaseUnitTestKotlin') {
+        task.dependsOn tasks.create('requireHostNativeRelease', RequireNativeLibs, 'Release', 'host')
+    } else if (task.name == 'bundleDebugAar') {
+        task.dependsOn tasks.create('requireAndroidNativeDebug', RequireNativeLibs, 'Debug', 'android')
+    } else if (task.name == 'bundleReleaseAar') {
+        task.dependsOn tasks.create('requireAndroidNativeRelease', RequireNativeLibs, 'Release', 'android')
+    }
+}
+
+clean {
+    delete "conan/build"
+}

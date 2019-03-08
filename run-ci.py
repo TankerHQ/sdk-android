@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "update-conan-config":
-        ci.cpp.update_conan_config(args.platform)
+        ci.cpp.update_conan_config()
     elif args.command == "check":
         ci.android.check(native_from_sources=args.native_from_sources)
     elif args.command == "deploy":
