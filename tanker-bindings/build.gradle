@@ -12,7 +12,7 @@ version 'dev'
 android {
     compileSdkVersion 28
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 28
 
         ndk {
