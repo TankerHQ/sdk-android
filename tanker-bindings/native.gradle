@@ -30,6 +30,7 @@ class NativeHelper {
     static def conanInstall(buildPath, sourcePath, profile) {
         buildPath.mkdirs()
         runCmd("conan install $sourcePath " +
+                "--update " +
                 "--install-folder $buildPath " +
                 "--profile $profile " +
                 "--option tanker:tankerlib_shared=True " +
