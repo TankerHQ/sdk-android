@@ -13,9 +13,9 @@ import com.sun.jna.Structure
  */
 open class TankerEncryptOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
-    @JvmField var version: Byte = 1
-    @JvmField var recipientUids = Pointer(0)
-    @JvmField var nbRecipientUids = 0
+    @JvmField var version: Byte = 2
+    @JvmField var recipientPublicIdentities = Pointer(0)
+    @JvmField var nbRecipientPublicIdentities = 0
     @JvmField var recipientGids = Pointer(0)
     @JvmField var nbRecipientGids = 0
 
@@ -23,17 +23,17 @@ open class TankerEncryptOptions : Structure() {
      * JNA does not support having a StringArray directly in a struct,
      * so we hide it in a private var and put a Pointer to it in the actual struct...
      */
-    private var recipientUidsArray: StringArray = StringArray(arrayOf<String>())
+    private var recipientPublicIdentitiesArray: StringArray = StringArray(arrayOf<String>())
     private var recipientGidsArray: StringArray = StringArray(arrayOf<String>())
 
     /**
      * Sets the list of recipients User IDs
-     * @param recipientUids A list of the recipients user IDs
+     * @param recipientPublicIdentities A list of the recipients user IDs
      */
-    fun shareWithUsers(vararg recipientUids: String): TankerEncryptOptions {
-        this.recipientUidsArray = StringArray(recipientUids)
-        this.recipientUids = recipientUidsArray
-        this.nbRecipientUids = recipientUids.size
+    fun shareWithUsers(vararg recipientPublicIdentities: String): TankerEncryptOptions {
+        this.recipientPublicIdentitiesArray = StringArray(recipientPublicIdentities)
+        this.recipientPublicIdentities = recipientPublicIdentitiesArray
+        this.nbRecipientPublicIdentities = recipientPublicIdentities.size
         return this
     }
 
@@ -49,6 +49,6 @@ open class TankerEncryptOptions : Structure() {
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "recipientUids", "nbRecipientUids", "recipientGids", "nbRecipientGids")
+        return listOf("version", "recipientPublicIdentities", "nbRecipientPublicIdentities", "recipientGids", "nbRecipientGids")
     }
 }

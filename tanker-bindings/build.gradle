@@ -106,9 +106,9 @@ dokka {
         suppress = true
     }
 
-    // Exclude UserToken api
+    // Exclude Identity api
     packageOptions {
-        prefix = "io.tanker.api.UserToken"
+        prefix = "io.tanker.api.Identity"
         suppress = true
     }
 }

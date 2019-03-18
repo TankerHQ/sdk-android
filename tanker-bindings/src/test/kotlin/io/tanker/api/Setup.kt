@@ -6,6 +6,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 
 data class ConfigData(val idToken: String, val url: String)
 
@@ -67,8 +68,9 @@ class Trustchain {
         println(descriptor)
     }
 
-    fun generateUserToken(userId: String): String {
-        return UserToken.generate(
+    fun generateIdentity(): String {
+        val userId = UUID.randomUUID().toString()
+        return Identity.generate(
                 descriptor.id!!,
                 descriptor.privateKey!!,
                 userId

@@ -2,10 +2,7 @@ package io.tanker.bindings
 
 import com.sun.jna.*
 import com.sun.jna.ptr.LongByReference
-import io.tanker.api.TankerDecryptOptions
-import io.tanker.api.TankerEncryptOptions
-import io.tanker.api.TankerOptions
-import io.tanker.api.TankerStatus
+import io.tanker.api.*
 
 const val HASH_SIZE = 32
 const val PRIVATE_SIGNATURE_KEY_SIZE = 64
@@ -44,15 +41,14 @@ interface TankerLib : Library {
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
     fun tanker_destroy(tanker: Pointer): FuturePointer
-    fun tanker_open(tanker: Pointer, user_id: String, user_token: String): FuturePointer
-    fun tanker_close(tanker: Pointer): FuturePointer
+    fun tanker_sign_up(tanker: Pointer, identity: String, tankerAuthenticationMethods: TankerAuthenticationMethods?): FuturePointer
+    fun tanker_sign_in(tanker: Pointer, identity: String, tankerSignInOptions: TankerSignInOptions?): FuturePointer
+    fun tanker_sign_out(tanker: Pointer): FuturePointer
     fun tanker_get_status(tanker: Pointer): TankerStatus
     fun tanker_generate_and_register_unlock_key(tanker: Pointer): FuturePointer
     fun tanker_unlock_current_device_with_unlock_key(tanker: Pointer, unlock_key: String): FuturePointer
     fun tanker_unlock_current_device_with_password(tanker: Pointer, password: String): FuturePointer
     fun tanker_unlock_current_device_with_verification_code(tanker: Pointer, code: String): FuturePointer
-    fun tanker_setup_unlock(tanker: Pointer, email: String?, password: String?): FuturePointer
-    fun tanker_update_unlock(tanker: Pointer, email: String?, password: String?, unlock_key: String?): FuturePointer
     fun tanker_is_unlock_already_set_up(tanker: Pointer): FuturePointer
     fun tanker_device_id(tanker: SessionPointer): FuturePointer
     fun tanker_revoke_device(tanker: SessionPointer, deviceId: String): FuturePointer
@@ -87,29 +83,12 @@ interface TankerLib : Library {
                        data: Pointer, data_size: Long, encrypt_options: TankerEncryptOptions?): FuturePointer
     fun tanker_decrypt(session: SessionPointer, decrypted_data: Pointer,
                        data: Pointer, data_size: Long, decrypt_options: TankerDecryptOptions?): FuturePointer
-    fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbRecipientUids: Long,
+    fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
                      recipient_gids: StringArray, nbRecipientGids: Long,
                      resource_ids: StringArray, nbResourceIds: Long): FuturePointer
 
     fun tanker_create_group(tanker: Pointer, member_uids: StringArray, nbMembers: Long): FuturePointer
     fun tanker_update_group_members(tanker: Pointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer
-
-    fun tanker_make_chunk_encryptor(tanker: Pointer): FuturePointer
-    fun tanker_make_chunk_encryptor_from_seal(tanker: Pointer, data: Pointer, data_size: Long,
-                                              decrypt_options: TankerDecryptOptions?): FuturePointer
-    fun tanker_chunk_encryptor_destroy(chunk_encryptor: Pointer): ExpectedPointer
-    fun tanker_chunk_encryptor_seal_size(chunk_encryptor: Pointer): Long
-    fun tanker_chunk_encryptor_seal(chunk_encryptor: Pointer, sealBuf: Pointer, encrypt_options: TankerEncryptOptions?): FuturePointer
-    fun tanker_chunk_encryptor_chunk_count(chunk_encryptor: Pointer): Long
-    fun tanker_chunk_encryptor_encrypt_append(chunk_encryptor: Pointer, encrypted_data: Pointer,
-                                              data: Pointer, data_size: Long): FuturePointer
-    fun tanker_chunk_encryptor_encrypt_at(chunk_encryptor: Pointer, encrypted_data: Pointer,
-                                          data: Pointer, data_size: Long, index: Long): FuturePointer
-    fun tanker_chunk_encryptor_decrypt(chunk_encryptor: Pointer, decrypted_data: Pointer,
-                                       data: Pointer, data_size: Long, index: Long): FuturePointer
-    fun tanker_chunk_encryptor_remove(chunk_encryptor: Pointer, indexes: Pointer, indexes_count: Long): FuturePointer
-    fun tanker_chunk_encryptor_encrypted_size(clear_size: Long): Long
-    fun tanker_chunk_encryptor_decrypted_size(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
 
     fun tanker_base64_encoded_size(decoded_size: Long): Long
     fun tanker_base64_decoded_max_size(encoded_size: Long): Long
