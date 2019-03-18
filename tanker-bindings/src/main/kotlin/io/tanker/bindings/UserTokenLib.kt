@@ -9,7 +9,7 @@ interface UserTokenLib : Library {
     companion object {
         fun create(): UserTokenLib {
             System.setProperty("jna.debug_load", "true")
-            return Native.loadLibrary("tanker", UserTokenLib::class.java)
+            return Native.loadLibrary("ctanker", UserTokenLib::class.java)
         }
     }
 

@@ -30,6 +30,7 @@ class NativeHelper {
     static def conanInstall(buildPath, sourcePath, profile) {
         buildPath.mkdirs()
         runCmd("conan install $sourcePath " +
+                "--update " +
                 "--install-folder $buildPath " +
                 "--profile $profile " +
                 "--option tanker:tankerlib_shared=True " +
@@ -86,7 +87,7 @@ class BuildNative extends DefaultTask {
             def profileName = NativeHelper.getAndroidProfile(v, buildType)
             NativeHelper.conanInstall(buildPath, sourcePath, profileName)
             NativeHelper.conanBuild(buildPath, installPath, sourcePath)
-            NativeHelper.runCmd("cp lib/libtanker.so .", installPath)
+            NativeHelper.runCmd("cp lib/libctanker.so .", installPath)
         }
     }
 
@@ -99,7 +100,7 @@ class BuildNative extends DefaultTask {
         NativeHelper.conanInstall(buildPath, sourcePath, profile)
         NativeHelper.conanBuild(buildPath, installPath, sourcePath)
 
-        def hostLibDir = new File(installPath, "lib/libtanker.so")
+        def hostLibDir = new File(installPath, "lib/libctanker.so")
         NativeHelper.createNativeLibJar(hostLibDir, 'tanker-native.jar')
     }
 
@@ -134,7 +135,7 @@ class UseDeployedNative extends DefaultTask {
         def installPath = new File(projectPath + "/conan/host/lib/")
         def profile = System.getenv("CI") ? "gcc8-release" : "default"
         NativeHelper.conanInstall(installPath, sourcePath, profile)
-        NativeHelper.createNativeLibJar(new File(installPath, 'libtanker.so'), 'tanker-native.jar')
+        NativeHelper.createNativeLibJar(new File(installPath, 'libctanker.so'), 'tanker-native.jar')
     }
 }
 
@@ -147,14 +148,14 @@ class RequireNativeLibs extends DefaultTask {
             String installPathBase = projectPath + "/src/${buildType.toLowerCase()}/jniLibs"
 
             NativeHelper.conanAndroidArchs.each { k, v ->
-                File lib = new File("$installPathBase/$k/libtanker.so")
+                File lib = new File("$installPathBase/$k/libctanker.so")
                 if (!lib.exists()) {
                     doFirst { getLogger().warn("$lib not found, triggering build") }
                     hasNativeLibs = false
 		}
             }
         } else {
-            File expectedPath = new File(projectPath + "/conan/host/lib/libtanker.so")
+            File expectedPath = new File(projectPath + "/conan/host/lib/libctanker.so")
             if (!expectedPath.exists()) {
                 doFirst { getLogger().warn("$expectedPath not found, triggering build") }
                 hasNativeLibs = false
