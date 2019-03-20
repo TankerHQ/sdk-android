@@ -95,12 +95,10 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Get the status of the Tanker object.
-     * @see TankerStatus
-     * @return The current status of Tanker.
+     * Get whether the Tanker session is open.
      */
-    fun getStatus(): TankerStatus {
-        return lib.tanker_get_status(tanker)
+    fun isOpen(): Boolean {
+        return lib.tanker_is_open(tanker)
     }
 
     /**

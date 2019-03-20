@@ -23,7 +23,7 @@ class TankerTests : TankerSpec() {
 
         "Can create a Tanker object" {
             val tanker = Tanker(options)
-            tanker.getStatus() shouldBe TankerStatus.CLOSED
+            tanker.isOpen() shouldBe false
         }
 
         "Can get a valid version string" {
@@ -36,7 +36,7 @@ class TankerTests : TankerSpec() {
             val userId = tc.generateIdentity()
             val token = userId
             tanker.signUp(token).get()
-            tanker.getStatus() shouldBe TankerStatus.OPEN
+            tanker.isOpen() shouldBe true
             tanker.signOut().get()
         }
 
@@ -117,7 +117,7 @@ class TankerTests : TankerSpec() {
             })
             tankerAlice.revokeDevice(tankerAlice.getDeviceId().get()).get()
             Thread.sleep(500)
-            tankerAlice.getStatus() shouldBe TankerStatus.CLOSED
+            tankerAlice.isOpen() shouldBe false
             revoked shouldBe true
 
             tankerAlice.signOut().get()
@@ -139,7 +139,7 @@ class TankerTests : TankerSpec() {
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
             Thread.sleep(500)
-            tankerAlice1.getStatus() shouldBe TankerStatus.CLOSED
+            tankerAlice1.isOpen() shouldBe false
             revoked shouldBe true
 
             tankerAlice1.signOut().get()
