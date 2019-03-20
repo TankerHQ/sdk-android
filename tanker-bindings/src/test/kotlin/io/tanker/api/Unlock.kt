@@ -25,7 +25,7 @@ class UnlockTests : TankerSpec() {
             val unlockKey = tanker1.generateAndRegisterUnlockKey().get()
             tanker1.signOut().get()
             tanker2.signIn(token, TankerSignInOptions().setUnlockKey(unlockKey)).get()
-            tanker2.getStatus() shouldBe TankerStatus.OPEN
+            tanker2.isOpen() shouldBe true
             tanker2.signOut().get()
         }
 
@@ -38,7 +38,7 @@ class UnlockTests : TankerSpec() {
             tanker1.signOut().get()
 
             tanker2.signIn(token, TankerSignInOptions().setPassword(pass)).get()
-            tanker2.getStatus() shouldBe TankerStatus.OPEN
+            tanker2.isOpen() shouldBe true
             tanker2.isUnlockAlreadySetUp().get() shouldBe true
             tanker2.signOut().get()
         }
