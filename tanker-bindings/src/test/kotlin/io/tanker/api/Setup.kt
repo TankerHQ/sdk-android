@@ -97,10 +97,10 @@ fun createTmpDir(): Path {
 
 fun setupTestEnv() {
     Tanker.setLogHandler(object : TankerLib.LogHandlerCallback {
-        override fun callback(category: String, level: Byte, message: String) {
-            if (level == 'D'.toByte())
+        override fun callback(logRecord: TankerLogRecord) {
+            if (logRecord.level == TankerLogLevel.DEBUG.value)
                 return
-            println("$category: $message")
+            println("$logRecord.category: $logRecord.message")
         }
     })
 }
