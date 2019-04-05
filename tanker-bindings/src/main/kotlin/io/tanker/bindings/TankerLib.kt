@@ -34,7 +34,7 @@ interface TankerLib : Library {
     }
 
     interface LogHandlerCallback : Callback {
-        fun callback(category: String, level: Byte, message: String)
+        fun callback(logRecord: TankerLogRecord)
     }
 
     fun tanker_init(): Void
