@@ -3,7 +3,6 @@ package io.tanker.api
 import io.kotlintest.Description
 import io.kotlintest.shouldBe
 import io.tanker.bindings.TankerUnlockMethod
-import java.util.*
 
 
 class UnlockTests : TankerSpec() {
@@ -131,6 +130,17 @@ class UnlockTests : TankerSpec() {
 
             tanker2.signIn(token, TankerSignInOptions().setPassword(newpass)).get()
             tanker2.signOut().get()
+        }
+
+        "Can unlock with a verification code" {
+            val email = "bob@wonderland.io"
+
+            tanker1.signUp(token).get()
+            tanker1.registerUnlock(TankerUnlockOptions().setEmail(email)).get()
+            val verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
+
+            tanker2.signIn(token, TankerSignInOptions().setVerificationCode(verificationCode)).get()
+            tanker2.isOpen() shouldBe true
         }
     }
 }
