@@ -49,4 +49,16 @@ class TankerAdmin(private val trustchainUrl: String, private val idToken: String
             throw IllegalArgumentException("You need to connect() before using the admin API!")
         return TankerFuture(lib.tanker_admin_delete_trustchain(cadmin!!, trustchainId), Unit::class.java)
     }
+
+    fun getVerificationCode(trustchainId: String, email: String): TankerFuture<String> {
+        if (cadmin == null)
+            throw IllegalArgumentException("You need to connect() before using the admin API!")
+        val fut = TankerFuture<Pointer>(lib.tanker_admin_get_verification_code(cadmin!!, trustchainId, email), Pointer::class.java)
+        return fut.then(TankerCallback{
+            val ptr = it.get()
+            val str = ptr.getString(0)
+            lib.tanker_free_buffer(ptr)
+            str
+        })
+    }
 }

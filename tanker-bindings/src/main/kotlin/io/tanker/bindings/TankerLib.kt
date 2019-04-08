@@ -100,6 +100,7 @@ interface TankerLib : Library {
     fun tanker_admin_delete_trustchain(admin: AdminPointer, trustchain_id: String): FuturePointer
     fun tanker_admin_destroy(admin: AdminPointer): FuturePointer
     fun tanker_admin_trustchain_descritor_free(trustchain: TrustchainDescriptorPointer): Void
+    fun tanker_admin_get_verification_code(admin: AdminPointer, trustchain_id: String, email: String): FuturePointer
 
     fun tanker_free_buffer(buffer: Pointer): Void
 }
