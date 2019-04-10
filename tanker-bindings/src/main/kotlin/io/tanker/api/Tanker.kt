@@ -4,10 +4,7 @@ import android.util.Log
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.StringArray
-import io.tanker.bindings.ConnectionPointer
-import io.tanker.bindings.TankerEvent
-import io.tanker.bindings.TankerLib
-import io.tanker.bindings.TankerUnlockMethod
+import io.tanker.bindings.*
 import io.tanker.jni.KVMx86Bug
 
 /**
@@ -111,6 +108,24 @@ class Tanker(tankerOptions: TankerOptions) {
             val str = ptr.getString(0)
             lib.tanker_free_buffer(ptr)
             str
+        })
+    }
+
+    /**
+     * Gets the list of the user's devices
+     */
+    fun getDeviceList(): TankerFuture<List<TankerDeviceInfo>> {
+        val fut = TankerFuture<Pointer>(lib.tanker_get_device_list(tanker), Pointer::class.java)
+        return fut.then(TankerCallback{
+            val devListPtr = it.get()
+            val count = devListPtr.getInt(0)
+            val finalizer = TankerDeviceListFinalizer(lib, devListPtr)
+            val firstDevice = TankerDeviceInfo(devListPtr.getPointer(Int.SIZE_BYTES.toLong()))
+            @Suppress("UNCHECKED_CAST")
+            val devices = firstDevice.toArray(count) as Array<TankerDeviceInfo>
+            for (device in devices)
+                device.finalizer = finalizer
+            devices.toList()
         })
     }
 

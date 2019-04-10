@@ -7,7 +7,6 @@ import io.kotlintest.shouldNot
 import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
 import io.tanker.utils.Base64
-import java.util.*
 
 class TankerTests : TankerSpec() {
 
@@ -168,6 +167,54 @@ class TankerTests : TankerSpec() {
 
             tankerAlice.signOut().get()
             tankerBob.signOut().get()
+        }
+
+        "Can get a correct device list" {
+            val tankerAlice = Tanker(options.setWritablePath(createTmpDir().toString()))
+            tankerAlice.signUp(tc.generateIdentity()).get()
+
+            val devices = tankerAlice.getDeviceList().get()
+            devices.size shouldBe 1
+            devices[0].getDeviceId() shouldBe tankerAlice.getDeviceId().get()
+            devices[0].isRevoked() shouldBe false
+        }
+
+        "Can get a correct device list after revocation" {
+            val aliceId = tc.generateIdentity()
+            val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
+            tankerAlice1.signUp(aliceId).get()
+            val aliceDeviceId1 = tankerAlice1.getDeviceId().get()
+
+            val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
+            val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
+            tankerAlice2.signIn(aliceId, TankerSignInOptions().setUnlockKey(unlockKey)).get()
+            val aliceDeviceId2 = tankerAlice2.getDeviceId().get()
+
+            tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
+            Thread.sleep(500)
+
+            val devices = tankerAlice2.getDeviceList().get()
+            devices.size shouldBe 2
+            var foundDevice1 = false
+            var foundDevice2 = false
+
+            for (device in devices) {
+                when {
+                    device.getDeviceId() == aliceDeviceId1 -> {
+                        device.isRevoked() shouldBe true
+                        foundDevice1 = true
+                    }
+                    device.getDeviceId() == aliceDeviceId2 -> {
+                        device.isRevoked() shouldBe false
+                        foundDevice2 = true
+                    }
+                }
+            }
+
+            foundDevice1 shouldBe true
+            foundDevice2 shouldBe true
+
+            tankerAlice2.signOut().get()
         }
     }
 }
