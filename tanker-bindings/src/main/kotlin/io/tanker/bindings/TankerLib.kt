@@ -52,6 +52,7 @@ interface TankerLib : Library {
     fun tanker_is_unlock_already_set_up(tanker: Pointer): FuturePointer
     fun tanker_device_id(tanker: SessionPointer): FuturePointer
     fun tanker_revoke_device(tanker: SessionPointer, deviceId: String): FuturePointer
+    fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
 
     fun tanker_registered_unlock_methods(tanker: SessionPointer): ExpectedPointer
     fun tanker_has_registered_unlock_methods(tanker: SessionPointer): ExpectedPointer
@@ -103,4 +104,5 @@ interface TankerLib : Library {
     fun tanker_admin_get_verification_code(admin: AdminPointer, trustchain_id: String, email: String): FuturePointer
 
     fun tanker_free_buffer(buffer: Pointer): Void
+    fun tanker_free_device_list(list: Pointer): Void
 }
