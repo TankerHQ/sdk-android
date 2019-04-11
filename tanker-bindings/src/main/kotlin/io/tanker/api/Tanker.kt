@@ -106,14 +106,14 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Gets the current device's ID as a string
      */
-    fun getDeviceId(): TankerFuture<String> {
+    fun getDeviceId(): String {
         val fut = TankerFuture<Pointer>(lib.tanker_device_id(tanker), Pointer::class.java)
-        return fut.then(TankerCallback {
+        return fut.then<String>(TankerCallback {
             val ptr = it.get()
             val str = ptr.getString(0)
             lib.tanker_free_buffer(ptr)
             str
-        })
+        }).get()
     }
 
     /**

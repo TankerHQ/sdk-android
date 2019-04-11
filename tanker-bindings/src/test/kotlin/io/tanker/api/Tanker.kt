@@ -45,7 +45,7 @@ class TankerTests : TankerSpec() {
             val token = userId
             tanker.signUp(token).get()
 
-            val devId = tanker.getDeviceId().get()
+            val devId = tanker.getDeviceId()
             val devIdRoundtrip = Base64.encodeToString(Base64.decode(devId))
 
             devId shouldBe devIdRoundtrip
@@ -114,7 +114,7 @@ class TankerTests : TankerSpec() {
             tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
                 revoked = true
             })
-            tankerAlice.revokeDevice(tankerAlice.getDeviceId().get()).get()
+            tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
             Thread.sleep(500)
             tankerAlice.isOpen() shouldBe false
             revoked shouldBe true
@@ -136,7 +136,7 @@ class TankerTests : TankerSpec() {
             val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice2.signIn(aliceId, TankerSignInOptions().setUnlockKey(unlockKey)).get()
 
-            tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
+            tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
             Thread.sleep(500)
             tankerAlice1.isOpen() shouldBe false
             revoked shouldBe true
@@ -158,7 +158,7 @@ class TankerTests : TankerSpec() {
             val tankerBob = Tanker(options)
             tankerBob.signUp(bobId).get()
 
-            val aliceDevId = tankerAlice.getDeviceId().get()
+            val aliceDevId = tankerAlice.getDeviceId()
             val e = shouldThrow<TankerFutureException> {
                 tankerBob.revokeDevice(aliceDevId).get()
             }
@@ -175,7 +175,7 @@ class TankerTests : TankerSpec() {
 
             val devices = tankerAlice.getDeviceList().get()
             devices.size shouldBe 1
-            devices[0].getDeviceId() shouldBe tankerAlice.getDeviceId().get()
+            devices[0].getDeviceId() shouldBe tankerAlice.getDeviceId()
             devices[0].isRevoked() shouldBe false
         }
 
@@ -183,14 +183,14 @@ class TankerTests : TankerSpec() {
             val aliceId = tc.generateIdentity()
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice1.signUp(aliceId).get()
-            val aliceDeviceId1 = tankerAlice1.getDeviceId().get()
+            val aliceDeviceId1 = tankerAlice1.getDeviceId()
 
             val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
             val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice2.signIn(aliceId, TankerSignInOptions().setUnlockKey(unlockKey)).get()
-            val aliceDeviceId2 = tankerAlice2.getDeviceId().get()
+            val aliceDeviceId2 = tankerAlice2.getDeviceId()
 
-            tankerAlice2.revokeDevice(tankerAlice1.getDeviceId().get()).get()
+            tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
             Thread.sleep(500)
 
             val devices = tankerAlice2.getDeviceList().get()
