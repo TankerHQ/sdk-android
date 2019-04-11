@@ -100,7 +100,7 @@ fun setupTestEnv() {
         override fun callback(logRecord: TankerLogRecord) {
             if (logRecord.level == TankerLogLevel.DEBUG.value)
                 return
-            println("$logRecord.category: $logRecord.message")
+            println("${logRecord.category}: ${logRecord.message}")
         }
     })
 }
