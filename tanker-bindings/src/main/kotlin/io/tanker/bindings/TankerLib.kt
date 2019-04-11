@@ -50,7 +50,7 @@ interface TankerLib : Library {
     fun tanker_unlock_current_device_with_password(tanker: Pointer, password: String): FuturePointer
     fun tanker_unlock_current_device_with_verification_code(tanker: Pointer, code: String): FuturePointer
     fun tanker_is_unlock_already_set_up(tanker: Pointer): FuturePointer
-    fun tanker_device_id(tanker: SessionPointer): FuturePointer
+    fun tanker_device_id(tanker: SessionPointer): ExpectedPointer
     fun tanker_revoke_device(tanker: SessionPointer, deviceId: String): FuturePointer
     fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
 
