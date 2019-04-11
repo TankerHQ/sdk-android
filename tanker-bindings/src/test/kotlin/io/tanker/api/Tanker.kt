@@ -172,6 +172,7 @@ class TankerTests : TankerSpec() {
         "Can get a correct device list" {
             val tankerAlice = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice.signUp(tc.generateIdentity()).get()
+            tankerAlice.generateAndRegisterUnlockKey().get()
 
             val devices = tankerAlice.getDeviceList().get()
             devices.size shouldBe 1
