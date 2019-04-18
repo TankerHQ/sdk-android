@@ -374,15 +374,6 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Subscribes to the "Device Created" Tanker event.
-     * @param callback The function to call when the event happens.
-     * @return A connection, which can be passed to disconnectEvent.
-     */
-    fun connectDeviceCreatedHandler(eventCallback: TankerDeviceCreatedHandler): TankerConnection {
-        return connectGenericHandler({ eventCallback.call() }, TankerEvent.DEVICE_CREATED)
-    }
-
-    /**
      * Subscribes to the "Device Revoked" Tanker event.
      * @param callback The function to call when the event happens.
      * @return A connection, which can be passed to disconnectEvent.
