@@ -7,23 +7,22 @@ import io.tanker.bindings.TankerUnlockMethod
 
 class UnlockTests : TankerSpec() {
     lateinit var userId: String
-    lateinit var token: String
+    lateinit var identity: String
     lateinit var tanker1: Tanker
     lateinit var tanker2: Tanker
 
     override fun beforeTest(description: Description) {
-        userId = tc.generateIdentity()
-        token = userId
+        identity = tc.generateIdentity()
         tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
         tanker2 = Tanker(options.setWritablePath(createTmpDir().toString()))
     }
 
     init {
         "Can validate a new device using a passphrase" {
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             val unlockKey = tanker1.generateAndRegisterUnlockKey().get()
             tanker1.signOut().get()
-            tanker2.signIn(token, TankerSignInOptions().setUnlockKey(unlockKey)).get()
+            tanker2.signIn(identity, TankerSignInOptions().setUnlockKey(unlockKey)).get()
             tanker2.isOpen() shouldBe true
             tanker2.signOut().get()
         }
@@ -31,12 +30,12 @@ class UnlockTests : TankerSpec() {
         "Can setup and use an unlock password" {
             val pass = "this is a password"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.isUnlockAlreadySetUp().get() shouldBe false
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(pass)).get()
             tanker1.signOut().get()
 
-            tanker2.signIn(token, TankerSignInOptions().setPassword(pass)).get()
+            tanker2.signIn(identity, TankerSignInOptions().setPassword(pass)).get()
             tanker2.isOpen() shouldBe true
             tanker2.isUnlockAlreadySetUp().get() shouldBe true
             tanker2.signOut().get()
@@ -46,12 +45,12 @@ class UnlockTests : TankerSpec() {
             val oldpass = "This is an old password"
             val newpass = "This is a new password"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(oldpass)).get()
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(newpass)).get()
             tanker1.signOut().get()
 
-            tanker2.signIn(token, TankerSignInOptions().setPassword(newpass)).get()
+            tanker2.signIn(identity, TankerSignInOptions().setPassword(newpass)).get()
             tanker2.signOut().get()
         }
 
@@ -59,12 +58,12 @@ class UnlockTests : TankerSpec() {
             val pass = "This is a strong password"
             val plainText = "plain text"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(pass)).get()
             val secret = tanker1.encrypt(plainText.toByteArray()).get()
             tanker1.signOut().get()
 
-            tanker2.signIn(token, TankerSignInOptions().setPassword(pass)).get()
+            tanker2.signIn(identity, TankerSignInOptions().setPassword(pass)).get()
             String(tanker2.decrypt(secret).get()) shouldBe plainText
             tanker2.signOut().get()
         }
@@ -72,7 +71,7 @@ class UnlockTests : TankerSpec() {
         "hasRegisteredUnlockMethods return true iff unlock is set-up" {
             val pass = "this is a password"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.hasRegisteredUnlockMethods() shouldBe false
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(pass)).get()
             tanker1.hasRegisteredUnlockMethods() shouldBe true
@@ -82,7 +81,7 @@ class UnlockTests : TankerSpec() {
         "Can check that the password unlock method is set-up" {
             val pass = "this is a password"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.hasRegisteredUnlockMethod(TankerUnlockMethod.PASSWORD) shouldBe false
             tanker1.hasRegisteredUnlockMethod(TankerUnlockMethod.EMAIL) shouldBe false
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(pass)).get()
@@ -94,7 +93,7 @@ class UnlockTests : TankerSpec() {
         "Can check that the email unlock method is set-up" {
             val email = "bob@wonderland.io"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.hasRegisteredUnlockMethod(TankerUnlockMethod.PASSWORD) shouldBe false
             tanker1.hasRegisteredUnlockMethod(TankerUnlockMethod.EMAIL) shouldBe false
             tanker1.registerUnlock(TankerUnlockOptions().setEmail(email)).get()
@@ -107,7 +106,7 @@ class UnlockTests : TankerSpec() {
             val pass = "this is a password"
             val email = "bob@wonderland.io"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.registeredUnlockMethods().size shouldBe 0
             tanker1.registerUnlock(TankerUnlockOptions().setEmail(email).setPassword(pass)).get()
             val unlockMethods = tanker1.registeredUnlockMethods()
@@ -122,24 +121,24 @@ class UnlockTests : TankerSpec() {
             val oldpass = "this is an old password"
             val newpass = "this is a new password"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.registeredUnlockMethods().size shouldBe 0
             tanker1.registerUnlock(TankerUnlockOptions().setEmail(email).setPassword(oldpass)).get()
             tanker1.registerUnlock(TankerUnlockOptions().setPassword(newpass)).get()
             tanker1.signOut().get()
 
-            tanker2.signIn(token, TankerSignInOptions().setPassword(newpass)).get()
+            tanker2.signIn(identity, TankerSignInOptions().setPassword(newpass)).get()
             tanker2.signOut().get()
         }
 
         "Can unlock with a verification code" {
             val email = "bob@wonderland.io"
 
-            tanker1.signUp(token).get()
+            tanker1.signUp(identity).get()
             tanker1.registerUnlock(TankerUnlockOptions().setEmail(email)).get()
             val verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
 
-            tanker2.signIn(token, TankerSignInOptions().setVerificationCode(verificationCode)).get()
+            tanker2.signIn(identity, TankerSignInOptions().setVerificationCode(verificationCode)).get()
             tanker2.isOpen() shouldBe true
         }
     }

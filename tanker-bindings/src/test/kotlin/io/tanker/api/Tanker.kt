@@ -27,20 +27,18 @@ class TankerTests : TankerSpec() {
             versionString shouldNot haveLength(0)
         }
 
-        "Can open a Tanker session with a new token" {
+        "Can open a Tanker session by signin up" {
             val tanker = Tanker(options)
-            val userId = tc.generateIdentity()
-            val token = userId
-            tanker.signUp(token).get()
+            val identity = tc.generateIdentity()
+            tanker.signUp(identity).get()
             tanker.isOpen() shouldBe true
             tanker.signOut().get()
         }
 
         "Can get our device ID" {
             val tanker = Tanker(options)
-            val userId = tc.generateIdentity()
-            val token = userId
-            tanker.signUp(token).get()
+            val identity = tc.generateIdentity()
+            tanker.signUp(identity).get()
 
             val devId = tanker.getDeviceId()
             val devIdRoundtrip = Base64.encodeToString(Base64.decode(devId))
@@ -52,9 +50,8 @@ class TankerTests : TankerSpec() {
 
         "Can encrypt and decrypt back" {
             val tanker = Tanker(options)
-            val userId = tc.generateIdentity()
-            val token = userId
-            tanker.signUp(token).get()
+            val identity = tc.generateIdentity()
+            tanker.signUp(identity).get()
 
             val plaintext = "plain text"
             val decrypted = tanker.decrypt(tanker.encrypt(plaintext.toByteArray()).get()).get()
