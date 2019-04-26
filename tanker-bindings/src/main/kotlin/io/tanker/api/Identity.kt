@@ -15,6 +15,10 @@ class Identity {
         @JvmStatic fun getPublicIdentity(identity: String): String {
             val tokenCFut = libIdentity.tanker_get_public_identity(identity)
             return TankerFuture<Pointer>(tokenCFut, Pointer::class.java).get().getString(0)
+
+        @JvmStatic fun createProvisionalIdentity(trustchainId: String, email: String): String {
+            val identityCFut = libIdentity.tanker_create_provisional_identity(trustchainId, email)
+            return TankerFuture<Pointer>(identityCFut, Pointer::class.java).get().getString(0)
         }
     }
 }

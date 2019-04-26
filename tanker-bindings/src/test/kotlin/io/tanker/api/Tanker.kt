@@ -1,10 +1,7 @@
 package io.tanker.api
 
-import io.kotlintest.Description
+import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNot
-import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
 import io.tanker.utils.Base64
 
@@ -100,6 +97,34 @@ class TankerTests : TankerSpec() {
             val encryptOptions = TankerEncryptOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+
+            tankerAlice.signOut().get()
+            tankerBob.signOut().get()
+        }
+
+        "Can share with a provisional user" {
+            val aliceId = tc.generateIdentity()
+            val tankerAlice = Tanker(options)
+            tankerAlice.signUp(aliceId).get()
+
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val message = "This is for future Bob"
+            val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
+            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+
+            val encrypted = tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.generateIdentity()
+            tankerBob.signUp(bobPrivateIdentity).get()
+
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.claimProvisionalIdentity(bobProvisionalIdentity, bobVerificationCode).get()
+
+            val decrypted = tankerBob.decrypt(encrypted).get()
+            String(decrypted) shouldBe "This is for future Bob"
 
             tankerAlice.signOut().get()
             tankerBob.signOut().get()
