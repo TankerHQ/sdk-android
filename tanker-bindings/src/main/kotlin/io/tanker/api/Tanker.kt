@@ -97,6 +97,15 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
+     * Claim a provisional identity.
+     * @return A future that resolves when the claim is successful
+     */
+    fun claimProvisionalIdentity(provisionalIdentity: String, verficationCode: String): TankerFuture<Unit> {
+        val futurePtr = lib.tanker_claim_provisional_identity(tanker, provisionalIdentity, verficationCode)
+        return TankerFuture(futurePtr, Unit::class.java)
+    }
+
+    /**
      * Get whether the Tanker session is open.
      */
     fun isOpen(): Boolean {

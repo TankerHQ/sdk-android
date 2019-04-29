@@ -44,6 +44,7 @@ interface TankerLib : Library {
     fun tanker_sign_up(tanker: Pointer, identity: String, tankerAuthenticationMethods: TankerAuthenticationMethods?): FuturePointer
     fun tanker_sign_in(tanker: Pointer, identity: String, tankerSignInOptions: TankerSignInOptions?): FuturePointer
     fun tanker_sign_out(tanker: Pointer): FuturePointer
+    fun tanker_claim_provisional_identity(tanker: Pointer, provisionalIdentity: String, verificationCode: String): FuturePointer
     fun tanker_is_open(tanker: Pointer): Boolean
     fun tanker_generate_and_register_unlock_key(tanker: Pointer): FuturePointer
     fun tanker_unlock_current_device_with_unlock_key(tanker: Pointer, unlock_key: String): FuturePointer
