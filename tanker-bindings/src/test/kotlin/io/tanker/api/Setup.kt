@@ -68,9 +68,9 @@ class Trustchain {
         println(descriptor)
     }
 
-    fun generateIdentity(): String {
+    fun createIdentity(): String {
         val userId = UUID.randomUUID().toString()
-        return Identity.generate(
+        return Identity.createIdentity(
                 descriptor.id!!,
                 descriptor.privateKey!!,
                 userId

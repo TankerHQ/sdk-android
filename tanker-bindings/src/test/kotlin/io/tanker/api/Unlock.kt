@@ -12,7 +12,7 @@ class UnlockTests : TankerSpec() {
     lateinit var tanker2: Tanker
 
     override fun beforeTest(description: Description) {
-        identity = tc.generateIdentity()
+        identity = tc.createIdentity()
         tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
         tanker2 = Tanker(options.setWritablePath(createTmpDir().toString()))
     }
