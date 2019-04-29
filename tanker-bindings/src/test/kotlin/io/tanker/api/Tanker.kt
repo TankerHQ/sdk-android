@@ -29,7 +29,7 @@ class TankerTests : TankerSpec() {
 
         "Can open a Tanker session by signin up" {
             val tanker = Tanker(options)
-            val identity = tc.generateIdentity()
+            val identity = tc.createIdentity()
             tanker.signUp(identity).get()
             tanker.isOpen() shouldBe true
             tanker.signOut().get()
@@ -37,7 +37,7 @@ class TankerTests : TankerSpec() {
 
         "Can get our device ID" {
             val tanker = Tanker(options)
-            val identity = tc.generateIdentity()
+            val identity = tc.createIdentity()
             tanker.signUp(identity).get()
 
             val devId = tanker.getDeviceId()
@@ -50,7 +50,7 @@ class TankerTests : TankerSpec() {
 
         "Can encrypt and decrypt back" {
             val tanker = Tanker(options)
-            val identity = tc.generateIdentity()
+            val identity = tc.createIdentity()
             tanker.signUp(identity).get()
 
             val plaintext = "plain text"
@@ -61,8 +61,8 @@ class TankerTests : TankerSpec() {
         }
 
         "Can encrypt, share, and decrypt between two users" {
-            val aliceId = tc.generateIdentity()
-            val bobId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
@@ -81,8 +81,8 @@ class TankerTests : TankerSpec() {
         }
 
         "Can encrypt-and-share, then decrypt, between two users" {
-            val aliceId = tc.generateIdentity()
-            val bobId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
@@ -100,7 +100,7 @@ class TankerTests : TankerSpec() {
         }
 
         "Can share with a provisional user" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
 
@@ -114,7 +114,7 @@ class TankerTests : TankerSpec() {
             val encrypted = tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
 
             val tankerBob = Tanker(options)
-            val bobPrivateIdentity = tc.generateIdentity()
+            val bobPrivateIdentity = tc.createIdentity()
             tankerBob.signUp(bobPrivateIdentity).get()
 
             val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
@@ -128,7 +128,7 @@ class TankerTests : TankerSpec() {
         }
 
         "Can self-revoke" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             var revoked = false
 
             val tankerAlice = Tanker(options)
@@ -145,7 +145,7 @@ class TankerTests : TankerSpec() {
         }
 
         "Can revoke another device of the same user" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             var revoked = false
 
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
@@ -168,8 +168,8 @@ class TankerTests : TankerSpec() {
         }
 
         "Cannot revoke a device of another user" {
-            val aliceId = tc.generateIdentity()
-            val bobId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
@@ -193,7 +193,7 @@ class TankerTests : TankerSpec() {
 
         "Can get a correct device list" {
             val tankerAlice = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tankerAlice.signUp(tc.generateIdentity()).get()
+            tankerAlice.signUp(tc.createIdentity()).get()
             tankerAlice.generateAndRegisterUnlockKey().get()
 
             val devices = tankerAlice.getDeviceList().get()
@@ -203,7 +203,7 @@ class TankerTests : TankerSpec() {
         }
 
         "Can get a correct device list after revocation" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice1.signUp(aliceId).get()
             val aliceDeviceId1 = tankerAlice1.getDeviceId()

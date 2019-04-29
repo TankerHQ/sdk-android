@@ -3,13 +3,12 @@ package io.tanker.api
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.tanker.bindings.TankerErrorCode
-import java.util.*
 
 class GroupTests : TankerSpec() {
 
     init {
         "Cannot create an empty group" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
 
@@ -23,8 +22,8 @@ class GroupTests : TankerSpec() {
         }
 
         "Can create a valid group" {
-            val aliceId = tc.generateIdentity()
-            val bobId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
@@ -39,10 +38,10 @@ class GroupTests : TankerSpec() {
         }
 
         "Can share to group" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
-            val bobId = tc.generateIdentity()
+            val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
             tankerBob.signUp(bobId).get()
 
@@ -58,10 +57,10 @@ class GroupTests : TankerSpec() {
         }
 
         "Can encrypt-and-share to group" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
-            val bobId = tc.generateIdentity()
+            val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
             tankerBob.signUp(bobId).get()
 
@@ -77,10 +76,10 @@ class GroupTests : TankerSpec() {
         }
 
         "Can share to an external group" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
-            val bobId = tc.generateIdentity()
+            val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
             tankerBob.signUp(bobId).get()
 
@@ -97,10 +96,10 @@ class GroupTests : TankerSpec() {
         }
 
         "Can add a member to a group" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
-            val bobId = tc.generateIdentity()
+            val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
             tankerBob.signUp(bobId).get()
 
@@ -118,13 +117,13 @@ class GroupTests : TankerSpec() {
         }
 
         "Can transitively add members to a group" {
-            val aliceId = tc.generateIdentity()
+            val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.signUp(aliceId).get()
-            val bobId = tc.generateIdentity()
+            val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
             tankerBob.signUp(bobId).get()
-            val charlieId = tc.generateIdentity()
+            val charlieId = tc.createIdentity()
             val tankerCharlie = Tanker(options)
             tankerCharlie.signUp(charlieId).get()
 
