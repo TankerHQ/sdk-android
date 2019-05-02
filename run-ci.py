@@ -3,6 +3,7 @@ import sys
 
 
 import ci.android
+import ci.conan
 import ci.cpp
 import ci.git
 
@@ -27,7 +28,7 @@ def main():
 
     args = parser.parse_args()
     if args.home_isolation:
-        ci.cpp.set_home_isolation()
+        ci.conan.set_home_isolation()
 
     if args.command == "update-conan-config":
         ci.cpp.update_conan_config()
