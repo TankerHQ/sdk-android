@@ -32,6 +32,14 @@ check/native-from-sources:
   tags:
     - linux
 
+nightly:
+  stage: check
+  only:
+    - schedules
+  script:
+    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+  tags:
+    - linux
 
 deploy:
   stage: deploy
