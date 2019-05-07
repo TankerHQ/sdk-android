@@ -50,7 +50,7 @@ android {
                 outputs.upToDateWhen {false}
                 showStandardStreams = true
             }
-            systemProperty "jna.library.path", projectDir.absolutePath + "/conan/host/lib"
+            systemProperty "jna.library.path", projectDir.absolutePath + "/conan/host"
             systemProperty "TANKER_CONFIG_NAME", System.getProperty("TANKER_CONFIG_NAME")
             systemProperty "TANKER_CONFIG_FILEPATH", System.getProperty("TANKER_CONFIG_FILEPATH")
         }
@@ -140,5 +140,5 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7'
     testImplementation 'org.slf4j:slf4j-nop:1.7.25'
     testImplementation files('jna.jar')
-    testImplementation files('conan/host/lib/tanker-native.jar')
+    testImplementation files('conan/host/tanker-native.jar')
 }
