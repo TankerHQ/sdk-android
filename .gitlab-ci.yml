@@ -6,7 +6,7 @@ variables:
 before_script:
   - dmenv install
   - export PATH=$(dmenv show:venv_path)/bin:$PATH
-  - dmenv run -- python run-ci.py --isolate-conan-user-home update-conan-config --platform linux
+  - dmenv run -- python run-ci.py --isolate-conan-user-home update-conan-config
 
 stages:
   - check
@@ -18,7 +18,7 @@ check/deployed-native:
   except:
     - tags
   script:
-    - dmenv run -- python run-ci.py --isolate-conan-user-home check
+    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed
   tags:
     - linux
 
@@ -28,10 +28,18 @@ check/native-from-sources:
   except:
     - tags
   script:
-    - dmenv run -- python run-ci.py --isolate-conan-user-home check --native-from-sources
+    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
   tags:
     - linux
 
+nightly:
+  stage: check
+  only:
+    - schedules
+  script:
+    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+  tags:
+    - linux
 
 deploy:
   stage: deploy

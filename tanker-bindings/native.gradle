@@ -27,28 +27,15 @@ class NativeHelper {
         return "android-$arch-${buildType.toLowerCase()}"
     }
 
-    static def conanInstall(buildPath, sourcePath, profile) {
-        buildPath.mkdirs()
-        runCmd("conan install $sourcePath " +
+    static def conanInstall(tankerConanRef, installPath, profile) {
+        installPath.mkdirs()
+        runCmd("conan install $tankerConanRef " +
                 "--update " +
-                "--install-folder $buildPath " +
                 "--profile $profile " +
                 "--option tanker:tankerlib_shared=True " +
-                "--build missing ",
-                sourcePath
-        )
+                "--install-folder=$installPath " +
+                "--build missing ", installPath)
     }
-
-    static def conanBuild(buildPath, installPath, sourcePath) {
-        installPath.mkdirs()
-        runCmd("conan build --configure --build " +
-                "--install $sourcePath " +
-                "--package-folder $installPath " +
-                "--build-folder $buildPath",
-                sourcePath
-        )
-    }
-
     // This creates a .jar with our .so inside, so we can put it in the classpath for tests
     static def createNativeLibJar(File libPath, String jarName) {
         def platformPrefix = Platform.getNativeLibraryResourcePrefix()
@@ -60,82 +47,66 @@ class NativeHelper {
     }
 }
 
-class BuildNative extends DefaultTask {
+class Builder extends DefaultTask {
+    final File projectPath
+    final File conanPath
     final String buildType
-    final String buildFor
-    final String projectPath
-    final File sourcePath
+    final File installPathBase
+    final File conanOutputPath
 
-    @Inject BuildNative(String buildType, String buildFor) {
-        this.buildType = buildType
-        this.buildFor = buildFor
-
-        this.projectPath = getProject().getProjectDir().absolutePath
-        this.sourcePath = new File(projectPath+"/../../sdk-native")
+    Builder(String buildType) {
+        this.projectPath = new File(getProject().getProjectDir().absolutePath)
+        this.conanPath = new File(this.projectPath, "conan")
+        this.buildType = buildType.toLowerCase()
+        this.installPathBase = new File(this.projectPath, "src/${this.buildType}/jniLibs")
+        this.conanOutputPath = new File(this.conanPath, "host")
     }
 
-    void compileForAndroid() {
-        def androidBuildType = buildType.toLowerCase()
-        def buildPathBase = projectPath+"/../../sdk-native/build/android/$buildType"
-        def installPathBase = projectPath+"/src/$androidBuildType/jniLibs/"
-
+    void compileForAndroid(String tankerConanRef) {
         // Run each known android arch
         NativeHelper.conanAndroidArchs.each { k, v ->
-            def buildPath = new File("$buildPathBase/$k")
-            def installPath = new File("$installPathBase/$k")
-
-            def profileName = NativeHelper.getAndroidProfile(v, buildType)
-            NativeHelper.conanInstall(buildPath, sourcePath, profileName)
-            NativeHelper.conanBuild(buildPath, installPath, sourcePath)
-            NativeHelper.runCmd("cp lib/libctanker.so .", installPath)
+            def profile = NativeHelper.getAndroidProfile(v, this.buildType)
+            def installPath = new File(this.installPathBase, k)
+            NativeHelper.conanInstall(tankerConanRef, installPath, profile)
         }
     }
 
-    void compileForHost() {
-        // Last run for host build (used for unit testing)
-        def buildPath = new File(projectPath + "/../../sdk-native/build/host/$buildType/")
-        def installPath = new File(projectPath + "/conan/host/")
-        def profile = System.getenv("CI") ? "gcc8-release" : "default"
-
-        NativeHelper.conanInstall(buildPath, sourcePath, profile)
-        NativeHelper.conanBuild(buildPath, installPath, sourcePath)
-
-        def hostLibDir = new File(installPath, "lib/libctanker.so")
-        NativeHelper.createNativeLibJar(hostLibDir, 'tanker-native.jar')
-    }
-
-    @TaskAction
-    void compile() {
-        if (buildFor == 'android' || buildFor == 'all')
-            compileForAndroid()
-        if (buildFor == 'host' || buildFor == 'all')
-            compileForHost()
+    void compileForHost(String tankerConanRef) {
+        def installPath = this.conanOutputPath
+        NativeHelper.conanInstall(tankerConanRef, installPath, "gcc8-release")
+        NativeHelper.createNativeLibJar(new File(installPath, "libctanker.so"), 'tanker-native.jar')
     }
 }
 
-class UseDeployedNative extends DefaultTask {
-    String buildType
+class BuildNative extends Builder {
+    final String buildFor
 
-    @Inject UseDeployedNative(String buildType) {
-        this.buildType = buildType
+    @Inject BuildNative(String buildType, String buildFor) {
+        super(buildType) 
+        this.buildFor = buildFor
     }
 
     @TaskAction
     void compile() {
-        def projectPath = getProject().getProjectDir().absolutePath
-        def installPathBase = projectPath+"/src/${buildType.toLowerCase()}/jniLibs/"
-        def sourcePath = new File(projectPath+"/conan")
+        def tankerConanRef = new File(this.conanPath, "conanfile-local.txt")
+        if (buildFor == 'android' || buildFor == 'all')
+            this.compileForAndroid(tankerConanRef.toString())
+        if (buildFor == 'host' || buildFor == 'all')
+            this.compileForHost(tankerConanRef.toString())
+    }
+}
 
-        NativeHelper.conanAndroidArchs.each{ k, v ->
-            def installPath = new File("$installPathBase/$k")
-            def profileName = NativeHelper.getAndroidProfile(v, buildType)
-            NativeHelper.conanInstall(installPath, sourcePath, profileName)
-        }
+class UseDeployedNative extends Builder {
 
-        def installPath = new File(projectPath + "/conan/host/lib/")
-        def profile = System.getenv("CI") ? "gcc8-release" : "default"
-        NativeHelper.conanInstall(installPath, sourcePath, profile)
-        NativeHelper.createNativeLibJar(new File(installPath, 'libctanker.so'), 'tanker-native.jar')
+    @Inject UseDeployedNative(String buildType) {
+        super(buildType)
+    }
+
+    @TaskAction
+    void compile() {
+        def tankerConanRef = new File(this.conanPath, "conanfile-deployed.txt")
+        this.compileForAndroid(tankerConanRef.toString())
+        this.compileForHost(tankerConanRef.toString())
     }
 }
 
@@ -144,18 +115,18 @@ class RequireNativeLibs extends DefaultTask {
     @Inject RequireNativeLibs(String buildType, String buildFor) {
         boolean hasNativeLibs = true
         String projectPath = getProject().getProjectDir().absolutePath
+        def installPathBase = new File(projectPath, "src/${buildType.toLowerCase()}/jniLibs")
         if (buildFor == 'android') {
-            String installPathBase = projectPath + "/src/${buildType.toLowerCase()}/jniLibs"
 
             NativeHelper.conanAndroidArchs.each { k, v ->
-                File lib = new File("$installPathBase/$k/libctanker.so")
+                File lib = new File(installPathBase, "$k/libctanker.so")
                 if (!lib.exists()) {
                     doFirst { getLogger().warn("$lib not found, triggering build") }
                     hasNativeLibs = false
-		}
+                }
             }
         } else {
-            File expectedPath = new File(projectPath + "/conan/host/lib/libctanker.so")
+            File expectedPath = new File(projectPath, "conan/host/libctanker.so")
             if (!expectedPath.exists()) {
                 doFirst { getLogger().warn("$expectedPath not found, triggering build") }
                 hasNativeLibs = false
