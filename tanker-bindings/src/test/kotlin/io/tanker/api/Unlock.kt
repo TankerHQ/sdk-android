@@ -24,7 +24,7 @@ class UnlockTests : TankerSpec() {
             tanker1.stop().get()
             tanker2.start(identity).get()
             tanker2.verifyIdentity(VerificationKeyVerification(verificationKey)).get()
-            tanker2.getStatus() shouldBe TankerStatus.READY
+            tanker2.getStatus() shouldBe Status.READY
             tanker2.stop().get()
         }
 
@@ -36,9 +36,9 @@ class UnlockTests : TankerSpec() {
             tanker1.stop().get()
 
             tanker2.start(identity).get()
-            tanker2.getStatus() shouldBe TankerStatus.IDENTITY_VERIFICATION_NEEDED
+            tanker2.getStatus() shouldBe Status.IDENTITY_VERIFICATION_NEEDED
             tanker2.verifyIdentity(PassphraseVerification(pass)).get()
-            tanker2.getStatus() shouldBe TankerStatus.READY
+            tanker2.getStatus() shouldBe Status.READY
             tanker2.stop().get()
         }
 
@@ -135,7 +135,7 @@ class UnlockTests : TankerSpec() {
             tanker2.start(identity).get()
             verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
             tanker2.verifyIdentity(EmailVerification(email, verificationCode)).get()
-            tanker2.getStatus() shouldBe TankerStatus.READY
+            tanker2.getStatus() shouldBe Status.READY
         }
     }
 }

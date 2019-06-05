@@ -63,10 +63,10 @@ class Tanker(tankerOptions: TankerOptions) {
         lib.tanker_destroy(tanker)
     }
 
-    fun start(identity: String): TankerFuture<TankerStatus> {
+    fun start(identity: String): TankerFuture<Status> {
         val futurePtr = lib.tanker_start(tanker, identity)
         return TankerFuture<Int>(futurePtr, Int::class.java).andThen(TankerCallback {
-            TankerStatus.fromInt(it)
+            Status.fromInt(it)
         })
     }
 
@@ -111,7 +111,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Get whether the Tanker session is open.
      */
-    fun getStatus(): TankerStatus {
+    fun getStatus(): Status {
         return lib.tanker_status(tanker)
     }
 

@@ -19,7 +19,7 @@ class TankerTests : TankerSpec() {
 
         "Can create a Tanker object" {
             val tanker = Tanker(options)
-            tanker.getStatus() shouldBe TankerStatus.STOPPED
+            tanker.getStatus() shouldBe Status.STOPPED
         }
 
         "Can get a valid version string" {
@@ -31,10 +31,10 @@ class TankerTests : TankerSpec() {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
             val status = tanker.start(identity).get()
-            status shouldBe TankerStatus.IDENTITY_REGISTRATION_NEEDED
-            tanker.getStatus() shouldBe TankerStatus.IDENTITY_REGISTRATION_NEEDED
+            status shouldBe Status.IDENTITY_REGISTRATION_NEEDED
+            tanker.getStatus() shouldBe Status.IDENTITY_REGISTRATION_NEEDED
             tanker.registerIdentity(PassphraseVerification("pass")).get()
-            tanker.getStatus() shouldBe TankerStatus.READY
+            tanker.getStatus() shouldBe Status.READY
             tanker.stop().get()
         }
 
@@ -150,7 +150,7 @@ class TankerTests : TankerSpec() {
             })
             tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
             Thread.sleep(500)
-            tankerAlice.getStatus() shouldBe TankerStatus.STOPPED
+            tankerAlice.getStatus() shouldBe Status.STOPPED
             revoked shouldBe true
 
             tankerAlice.stop().get()
@@ -174,7 +174,7 @@ class TankerTests : TankerSpec() {
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
             Thread.sleep(500)
-            tankerAlice1.getStatus() shouldBe TankerStatus.STOPPED
+            tankerAlice1.getStatus() shouldBe Status.STOPPED
             revoked shouldBe true
 
             tankerAlice1.stop().get()
