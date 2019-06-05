@@ -5,6 +5,13 @@ package io.tanker.api
  * @see Tanker
  */
 enum class TankerStatus(val value: Int) {
-    CLOSED(0),
-    OPEN(1),
+    STOPPED(0),
+    READY(1),
+    IDENTITY_REGISTRATION_NEEDED(2),
+    IDENTITY_VERIFICATION_NEEDED(3);
+
+    companion object {
+        private val map = TankerStatus.values().associateBy(TankerStatus::value)
+        fun fromInt(type: Int) = map[type]
+    }
 }

@@ -41,21 +41,19 @@ interface TankerLib : Library {
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
     fun tanker_destroy(tanker: Pointer): FuturePointer
-    fun tanker_sign_up(tanker: Pointer, identity: String, tankerAuthenticationMethods: TankerAuthenticationMethods?): FuturePointer
-    fun tanker_sign_in(tanker: Pointer, identity: String, tankerSignInOptions: TankerSignInOptions?): FuturePointer
-    fun tanker_sign_out(tanker: Pointer): FuturePointer
+    fun tanker_start(tanker: Pointer, identity: String): FuturePointer
+    fun tanker_register_identity(tanker: Pointer, tankerVerification: TankerVerification?): FuturePointer
+    fun tanker_verify_identity(tanker: Pointer, tankerVerification: TankerVerification?): FuturePointer
+    fun tanker_stop(tanker: Pointer): FuturePointer
     fun tanker_claim_provisional_identity(tanker: Pointer, provisionalIdentity: String, verificationCode: String): FuturePointer
-    fun tanker_is_open(tanker: Pointer): Boolean
-    fun tanker_generate_and_register_unlock_key(tanker: Pointer): FuturePointer
-    fun tanker_is_unlock_already_set_up(tanker: Pointer): FuturePointer
+    fun tanker_status(tanker: Pointer): TankerStatus
+    fun tanker_generate_verification_key(tanker: Pointer): FuturePointer
     fun tanker_device_id(tanker: SessionPointer): ExpectedPointer
     fun tanker_revoke_device(tanker: SessionPointer, deviceId: String): FuturePointer
     fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
 
-    fun tanker_registered_unlock_methods(tanker: SessionPointer): ExpectedPointer
-    fun tanker_has_registered_unlock_methods(tanker: SessionPointer): ExpectedPointer
-    fun tanker_has_registered_unlock_method(tanker: SessionPointer, unlockMethod: TankerUnlockMethod): ExpectedPointer
-    fun tanker_register_unlock(tanker: SessionPointer, email: String?, password: String?): FuturePointer
+    fun tanker_get_verification_methods(tanker: SessionPointer): FuturePointer
+    fun tanker_set_verification_method(tanker: SessionPointer, verification: TankerVerification): FuturePointer
 
     fun tanker_set_log_handler(handler: LogHandlerCallback): Void
     fun tanker_event_connect(tanker: Pointer, event: TankerEvent, callback: EventCallback, user_data: Pointer): ExpectedPointer
@@ -103,4 +101,5 @@ interface TankerLib : Library {
 
     fun tanker_free_buffer(buffer: Pointer): Void
     fun tanker_free_device_list(list: Pointer): Void
+    fun tanker_free_verification_method_list(list: Pointer): Void
 }
