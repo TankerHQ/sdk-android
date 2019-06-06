@@ -57,7 +57,7 @@ interface TankerLib : Library {
 
     fun tanker_set_log_handler(handler: LogHandlerCallback): Void
     fun tanker_event_connect(tanker: Pointer, event: TankerEvent, callback: EventCallback, user_data: Pointer): ExpectedPointer
-    fun tanker_event_disconnect(tanker: Pointer, connection: ConnectionPointer): ExpectedPointer
+    fun tanker_event_disconnect(tanker: Pointer, event: TankerEvent): ExpectedPointer
 
     fun tanker_encrypted_size(clear_size: Long): Long
     fun tanker_decrypted_size(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer

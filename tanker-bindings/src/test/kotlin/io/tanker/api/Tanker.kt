@@ -4,6 +4,8 @@ import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
 import io.tanker.bindings.TankerErrorCode
 import io.tanker.utils.Base64
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 class TankerTests : TankerSpec() {
 
@@ -36,6 +38,21 @@ class TankerTests : TankerSpec() {
             tanker.registerIdentity(PassphraseVerification("pass")).get()
             tanker.getStatus() shouldBe Status.READY
             tanker.stop().get()
+        }
+
+        "Can connect to the session closed event" {
+            val tanker = Tanker(options)
+            val identity = tc.createIdentity()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+            val sem = Semaphore(0)
+            tanker.connectSessionClosedHandler(TankerSessionClosedHandler {
+                sem.release()
+            })
+            tanker.stop().get()
+            val ok = sem.tryAcquire(1, TimeUnit.SECONDS)
+            ok shouldBe true
         }
 
         "Can get our device ID" {
@@ -158,24 +175,24 @@ class TankerTests : TankerSpec() {
 
         "Can revoke another device of the same user" {
             val aliceId = tc.createIdentity()
-            var revoked = false
+            val revokedSemaphore = Semaphore(0)
+
 
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
-                revoked = true
+                revokedSemaphore.release()
             })
             tankerAlice1.start(aliceId).get()
-            val verificationKey = tankerAlice1.generateVerificationKey().get()
-            tankerAlice1.registerIdentity(VerificationKeyVerification(verificationKey)).get()
+            tankerAlice1.registerIdentity(PassphraseVerification("pass")).get()
 
             val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice2.start(aliceId).get()
-            tankerAlice2.verifyIdentity(VerificationKeyVerification(verificationKey)).get()
+            tankerAlice2.verifyIdentity(PassphraseVerification("pass")).get()
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
-            Thread.sleep(500)
+            val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
+            ok shouldBe true
             tankerAlice1.getStatus() shouldBe Status.STOPPED
-            revoked shouldBe true
 
             tankerAlice1.stop().get()
             tankerAlice2.stop().get()

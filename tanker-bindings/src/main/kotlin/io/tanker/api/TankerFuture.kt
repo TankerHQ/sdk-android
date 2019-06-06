@@ -24,7 +24,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
         @JvmStatic
         private var lifeSupport: MutableList<TankerFuture<*>> = ArrayList()
 
-        private var threadPool = Executors.newCachedThreadPool()
+        internal var threadPool = Executors.newCachedThreadPool()
         private val lib = TankerLib.create()
 
         /**
