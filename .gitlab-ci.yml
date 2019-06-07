@@ -57,10 +57,11 @@ mirror:
   stage: deploy
   only:
     # mirror public tags, releases branches
-    # and master
+    # feature branches, and master
     - /\Av[0-9.]+\z/
     - master
     - /\Arelease/.*\z/
+    - /\Afeat\/.+\z/   # feat/ branches
   except:
     - schedules
   script:
