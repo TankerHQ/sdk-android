@@ -84,6 +84,14 @@ class Tanker(tankerOptions: TankerOptions) {
         lib.tanker_destroy(tanker)
     }
 
+    /**
+     * Starts a Tanker session.
+     * If the method returns READY, the session is started. If it returns
+     * IDENTITY_REGISTRATION_NEEDED, you must call registerIdentity. If it returns
+     * IDENTITY_VERIFICATION_NEEDED, you must call verifyIdentity.
+     * @param identity The identity of the user to start the session for.
+     * @return A future that resolves with a Status
+     */
     fun start(identity: String): TankerFuture<Status> {
         val futurePtr = lib.tanker_start(tanker, identity)
         return TankerFuture<Int>(futurePtr, Int::class.java).andThen(TankerCallback {
@@ -92,7 +100,7 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Creates a Tanker account and opens a session
+     * Registers a new identity and finishes opening a Tanker session.
      * @param verification A verification option to set up how the user's identity will be verified later
      * @return A future that resolves when the session is open
      */
@@ -102,7 +110,7 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Tries to open a Tanker session and returns a status code
+     * Verifies an identity and finishes opening a Tanker session.
      * @param verification A verification option that verifies the user's identity
      * @return A future that resolves when the session is open
      */
@@ -112,8 +120,8 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Closes a Tanker session.
-     * @return A future that resolves when the session is closed.
+     * Stops a Tanker session.
+     * @return A future that resolves when the session is stopped.
      */
     fun stop(): TankerFuture<Unit> {
         val futurePtr = lib.tanker_stop(tanker)
@@ -179,8 +187,8 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Generates and registers an unlock key that can be used to accept a device.
-     * @return The unlock key.
+     * Generates and registers an verification key that can be used to verify a device.
+     * @return The verification key.
      */
     fun generateVerificationKey(): TankerFuture<String> {
         val fut = TankerFuture<Pointer>(lib.tanker_generate_verification_key(tanker), Pointer::class.java)
@@ -193,9 +201,9 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Returns the list of currently registered unlock methods.
+     * Returns the list of currently registered verification methods.
      * Must be called on an already opened Session.
-     * @return Ordered list of unlock methods that are currently set-up.
+     * @return Ordered list of verification methods that are currently set-up.
      */
     fun getVerificationMethods(): TankerFuture<List<VerificationMethod>> {
         val fut = TankerFuture<Pointer>(lib.tanker_get_verification_methods(tanker), Pointer::class.java)
@@ -222,7 +230,7 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Sets-up or updates unlock methods for the user.
+     * Sets-up or updates verification methods for the user.
      * Must be called on an already opened Session.
      * @return A future that resolves if the operation succeeds
      */
