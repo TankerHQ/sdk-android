@@ -145,14 +145,93 @@ class TankerTests : TankerSpec() {
             tankerBob.start(bobPrivateIdentity).get()
             tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
+            val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult.status shouldBe Status.IDENTITY_VERIFICATION_NEEDED
             val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
-            tankerBob.claimProvisionalIdentity(bobProvisionalIdentity, bobVerificationCode).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
             val decrypted = tankerBob.decrypt(encrypted).get()
             String(decrypted) shouldBe "This is for future Bob"
 
             tankerAlice.stop().get()
             tankerBob.stop().get()
+        }
+
+        "Can skip provisional identity verification" {
+            val aliceId = tc.createIdentity()
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val message = "This is for future Bob"
+            val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
+            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+
+            val encrypted = tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.createIdentity()
+            tankerBob.start(bobPrivateIdentity).get()
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.registerIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
+
+            val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult.status shouldBe Status.READY
+            attachResult.verificationMethod shouldBe null
+
+            val decrypted = tankerBob.decrypt(encrypted).get()
+            String(decrypted) shouldBe "This is for future Bob"
+
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+        }
+
+        "Can attach even if there is no share" {
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.createIdentity()
+            tankerBob.start(bobPrivateIdentity).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
+
+            tankerBob.stop().get()
+        }
+
+        "Can attach a provisional identity twice" {
+            val aliceId = tc.createIdentity()
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val message = "This is for future Bob"
+            val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
+            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+
+            tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.createIdentity()
+            tankerBob.start(bobPrivateIdentity).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult.status shouldBe Status.IDENTITY_VERIFICATION_NEEDED
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
+
+            val attachResult2 = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult2.status shouldBe Status.READY
         }
 
         "Can self-revoke" {

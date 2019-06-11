@@ -129,12 +129,25 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Claim a provisional identity.
+     * Attaches a provisional identity to the current user.
      * @return A future that resolves when the claim is successful
      */
-    fun claimProvisionalIdentity(provisionalIdentity: String, verficationCode: String): TankerFuture<Unit> {
-        val futurePtr = lib.tanker_claim_provisional_identity(tanker, provisionalIdentity, verficationCode)
-        return TankerFuture(futurePtr, Unit::class.java)
+    fun attachProvisionalIdentity(provisionalIdentity: String): TankerFuture<AttachResult> {
+        val fut = TankerFuture<Pointer>(lib.tanker_attach_provisional_identity(tanker, provisionalIdentity), Pointer::class.java)
+        return fut.then(TankerCallback {
+            val attachResultPtr = it.get()
+            val status = attachResultPtr.getByte(1).toInt()
+            val method = attachResultPtr.getPointer(Pointer.SIZE.toLong())
+            var outMethod: VerificationMethod? = null
+            if (method != Pointer.NULL) {
+                outMethod = verificationMethodFromCVerification(TankerVerificationMethod(method))
+            }
+            AttachResult(Status.fromInt(status), outMethod)
+        })
+    }
+
+    fun verifyProvisionalIdentity(verification: Verification): TankerFuture<Unit> {
+        return TankerFuture(lib.tanker_verify_provisional_identity(tanker, verification.toCVerification()), Unit::class.java)
     }
 
     /**
@@ -215,14 +228,7 @@ class Tanker(tankerOptions: TankerOptions) {
             } else {
                 val firstMethod = TankerVerificationMethod(methodListPtr.getPointer(0))
                 @Suppress("UNCHECKED_CAST")
-                val out = (firstMethod.toArray(count) as Array<TankerVerificationMethod>).map {
-                    when (it.type) {
-                        TankerVerification.TypeEmail -> EmailVerificationMethod(it.email!!)
-                        TankerVerification.TypeVerificationKey -> VerificationKeyVerificationMethod
-                        TankerVerification.TypePassphrase -> PassphraseVerificationMethod
-                        else -> throw RuntimeException("unknown verification method type: ${it.type}")
-                    }
-                }.toList()
+                val out = (firstMethod.toArray(count) as Array<TankerVerificationMethod>).map(::verificationMethodFromCVerification).toList()
                 lib.tanker_free_verification_method_list(methodListPtr)
                 out
             }

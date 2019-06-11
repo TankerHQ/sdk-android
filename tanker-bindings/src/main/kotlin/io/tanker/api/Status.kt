@@ -12,6 +12,6 @@ enum class Status(val value: Int) {
 
     companion object {
         private val map = Status.values().associateBy(Status::value)
-        fun fromInt(type: Int) = map[type]
+        fun fromInt(type: Int) = map.getValue(type)
     }
 }

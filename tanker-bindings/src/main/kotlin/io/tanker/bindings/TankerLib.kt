@@ -45,12 +45,14 @@ interface TankerLib : Library {
     fun tanker_register_identity(tanker: Pointer, tankerVerification: TankerVerification?): FuturePointer
     fun tanker_verify_identity(tanker: Pointer, tankerVerification: TankerVerification?): FuturePointer
     fun tanker_stop(tanker: Pointer): FuturePointer
-    fun tanker_claim_provisional_identity(tanker: Pointer, provisionalIdentity: String, verificationCode: String): FuturePointer
     fun tanker_status(tanker: Pointer): Status
     fun tanker_generate_verification_key(tanker: Pointer): FuturePointer
     fun tanker_device_id(tanker: SessionPointer): ExpectedPointer
     fun tanker_revoke_device(tanker: SessionPointer, deviceId: String): FuturePointer
     fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
+
+    fun tanker_attach_provisional_identity(tanker: Pointer, provisionalIdentity: String): FuturePointer
+    fun tanker_verify_provisional_identity(tanker: Pointer, verification: TankerVerification): FuturePointer
 
     fun tanker_get_verification_methods(tanker: SessionPointer): FuturePointer
     fun tanker_set_verification_method(tanker: SessionPointer, verification: TankerVerification): FuturePointer
