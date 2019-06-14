@@ -11,7 +11,7 @@ import io.tanker.bindings.TankerDeviceListFinalizer
  * of accessing the fields directly. Those are not part of the public API and
  * are subject to change.
  */
-class TankerDeviceInfo(val ptr: Pointer) : Structure(ptr) {
+class TankerDeviceInfo(ptr: Pointer) : Structure(ptr) {
     @JvmField val deviceIdField: Pointer = ptr.getPointer(0)
     @JvmField val isRevokedField: Byte = ptr.getByte(Pointer.SIZE.toLong())
     var finalizer: TankerDeviceListFinalizer? = null

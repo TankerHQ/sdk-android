@@ -43,7 +43,9 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     private val tanker: Pointer
-    private var eventCallbackLifeSupport = HashMap<Pointer, TankerLib.EventCallback>()
+    private var deviceRevokedHandlers = mutableListOf<TankerDeviceRevokedHandler>()
+    private var sessionClosedHandlers = mutableListOf<TankerSessionClosedHandler>()
+    private var callbacksLifeSupport = mutableListOf<Any>()
 
     init {
         lib.tanker_init()
@@ -56,6 +58,25 @@ class Tanker(tankerOptions: TankerOptions) {
 
         val createFuture = lib.tanker_create(tankerOptions)
         tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java).get()
+
+        connectInternalHandler(TankerEvent.SESSION_CLOSED, this::triggerSessionClosedEvent)
+        connectInternalHandler(TankerEvent.DEVICE_REVOKED, this::triggerDeviceRevokedEvent)
+    }
+
+    private fun connectInternalHandler(e: TankerEvent, f: () -> Unit) {
+        val callbackWrapper = object : TankerLib.EventCallback {
+            override fun callback(arg: Pointer?) {
+                // We don't want to let the user run code directly on the callback thread,
+                // because blocking in the callback prevents progress and could deadlock us.
+                // Instead we wrap in a future to move the handler to another thread, and run asynchronously
+                TankerFuture.threadPool.execute {
+                    f()
+                }
+            }
+        }
+        val fut = lib.tanker_event_connect(tanker, e, callbackWrapper, Pointer(0))
+        TankerFuture<Unit>(fut, Unit::class.java).get()
+        callbacksLifeSupport.add(callbackWrapper)
     }
 
     @Suppress("ProtectedInFinal", "Unused")
@@ -64,52 +85,76 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Creates a Tanker account and opens a session
-     * @param identity The opaque Tanker identity object generated on your application's server
-     * @param authenticationMethods The authentication methods to register for identity verification
-     * @return A future that resolves when the session is open (or closed in case an error occurred or the device was revoked).
+     * Starts a Tanker session.
+     * If the method returns READY, the session is started. If it returns
+     * IDENTITY_REGISTRATION_NEEDED, you must call registerIdentity. If it returns
+     * IDENTITY_VERIFICATION_NEEDED, you must call verifyIdentity.
+     * @param identity The identity of the user to start the session for.
+     * @return A future that resolves with a Status
      */
-    fun signUp(identity: String, authenticationMethods: TankerAuthenticationMethods? = null): TankerFuture<Unit> {
-        val futurePtr = lib.tanker_sign_up(tanker, identity, authenticationMethods)
-        return TankerFuture(futurePtr, Unit::class.java)
-    }
-
-    /**
-     * Tries to open a Tanker session and returns a status code
-     * @param identity The opaque Tanker identity object generated on your application's server
-     * @param signInOptions Must be passed in when identity verification is required
-     * @return A future that resolves with a SignInResult
-     */
-    fun signIn(identity: String, signInOptions: TankerSignInOptions? = null): TankerFuture<TankerSignInResult> {
-        val futurePtr = lib.tanker_sign_in(tanker, identity, signInOptions)
+    fun start(identity: String): TankerFuture<Status> {
+        val futurePtr = lib.tanker_start(tanker, identity)
         return TankerFuture<Int>(futurePtr, Int::class.java).andThen(TankerCallback {
-            TankerSignInResult.fromInt(it)
+            Status.fromInt(it)
         })
     }
 
     /**
-     * Closes a Tanker session.
-     * @return A future that resolves when the session is closed.
+     * Registers a new identity and finishes opening a Tanker session.
+     * @param verification A verification option to set up how the user's identity will be verified later
+     * @return A future that resolves when the session is open
      */
-    fun signOut(): TankerFuture<Unit> {
-        val futurePtr = lib.tanker_sign_out(tanker)
+    fun registerIdentity(verification: Verification): TankerFuture<Unit> {
+        val futurePtr = lib.tanker_register_identity(tanker, verification.toCVerification())
         return TankerFuture(futurePtr, Unit::class.java)
     }
 
     /**
-     * Claim a provisional identity.
+     * Verifies an identity and finishes opening a Tanker session.
+     * @param verification A verification option that verifies the user's identity
+     * @return A future that resolves when the session is open
+     */
+    fun verifyIdentity(verification: Verification): TankerFuture<Unit> {
+        val futurePtr = lib.tanker_verify_identity(tanker, verification.toCVerification())
+        return TankerFuture(futurePtr, Int::class.java)
+    }
+
+    /**
+     * Stops a Tanker session.
+     * @return A future that resolves when the session is stopped.
+     */
+    fun stop(): TankerFuture<Unit> {
+        val futurePtr = lib.tanker_stop(tanker)
+        return TankerFuture(futurePtr, Unit::class.java)
+    }
+
+    /**
+     * Attaches a provisional identity to the current user.
      * @return A future that resolves when the claim is successful
      */
-    fun claimProvisionalIdentity(provisionalIdentity: String, verficationCode: String): TankerFuture<Unit> {
-        val futurePtr = lib.tanker_claim_provisional_identity(tanker, provisionalIdentity, verficationCode)
-        return TankerFuture(futurePtr, Unit::class.java)
+    fun attachProvisionalIdentity(provisionalIdentity: String): TankerFuture<AttachResult> {
+        val fut = TankerFuture<Pointer>(lib.tanker_attach_provisional_identity(tanker, provisionalIdentity), Pointer::class.java)
+        return fut.then(TankerCallback {
+            val attachResultPtr = it.get()
+            val status = attachResultPtr.getByte(1).toInt()
+            val method = attachResultPtr.getPointer(Pointer.SIZE.toLong())
+            var outMethod: VerificationMethod? = null
+            if (method != Pointer.NULL) {
+                outMethod = verificationMethodFromCVerification(TankerVerificationMethod(method))
+            }
+            AttachResult(Status.fromInt(status), outMethod)
+        })
+    }
+
+    fun verifyProvisionalIdentity(verification: Verification): TankerFuture<Unit> {
+        return TankerFuture(lib.tanker_verify_provisional_identity(tanker, verification.toCVerification()), Unit::class.java)
     }
 
     /**
      * Get whether the Tanker session is open.
      */
-    fun isOpen(): Boolean {
-        return lib.tanker_is_open(tanker)
+    fun getStatus(): Status {
+        return lib.tanker_status(tanker)
     }
 
     /**
@@ -155,11 +200,11 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Generates and registers an unlock key that can be used to accept a device.
-     * @return The unlock key.
+     * Generates and registers an verification key that can be used to verify a device.
+     * @return The verification key.
      */
-    fun generateAndRegisterUnlockKey(): TankerFuture<String> {
-        val fut = TankerFuture<Pointer>(lib.tanker_generate_and_register_unlock_key(tanker), Pointer::class.java)
+    fun generateVerificationKey(): TankerFuture<String> {
+        val fut = TankerFuture<Pointer>(lib.tanker_generate_verification_key(tanker), Pointer::class.java)
         return fut.then(TankerCallback {
             val ptr = it.get()
             val str = ptr.getString(0)
@@ -169,65 +214,37 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Checks whether an unlock key is set up for the current user.
-     * NOTE: This is a low-level function, only needed if you called generateAndRegisterUnlockKey
-     *       You probably want to use hasRegisteredUnlockMethods instead.
+     * Returns the list of currently registered verification methods.
      * Must be called on an already opened Session.
-     * @return A future of whether the unlock has been setup.
+     * @return Ordered list of verification methods that are currently set-up.
      */
-    fun isUnlockAlreadySetUp(): TankerFuture<Boolean> {
-        val fut = TankerFuture<Pointer>(lib.tanker_is_unlock_already_set_up(tanker), Pointer::class.java)
-        return fut.andThen(TankerCallback {
-            Pointer.nativeValue(it) != 0L
+    fun getVerificationMethods(): TankerFuture<List<VerificationMethod>> {
+        val fut = TankerFuture<Pointer>(lib.tanker_get_verification_methods(tanker), Pointer::class.java)
+        return fut.then(TankerCallback {
+            val methodListPtr = it.get()
+            val count = methodListPtr.getInt(Pointer.SIZE.toLong())
+            if (count == 0) {
+                listOf()
+            } else {
+                val firstMethod = TankerVerificationMethod(methodListPtr.getPointer(0))
+                @Suppress("UNCHECKED_CAST")
+                val out = (firstMethod.toArray(count) as Array<TankerVerificationMethod>).map(::verificationMethodFromCVerification).toList()
+                lib.tanker_free_verification_method_list(methodListPtr)
+                out
+            }
         })
     }
 
     /**
-     * Checks if any unlock methods has been registered for the current user.
-     * Must be called on an already opened Session.
-     */
-    fun hasRegisteredUnlockMethods(): Boolean {
-        val cfut = lib.tanker_has_registered_unlock_methods(tanker)
-        return TankerFuture<Boolean>(cfut, Boolean::class.java).get()
-    }
-
-    /**
-     * Checks if the given unlock method has been registered for the current user.
-     * Must be called on an already opened Session.
-     */
-    fun hasRegisteredUnlockMethod(unlockMethod: TankerUnlockMethod): Boolean {
-        val cfut = lib.tanker_has_registered_unlock_method(tanker, unlockMethod)
-        return TankerFuture<Boolean>(cfut, Boolean::class.java).get()
-    }
-
-    /**
-     * Returns the list of currently registered unlock methods.
-     * Must be called on an already opened Session.
-     * @return Ordered list of unlock methods that are currently set-up.
-     */
-    fun registeredUnlockMethods(): List<TankerUnlockMethodInfo> {
-        val cfut = lib.tanker_registered_unlock_methods(tanker);
-        val flags = Pointer.nativeValue(TankerFuture<Pointer>(cfut, Pointer::class.java).get()).toInt()
-
-        // Unpack bitflag into values
-        val components = ArrayList<TankerUnlockMethodInfo>()
-        for (value in TankerUnlockMethod.values())
-            if (flags and value.value == value.value)
-                components.add(TankerUnlockMethodInfo(value))
-        return components
-    }
-
-    /**
-     * Sets-up or updates unlock methods for the user.
+     * Sets-up or updates verification methods for the user.
      * Must be called on an already opened Session.
      * @return A future that resolves if the operation succeeds
      */
-    fun registerUnlock(options: TankerUnlockOptions): TankerFuture<Unit> {
+    fun setVerificationMethod(verification: Verification): TankerFuture<Unit> {
         return TankerFuture(
-                lib.tanker_register_unlock(
-                        tanker = tanker,
-                        password = options.password,
-                        email = options.email
+                lib.tanker_set_verification_method(
+                        tanker,
+                        verification.toCVerification()
                 ),
                 Unit::class.java
         )
@@ -345,41 +362,23 @@ class Tanker(tankerOptions: TankerOptions) {
         return TankerFuture(fut, Unit::class.java)
     }
 
-    private fun connectGenericHandler(cb: (Pointer?) -> Unit, event: TankerEvent): TankerConnection {
-        // We don't want to let the user run code directly on the callback thread,
-        // because blocking in the callback prevents progress and could deadlock us.
-        // Instead we wrap in a future to move the handler to another thread, and run asynchronously
-        val moveThreadCPromise = lib.tanker_promise_create()
-        val moveThreadCFuture = lib.tanker_promise_get_future(moveThreadCPromise)
-        val moveThreadFuture = TankerFuture<Unit>(moveThreadCFuture, Unit::class.java)
-        lib.tanker_promise_set_value(moveThreadCPromise, Pointer(0))
-
-        val callbackWrapper = object : TankerLib.EventCallback {
-            override fun callback(arg: Pointer?) {
-                moveThreadFuture.then(TankerVoidCallback {
-                    try {
-                        cb(arg)
-                    } catch (e: Throwable) {
-                        Log.e(LOG_TAG, "Caught exception in event handler:", e)
-                    }
-                })
-            }
-        }
-        val fut = lib.tanker_event_connect(tanker, event, callbackWrapper, Pointer(0))
-        return TankerFuture<ConnectionPointer>(fut, ConnectionPointer::class.java).then<TankerConnection>(TankerCallback {
-            val connection = it.get()
-            eventCallbackLifeSupport[connection] = callbackWrapper
-            TankerConnection(connection)
-        }).get()
-    }
-
     /**
      * Subscribes to the "Session Closed" Tanker event.
      * @param callback The function to call when the event happens.
      * @return A connection future, whose result can be passed to disconnectEvent.
      */
-    fun connectSessionClosedHandler(eventCallback: TankerSessionClosedHandler): TankerConnection {
-        return connectGenericHandler({ eventCallback.call() }, TankerEvent.SESSION_CLOSED)
+    fun connectSessionClosedHandler(eventCallback: TankerSessionClosedHandler) {
+        sessionClosedHandlers.add(eventCallback)
+    }
+
+    private fun triggerSessionClosedEvent() {
+        for (handler in sessionClosedHandlers)
+            try {
+                println("calling handler")
+                handler.call()
+            } catch (e: Throwable) {
+                Log.e(LOG_TAG, "Callback has thrown an exception", e)
+            }
     }
 
     /**
@@ -387,18 +386,25 @@ class Tanker(tankerOptions: TankerOptions) {
      * @param callback The function to call when the event happens.
      * @return A connection, which can be passed to disconnectEvent.
      */
-    fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler): TankerConnection {
-        return connectGenericHandler({ eventCallback.call() }, TankerEvent.DEVICE_REVOKED)
+    fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler) {
+        deviceRevokedHandlers.add(eventCallback)
+    }
+
+    private fun triggerDeviceRevokedEvent() {
+        for (handler in deviceRevokedHandlers)
+            try {
+                handler.call()
+            } catch (e: Throwable) {
+                Log.e(LOG_TAG, "Callback has thrown an exception", e)
+            }
     }
 
     /**
      * Unsubscribes from a Tanker event.
      * @see eventConnect
      */
-    fun eventDisconnect(connection: TankerConnection) {
-        if (eventCallbackLifeSupport.remove(connection.value) == null)
-            throw IllegalArgumentException("Trying to disconnect an invalid event connection")
-        val fut = lib.tanker_event_disconnect(tanker, connection.value)
-        TankerFuture<Unit>(fut, Unit::class.java).get()
+    fun eventDisconnect(handler: Any) {
+        sessionClosedHandlers.remove(handler)
+        deviceRevokedHandlers.remove(handler)
     }
 }

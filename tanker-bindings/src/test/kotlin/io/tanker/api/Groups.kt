@@ -10,7 +10,8 @@ class GroupTests : TankerSpec() {
         "Cannot create an empty group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
             val e = shouldThrow<TankerFutureException> {
                 tankerAlice.createGroup().get()
@@ -18,7 +19,7 @@ class GroupTests : TankerSpec() {
             (e.cause is TankerException) shouldBe true
             (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_GROUP_SIZE
 
-            tankerAlice.signOut().get()
+            tankerAlice.stop().get()
         }
 
         "Can create a valid group" {
@@ -26,24 +27,28 @@ class GroupTests : TankerSpec() {
             val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can share to group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
@@ -52,17 +57,19 @@ class GroupTests : TankerSpec() {
 
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can encrypt-and-share to group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "Two's company, three's a crowd"
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
@@ -71,17 +78,19 @@ class GroupTests : TankerSpec() {
 
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can share to an external group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
 
@@ -91,17 +100,19 @@ class GroupTests : TankerSpec() {
 
             String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can add a member to a group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "Two's company, three's a crowd"
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
@@ -112,20 +123,23 @@ class GroupTests : TankerSpec() {
 
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can transitively add members to a group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             val bobId = tc.createIdentity()
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
             val charlieId = tc.createIdentity()
             val tankerCharlie = Tanker(options)
-            tankerCharlie.signUp(charlieId).get()
+            tankerCharlie.start(charlieId).get()
+            tankerCharlie.registerIdentity(PassphraseVerification("pass")).get()
 
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(bobId)).get()
             tankerBob.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(charlieId))).get()
@@ -136,9 +150,9 @@ class GroupTests : TankerSpec() {
             val encrypted = tankerCharlie.encrypt(plaintext.toByteArray(), encryptOptions).get()
             String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
-            tankerCharlie.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+            tankerCharlie.stop().get()
         }
     }
 }

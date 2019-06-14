@@ -4,6 +4,8 @@ import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
 import io.tanker.bindings.TankerErrorCode
 import io.tanker.utils.Base64
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 class TankerTests : TankerSpec() {
 
@@ -19,7 +21,7 @@ class TankerTests : TankerSpec() {
 
         "Can create a Tanker object" {
             val tanker = Tanker(options)
-            tanker.isOpen() shouldBe false
+            tanker.getStatus() shouldBe Status.STOPPED
         }
 
         "Can get a valid version string" {
@@ -30,34 +32,54 @@ class TankerTests : TankerSpec() {
         "Can open a Tanker session by signin up" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
-            tanker.signUp(identity).get()
-            tanker.isOpen() shouldBe true
-            tanker.signOut().get()
+            val status = tanker.start(identity).get()
+            status shouldBe Status.IDENTITY_REGISTRATION_NEEDED
+            tanker.getStatus() shouldBe Status.IDENTITY_REGISTRATION_NEEDED
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
+            tanker.getStatus() shouldBe Status.READY
+            tanker.stop().get()
+        }
+
+        "Can connect to the session closed event" {
+            val tanker = Tanker(options)
+            val identity = tc.createIdentity()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+            val sem = Semaphore(0)
+            tanker.connectSessionClosedHandler(TankerSessionClosedHandler {
+                sem.release()
+            })
+            tanker.stop().get()
+            val ok = sem.tryAcquire(1, TimeUnit.SECONDS)
+            ok shouldBe true
         }
 
         "Can get our device ID" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
-            tanker.signUp(identity).get()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
 
             val devId = tanker.getDeviceId()
             val devIdRoundtrip = Base64.encodeToString(Base64.decode(devId))
 
             devId shouldBe devIdRoundtrip
 
-            tanker.signOut().get()
+            tanker.stop().get()
         }
 
         "Can encrypt and decrypt back" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
-            tanker.signUp(identity).get()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "plain text"
             val decrypted = tanker.decrypt(tanker.encrypt(plaintext.toByteArray()).get()).get()
             String(decrypted) shouldBe plaintext
 
-            tanker.signOut().get()
+            tanker.stop().get()
         }
 
         "Can encrypt, share, and decrypt between two users" {
@@ -65,10 +87,12 @@ class TankerTests : TankerSpec() {
             val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "plain text"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
@@ -76,8 +100,8 @@ class TankerTests : TankerSpec() {
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), shareOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can encrypt-and-share, then decrypt, between two users" {
@@ -85,24 +109,27 @@ class TankerTests : TankerSpec() {
             val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "There are no mistakes, just happy accidents"
             val encryptOptions = TankerEncryptOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can share with a provisional user" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
             val bobEmail = "bob@tanker.io"
             val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
@@ -115,16 +142,96 @@ class TankerTests : TankerSpec() {
 
             val tankerBob = Tanker(options)
             val bobPrivateIdentity = tc.createIdentity()
-            tankerBob.signUp(bobPrivateIdentity).get()
+            tankerBob.start(bobPrivateIdentity).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
+            val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult.status shouldBe Status.IDENTITY_VERIFICATION_NEEDED
             val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
-            tankerBob.claimProvisionalIdentity(bobProvisionalIdentity, bobVerificationCode).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
             val decrypted = tankerBob.decrypt(encrypted).get()
             String(decrypted) shouldBe "This is for future Bob"
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+        }
+
+        "Can skip provisional identity verification" {
+            val aliceId = tc.createIdentity()
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val message = "This is for future Bob"
+            val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
+            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+
+            val encrypted = tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.createIdentity()
+            tankerBob.start(bobPrivateIdentity).get()
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.registerIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
+
+            val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult.status shouldBe Status.READY
+            attachResult.verificationMethod shouldBe null
+
+            val decrypted = tankerBob.decrypt(encrypted).get()
+            String(decrypted) shouldBe "This is for future Bob"
+
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+        }
+
+        "Can attach even if there is no share" {
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.createIdentity()
+            tankerBob.start(bobPrivateIdentity).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
+
+            tankerBob.stop().get()
+        }
+
+        "Can attach a provisional identity twice" {
+            val aliceId = tc.createIdentity()
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val bobEmail = "bob@tanker.io"
+            val bobProvisionalIdentity = Identity.createProvisionalIdentity(tc.id(), bobEmail)
+
+            val message = "This is for future Bob"
+            val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
+            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+
+            tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
+
+            val tankerBob = Tanker(options)
+            val bobPrivateIdentity = tc.createIdentity()
+            tankerBob.start(bobPrivateIdentity).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult.status shouldBe Status.IDENTITY_VERIFICATION_NEEDED
+            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
+
+            val attachResult2 = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
+            attachResult2.status shouldBe Status.READY
         }
 
         "Can self-revoke" {
@@ -132,39 +239,42 @@ class TankerTests : TankerSpec() {
             var revoked = false
 
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
                 revoked = true
             })
             tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
             Thread.sleep(500)
-            tankerAlice.isOpen() shouldBe false
+            tankerAlice.getStatus() shouldBe Status.STOPPED
             revoked shouldBe true
 
-            tankerAlice.signOut().get()
+            tankerAlice.stop().get()
         }
 
         "Can revoke another device of the same user" {
             val aliceId = tc.createIdentity()
-            var revoked = false
+            val revokedSemaphore = Semaphore(0)
+
 
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
-                revoked = true
+                revokedSemaphore.release()
             })
-            tankerAlice1.signUp(aliceId).get()
-            val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
+            tankerAlice1.start(aliceId).get()
+            tankerAlice1.registerIdentity(PassphraseVerification("pass")).get()
 
             val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tankerAlice2.signIn(aliceId, TankerSignInOptions().setUnlockKey(unlockKey)).get()
+            tankerAlice2.start(aliceId).get()
+            tankerAlice2.verifyIdentity(PassphraseVerification("pass")).get()
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
-            Thread.sleep(500)
-            tankerAlice1.isOpen() shouldBe false
-            revoked shouldBe true
+            val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
+            ok shouldBe true
+            tankerAlice1.getStatus() shouldBe Status.STOPPED
 
-            tankerAlice1.signOut().get()
-            tankerAlice2.signOut().get()
+            tankerAlice1.stop().get()
+            tankerAlice2.stop().get()
         }
 
         "Cannot revoke a device of another user" {
@@ -172,29 +282,31 @@ class TankerTests : TankerSpec() {
             val bobId = tc.createIdentity()
 
             val tankerAlice = Tanker(options)
-            tankerAlice.signUp(aliceId).get()
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
                 assert(false)
             })
 
             val tankerBob = Tanker(options)
-            tankerBob.signUp(bobId).get()
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val aliceDevId = tankerAlice.getDeviceId()
             val e = shouldThrow<TankerFutureException> {
                 tankerBob.revokeDevice(aliceDevId).get()
             }
             assert(e.cause is TankerException)
-            assert((e.cause as TankerException).errorCode == TankerErrorCode.DEVICE_NOT_FOUND)
+            assert((e.cause as TankerException).errorCode == TankerErrorCode.NOT_FOUND)
 
-            tankerAlice.signOut().get()
-            tankerBob.signOut().get()
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
         }
 
         "Can get a correct device list" {
             val tankerAlice = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tankerAlice.signUp(tc.createIdentity()).get()
-            tankerAlice.generateAndRegisterUnlockKey().get()
+            tankerAlice.start(tc.createIdentity()).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
             val devices = tankerAlice.getDeviceList().get()
             devices.size shouldBe 1
@@ -205,12 +317,14 @@ class TankerTests : TankerSpec() {
         "Can get a correct device list after revocation" {
             val aliceId = tc.createIdentity()
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tankerAlice1.signUp(aliceId).get()
+            tankerAlice1.start(aliceId).get()
+            val verificationKey = tankerAlice1.generateVerificationKey().get()
+            tankerAlice1.registerIdentity(VerificationKeyVerification(verificationKey)).get()
             val aliceDeviceId1 = tankerAlice1.getDeviceId()
 
-            val unlockKey = tankerAlice1.generateAndRegisterUnlockKey().get()
             val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()))
-            tankerAlice2.signIn(aliceId, TankerSignInOptions().setUnlockKey(unlockKey)).get()
+            tankerAlice2.start(aliceId).get()
+            tankerAlice2.verifyIdentity(VerificationKeyVerification(verificationKey)).get()
             val aliceDeviceId2 = tankerAlice2.getDeviceId()
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
@@ -237,7 +351,7 @@ class TankerTests : TankerSpec() {
             foundDevice1 shouldBe true
             foundDevice2 shouldBe true
 
-            tankerAlice2.signOut().get()
+            tankerAlice2.stop().get()
         }
     }
 }
