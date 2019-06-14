@@ -72,7 +72,7 @@ def deploy(*, git_tag: str) -> None:
     ci.android.run_gradle(
         "tanker-bindings:uploadArchive",
         "-P",
-        "artifactsPath=%s" % TANKER_ARTIFACTS_PATH,
+        "artifactsPath=%s" % ci.android.TANKER_ARTIFACTS_PATH,
     )
     ci.android.bucket_upload()
 
