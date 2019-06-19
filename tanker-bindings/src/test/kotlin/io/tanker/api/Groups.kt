@@ -17,7 +17,7 @@ class GroupTests : TankerSpec() {
                 tankerAlice.createGroup().get()
             }
             (e.cause is TankerException) shouldBe true
-            (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_GROUP_SIZE
+            (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_ARGUMENT
 
             tankerAlice.stop().get()
         }
