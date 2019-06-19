@@ -14,6 +14,10 @@ typealias SessionPointer = Pointer
 typealias ConnectionPointer = Pointer
 typealias AdminPointer = Pointer
 typealias TrustchainDescriptorPointer = Pointer
+// JNA messes up functions that return bool on x86
+// so we return Int instead, but we must not forget to take only the first byte of the result
+// https://github.com/java-native-access/jna/issues/1076
+typealias DangerousNativeBool = Int
 
 @Suppress("FunctionName")
 interface TankerLib : Library {
@@ -65,10 +69,10 @@ interface TankerLib : Library {
     fun tanker_decrypted_size(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
     fun tanker_get_resource_id(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
 
-    fun tanker_future_is_ready(future: FuturePointer): Boolean
+    fun tanker_future_is_ready(future: FuturePointer): DangerousNativeBool
     fun tanker_future_wait(future: FuturePointer): Void
     fun tanker_future_then(future: FuturePointer, callback: FutureCallback, userArg: Pointer): FuturePointer
-    fun tanker_future_has_error(future: FuturePointer): Boolean
+    fun tanker_future_has_error(future: FuturePointer): DangerousNativeBool
     fun tanker_future_get_error(future: FuturePointer): TankerError
     fun tanker_future_destroy(future: FuturePointer): Void
     fun tanker_future_get_voidptr(future: FuturePointer): Pointer

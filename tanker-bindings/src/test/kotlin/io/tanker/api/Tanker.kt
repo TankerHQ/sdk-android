@@ -297,7 +297,7 @@ class TankerTests : TankerSpec() {
                 tankerBob.revokeDevice(aliceDevId).get()
             }
             assert(e.cause is TankerException)
-            assert((e.cause as TankerException).errorCode == TankerErrorCode.NOT_FOUND)
+            assert((e.cause as TankerException).errorCode == TankerErrorCode.INVALID_ARGUMENT)
 
             tankerAlice.stop().get()
             tankerBob.stop().get()
