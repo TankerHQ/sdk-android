@@ -173,18 +173,18 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Gets the list of the user's devices
      */
-    fun getDeviceList(): TankerFuture<List<TankerDeviceInfo>> {
+    fun getDeviceList(): TankerFuture<List<DeviceInfo>> {
         val fut = TankerFuture<Pointer>(lib.tanker_get_device_list(tanker), Pointer::class.java)
         return fut.then(TankerCallback {
             val devListPtr = it.get()
             val count = devListPtr.getInt(Pointer.SIZE.toLong())
             val finalizer = TankerDeviceListFinalizer(lib, devListPtr)
-            val firstDevice = TankerDeviceInfo(devListPtr.getPointer(0))
+            val firstDevice = DeviceInfo(devListPtr.getPointer(0))
             if (count == 0) {
                 listOf()
             } else {
                 @Suppress("UNCHECKED_CAST")
-                val devices = firstDevice.toArray(count) as Array<TankerDeviceInfo>
+                val devices = firstDevice.toArray(count) as Array<DeviceInfo>
                 for (device in devices)
                     device.finalizer = finalizer
                 devices.toList()
