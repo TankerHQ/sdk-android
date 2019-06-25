@@ -2,7 +2,6 @@ package io.tanker.api
 
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
-import io.tanker.bindings.TankerErrorCode
 
 class GroupTests : TankerSpec() {
 
@@ -17,7 +16,7 @@ class GroupTests : TankerSpec() {
                 tankerAlice.createGroup().get()
             }
             (e.cause is TankerException) shouldBe true
-            (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_ARGUMENT
+            (e.cause as TankerException).errorCode shouldBe ErrorCode.INVALID_ARGUMENT
 
             tankerAlice.stop().get()
         }

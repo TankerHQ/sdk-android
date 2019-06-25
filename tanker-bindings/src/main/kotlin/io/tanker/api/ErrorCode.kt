@@ -1,10 +1,10 @@
-package io.tanker.bindings
+package io.tanker.api
 
 /**
- * Error codes in a TankerError
+ * Error codes in a TankerException
  * @see TankerError
  */
-enum class TankerErrorCode(val value: Int) {
+enum class ErrorCode(val value: Int) {
     NO_ERROR(0),
     INVALID_ARGUMENT(1),
     INTERNAL_ERROR(2),

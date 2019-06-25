@@ -5,6 +5,7 @@ import com.sun.jna.FromNativeContext
 import com.sun.jna.ToNativeContext
 import com.sun.jna.TypeConverter
 import io.tanker.api.Status
+import io.tanker.api.ErrorCode
 
 class TankerTypeMapper : DefaultTypeMapper() {
     init {
@@ -40,15 +41,15 @@ class TankerTypeMapper : DefaultTypeMapper() {
             }
         })
 
-        addTypeConverter(TankerErrorCode::class.java, object : TypeConverter {
+        addTypeConverter(ErrorCode::class.java, object : TypeConverter {
             override fun toNative(value: Any?, context: ToNativeContext?): Any {
-                val status = value as TankerErrorCode
+                val status = value as ErrorCode
                 return status.value
             }
 
             override fun fromNative(nativeValue: Any?, context: FromNativeContext?): Any? {
                 val value = nativeValue as? Int ?: return null
-                return TankerErrorCode.values().find { it.value == value }
+                return ErrorCode.values().find { it.value == value }
             }
 
             override fun nativeType(): Class<*> {
