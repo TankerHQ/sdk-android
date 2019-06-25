@@ -83,7 +83,7 @@ interface TankerLib : Library {
     fun tanker_promise_set_value(promise: PromisePointer, value: Pointer): Void
 
     fun tanker_encrypt(session: SessionPointer, encrypted_data: Pointer,
-                       data: Pointer, data_size: Long, encrypt_options: TankerEncryptOptions?): FuturePointer
+                       data: Pointer, data_size: Long, encrypt_options: EncryptOptions?): FuturePointer
     fun tanker_decrypt(session: SessionPointer, decrypted_data: Pointer,
                        data: Pointer, data_size: Long): FuturePointer
     fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,

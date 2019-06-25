@@ -262,7 +262,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * Encrypts clear {@code data} with options.
      * @return A future that resolves when the data has been encrypted and shared.
      */
-    fun encrypt(data: ByteArray, options: TankerEncryptOptions?): TankerFuture<ByteArray> {
+    fun encrypt(data: ByteArray, options: EncryptOptions?): TankerFuture<ByteArray> {
         val inBuf = Memory(data.size.toLong())
         inBuf.write(0, data, 0, data.size)
 

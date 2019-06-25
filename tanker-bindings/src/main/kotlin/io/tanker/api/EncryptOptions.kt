@@ -11,7 +11,7 @@ import com.sun.jna.Structure
  * of accessing the fields directly. Those are not part of the public API and
  * are subject to change.
  */
-open class TankerEncryptOptions : Structure() {
+open class EncryptOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField var version: Byte = 2
     @JvmField var recipientPublicIdentities = Pointer(0)
@@ -30,7 +30,7 @@ open class TankerEncryptOptions : Structure() {
      * Sets the list of recipients User IDs
      * @param recipientPublicIdentities A list of the recipients user IDs
      */
-    fun shareWithUsers(vararg recipientPublicIdentities: String): TankerEncryptOptions {
+    fun shareWithUsers(vararg recipientPublicIdentities: String): EncryptOptions {
         this.recipientPublicIdentitiesArray = StringArray(recipientPublicIdentities)
         this.recipientPublicIdentities = recipientPublicIdentitiesArray
         this.nbRecipientPublicIdentities = recipientPublicIdentities.size
@@ -41,7 +41,7 @@ open class TankerEncryptOptions : Structure() {
      * Sets the list of recipients Group IDs
      * @param recipientGids A list of the recipients group IDs
      */
-    fun shareWithGroups(vararg recipientGids: String): TankerEncryptOptions {
+    fun shareWithGroups(vararg recipientGids: String): EncryptOptions {
         this.recipientGidsArray = StringArray(recipientGids)
         this.recipientGids = recipientGidsArray
         this.nbRecipientGids = recipientGids.size
