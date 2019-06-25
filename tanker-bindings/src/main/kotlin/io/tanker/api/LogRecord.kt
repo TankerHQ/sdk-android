@@ -6,7 +6,7 @@ enum class TankerLogLevel(val value: Int) {
     DEBUG(1), INFO(2), WARNING(3), ERROR(4)
 }
 
-open class TankerLogRecord : Structure() {
+class LogRecord : Structure() {
     @JvmField
     var category: String? = null
     @JvmField

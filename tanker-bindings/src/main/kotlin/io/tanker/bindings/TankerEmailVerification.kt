@@ -2,7 +2,7 @@ package io.tanker.bindings
 
 import com.sun.jna.Structure
 
-open class TankerEmailVerification : Structure() {
+class TankerEmailVerification : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField var version: Byte = 1
     @JvmField var email: String? = null

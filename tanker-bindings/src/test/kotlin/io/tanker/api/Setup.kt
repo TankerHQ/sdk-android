@@ -1,7 +1,7 @@
 package io.tanker.api
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.tanker.bindings.TankerLib
+import io.tanker.bindings.TankerTrustchainDescriptor
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -59,7 +59,7 @@ class Config{
 }
 
 class Trustchain {
-    val admin = TankerAdmin(Config.getTrustchainUrl(), Config.getIdToken())
+    val admin = Admin(Config.getTrustchainUrl(), Config.getIdToken())
     private val descriptor: TankerTrustchainDescriptor
 
     init {
@@ -96,8 +96,8 @@ fun createTmpDir(): Path {
 }
 
 fun setupTestEnv() {
-    Tanker.setLogHandler(object : TankerLib.LogHandlerCallback {
-        override fun callback(logRecord: TankerLogRecord) {
+    Tanker.setLogHandler(object : LogHandlerCallback {
+        override fun callback(logRecord: LogRecord) {
             if (logRecord.level == TankerLogLevel.DEBUG.value)
                 return
             println("${logRecord.category}: ${logRecord.message}")

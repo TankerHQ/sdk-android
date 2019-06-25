@@ -45,3 +45,4 @@ tanker-bindings/src/main/jniLibs
 .venv/
 
 android.egg-info/
+.kotlintest

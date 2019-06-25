@@ -1,8 +1,7 @@
-package io.tanker.api
+package io.tanker.bindings
 
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import io.tanker.bindings.TankerLib
 
 /**
  * Describes the main properties of a trustchain

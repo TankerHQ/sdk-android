@@ -2,7 +2,6 @@ package io.tanker.api
 
 import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
-import io.tanker.bindings.TankerErrorCode
 import io.tanker.utils.Base64
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -96,7 +95,7 @@ class TankerTests : TankerSpec() {
 
             val plaintext = "plain text"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
-            val shareOptions = TankerShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+            val shareOptions = ShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), shareOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
@@ -117,7 +116,7 @@ class TankerTests : TankerSpec() {
             tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "There are no mistakes, just happy accidents"
-            val encryptOptions = TankerEncryptOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+            val encryptOptions = EncryptOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
@@ -136,7 +135,7 @@ class TankerTests : TankerSpec() {
 
             val message = "This is for future Bob"
             val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
-            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+            val encryptOptions = EncryptOptions().shareWithUsers(bobPublicIdentity)
 
             val encrypted = tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
 
@@ -168,7 +167,7 @@ class TankerTests : TankerSpec() {
 
             val message = "This is for future Bob"
             val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
-            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+            val encryptOptions = EncryptOptions().shareWithUsers(bobPublicIdentity)
 
             val encrypted = tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
 
@@ -216,7 +215,7 @@ class TankerTests : TankerSpec() {
 
             val message = "This is for future Bob"
             val bobPublicIdentity = Identity.getPublicIdentity(bobProvisionalIdentity)
-            val encryptOptions = TankerEncryptOptions().shareWithUsers(bobPublicIdentity)
+            val encryptOptions = EncryptOptions().shareWithUsers(bobPublicIdentity)
 
             tankerAlice.encrypt(message.toByteArray(), encryptOptions).get()
 
@@ -297,7 +296,7 @@ class TankerTests : TankerSpec() {
                 tankerBob.revokeDevice(aliceDevId).get()
             }
             assert(e.cause is TankerException)
-            assert((e.cause as TankerException).errorCode == TankerErrorCode.INVALID_ARGUMENT)
+            assert((e.cause as TankerException).errorCode == ErrorCode.INVALID_ARGUMENT)
 
             tankerAlice.stop().get()
             tankerBob.stop().get()

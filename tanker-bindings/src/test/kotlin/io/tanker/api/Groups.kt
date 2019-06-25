@@ -2,7 +2,6 @@ package io.tanker.api
 
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
-import io.tanker.bindings.TankerErrorCode
 
 class GroupTests : TankerSpec() {
 
@@ -17,7 +16,7 @@ class GroupTests : TankerSpec() {
                 tankerAlice.createGroup().get()
             }
             (e.cause is TankerException) shouldBe true
-            (e.cause as TankerException).errorCode shouldBe TankerErrorCode.INVALID_ARGUMENT
+            (e.cause as TankerException).errorCode shouldBe ErrorCode.INVALID_ARGUMENT
 
             tankerAlice.stop().get()
         }
@@ -53,7 +52,7 @@ class GroupTests : TankerSpec() {
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
-            tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
+            tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), ShareOptions().shareWithGroups(groupId)).get()
 
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
@@ -73,7 +72,7 @@ class GroupTests : TankerSpec() {
 
             val plaintext = "Two's company, three's a crowd"
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
-            val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
+            val encryptOptions = EncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
@@ -96,7 +95,7 @@ class GroupTests : TankerSpec() {
 
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerBob.encrypt(plaintext.toByteArray()).get()
-            tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
+            tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), ShareOptions().shareWithGroups(groupId)).get()
 
             String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 
@@ -116,7 +115,7 @@ class GroupTests : TankerSpec() {
 
             val plaintext = "Two's company, three's a crowd"
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
-            val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
+            val encryptOptions = EncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
             tankerAlice.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(bobId))).get()
@@ -146,7 +145,7 @@ class GroupTests : TankerSpec() {
             tankerCharlie.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(aliceId))).get()
 
             val plaintext = "plain text"
-            val encryptOptions = TankerEncryptOptions().shareWithGroups(groupId)
+            val encryptOptions = EncryptOptions().shareWithGroups(groupId)
             val encrypted = tankerCharlie.encrypt(plaintext.toByteArray(), encryptOptions).get()
             String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 

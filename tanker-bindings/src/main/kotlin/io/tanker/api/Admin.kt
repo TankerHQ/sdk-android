@@ -1,8 +1,8 @@
 package io.tanker.api
 
 import com.sun.jna.Pointer
-import com.sun.jna.Structure
 import io.tanker.bindings.TankerLib
+import io.tanker.bindings.TankerTrustchainDescriptor
 
 /**
  * The Tanker admin API allows managing your Trustchains.
@@ -10,7 +10,7 @@ import io.tanker.bindings.TankerLib
  * @param trustchainUrl The URL of the tanker server to connect to
  * @param idToken The authentication token string for the admin API
  */
-class TankerAdmin(private val trustchainUrl: String, private val idToken: String) {
+class Admin(private val trustchainUrl: String, private val idToken: String) {
     private var cadmin: Pointer? = null
 
     companion object {

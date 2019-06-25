@@ -1,14 +1,13 @@
 package io.tanker.api
 
 import io.tanker.bindings.TankerError
-import io.tanker.bindings.TankerErrorCode
 
 /**
  * Exceptions returned by the SDK through TankerFutures
  * @see TankerFuture
  */
 open class TankerException : Exception {
-    val errorCode: TankerErrorCode
+    val errorCode: ErrorCode
 
     internal constructor(error: TankerError) : super(error.getErrorMessage()) {
         errorCode = error.getErrorCode()
@@ -18,7 +17,7 @@ open class TankerException : Exception {
         errorCode = other.errorCode
     }
 
-    constructor(message: String, errorCode: TankerErrorCode, other: Throwable) : super(message, other){
+    constructor(message: String, errorCode: ErrorCode, other: Throwable) : super(message, other){
         this.errorCode = errorCode
     }
 }

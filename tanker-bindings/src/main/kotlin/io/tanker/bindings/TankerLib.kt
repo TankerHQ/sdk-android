@@ -37,10 +37,6 @@ interface TankerLib : Library {
         fun callback(arg: Pointer?)
     }
 
-    interface LogHandlerCallback : Callback {
-        fun callback(logRecord: TankerLogRecord)
-    }
-
     fun tanker_init(): Void
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
@@ -83,9 +79,9 @@ interface TankerLib : Library {
     fun tanker_promise_set_value(promise: PromisePointer, value: Pointer): Void
 
     fun tanker_encrypt(session: SessionPointer, encrypted_data: Pointer,
-                       data: Pointer, data_size: Long, encrypt_options: TankerEncryptOptions?): FuturePointer
+                       data: Pointer, data_size: Long, encrypt_options: EncryptOptions?): FuturePointer
     fun tanker_decrypt(session: SessionPointer, decrypted_data: Pointer,
-                       data: Pointer, data_size: Long, decrypt_options: TankerDecryptOptions?): FuturePointer
+                       data: Pointer, data_size: Long): FuturePointer
     fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
                      recipient_gids: StringArray, nbRecipientGids: Long,
                      resource_ids: StringArray, nbResourceIds: Long): FuturePointer
