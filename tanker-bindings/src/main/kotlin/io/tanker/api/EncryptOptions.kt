@@ -11,7 +11,7 @@ import com.sun.jna.Structure
  * of accessing the fields directly. Those are not part of the public API and
  * are subject to change.
  */
-open class EncryptOptions : Structure() {
+class EncryptOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField var version: Byte = 2
     @JvmField var recipientPublicIdentities = Pointer(0)
