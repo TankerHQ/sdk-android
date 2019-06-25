@@ -277,18 +277,10 @@ class Tanker(tankerOptions: TankerOptions) {
 
 
     /**
-     * Decrypts {@code data}, assuming the data was encrypted and shared beforehand.
-     * @return A future that resolves when the data has been decrypted.
-     */
-    fun decrypt(data: ByteArray): TankerFuture<ByteArray> {
-        return decrypt(data, null)
-    }
-
-    /**
      * Decrypts {@code data} with options, assuming the data was encrypted and shared beforehand.
      * @return A future that resolves when the data has been decrypted.
      */
-    fun decrypt(data: ByteArray, decryptOptions: TankerDecryptOptions?): TankerFuture<ByteArray> {
+    fun decrypt(data: ByteArray): TankerFuture<ByteArray> {
         val inBuf = Memory(data.size.toLong())
         inBuf.write(0, data, 0, data.size)
 
@@ -301,7 +293,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
         val outBuf = Memory(plainSize)
 
-        val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong(), decryptOptions)
+        val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong())
         return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallback {
             @Suppress("UNUSED_VARIABLE")
             val keepalive = inBuf
