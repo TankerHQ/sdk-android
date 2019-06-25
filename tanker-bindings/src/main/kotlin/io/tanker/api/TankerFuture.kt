@@ -24,7 +24,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
         @JvmStatic
         private var lifeSupport: MutableList<TankerFuture<*>> = ArrayList()
 
-        private var threadPool = Executors.newCachedThreadPool()
+        internal var threadPool = Executors.newCachedThreadPool()
         private val lib = TankerLib.create()
 
         /**
@@ -79,7 +79,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
         if (valueType == ThenResultType::class.java)
             return (thenResult as? ThenResult.Error)?.error
 
-        if (!lib.tanker_future_has_error(cfuture))
+        if ((lib.tanker_future_has_error(cfuture) and 0xff) == 0)
             return null
         val tankerError = lib.tanker_future_get_error(cfuture)
         return TankerException(tankerError)
@@ -89,7 +89,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
      * Returns whether the future is ready
      */
     fun isReady(): Boolean {
-        return lib.tanker_future_is_ready(cfuture)
+        return (lib.tanker_future_is_ready(cfuture) and 0xff) != 0
     }
 
     /**

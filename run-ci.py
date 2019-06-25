@@ -72,7 +72,7 @@ def deploy(*, git_tag: str) -> None:
     ci.android.run_gradle(
         "tanker-bindings:uploadArchive",
         "-P",
-        "artifactsPath=%s" % TANKER_ARTIFACTS_PATH,
+        "artifactsPath=%s" % ci.android.TANKER_ARTIFACTS_PATH,
     )
     ci.android.bucket_upload()
 
@@ -110,7 +110,7 @@ def main():
         with get_notifier(args.notifier):
             build_and_test(args)
     elif args.command == "deploy":
-        ci.android.deploy(git_tag=args.git_tag)
+        deploy(git_tag=args.git_tag)
     elif args.command == "mirror":
         ci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
     else:
