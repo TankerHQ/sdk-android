@@ -395,7 +395,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * Unsubscribes from a Tanker event.
      * @see eventConnect
      */
-    fun eventDisconnect(handler: Any) {
+    fun disconnectHandler(handler: Any) {
         sessionClosedHandlers.remove(handler)
         deviceRevokedHandlers.remove(handler)
     }
