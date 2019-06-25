@@ -53,7 +53,7 @@ class GroupTests : TankerSpec() {
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
             val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
-            tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
+            tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), ShareOptions().shareWithGroups(groupId)).get()
 
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
@@ -96,7 +96,7 @@ class GroupTests : TankerSpec() {
 
             val plaintext = "Two's company, three's a crowd"
             val encrypted = tankerBob.encrypt(plaintext.toByteArray()).get()
-            tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), TankerShareOptions().shareWithGroups(groupId)).get()
+            tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), ShareOptions().shareWithGroups(groupId)).get()
 
             String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
 

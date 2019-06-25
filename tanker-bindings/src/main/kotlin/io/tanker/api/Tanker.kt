@@ -323,7 +323,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @param shareOptions Specifies options like the users and groups to share with.
      * @return A future that resolves when the share is complete.
      */
-    fun share(resourceIDs: Array<String>, shareOptions: TankerShareOptions): TankerFuture<Unit> {
+    fun share(resourceIDs: Array<String>, shareOptions: ShareOptions): TankerFuture<Unit> {
         val fut = lib.tanker_share(tanker, StringArray(shareOptions.recipientPublicIdentities), shareOptions.recipientPublicIdentities.size.toLong(),
                 StringArray(shareOptions.recipientGids), shareOptions.recipientGids.size.toLong(),
                 StringArray(resourceIDs), resourceIDs.size.toLong())

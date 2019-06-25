@@ -96,7 +96,7 @@ class TankerTests : TankerSpec() {
 
             val plaintext = "plain text"
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
-            val shareOptions = TankerShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+            val shareOptions = ShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), shareOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
