@@ -59,7 +59,7 @@ class Config{
 }
 
 class Trustchain {
-    val admin = TankerAdmin(Config.getTrustchainUrl(), Config.getIdToken())
+    val admin = Admin(Config.getTrustchainUrl(), Config.getIdToken())
     private val descriptor: TankerTrustchainDescriptor
 
     init {
