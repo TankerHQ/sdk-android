@@ -44,7 +44,6 @@ class Tanker(tankerOptions: TankerOptions) {
 
     private val tanker: Pointer
     private var deviceRevokedHandlers = mutableListOf<TankerDeviceRevokedHandler>()
-    private var sessionClosedHandlers = mutableListOf<TankerSessionClosedHandler>()
     private var callbacksLifeSupport = mutableListOf<Any>()
 
     init {
@@ -59,7 +58,6 @@ class Tanker(tankerOptions: TankerOptions) {
         val createFuture = lib.tanker_create(tankerOptions)
         tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java).get()
 
-        connectInternalHandler(TankerEvent.SESSION_CLOSED, this::triggerSessionClosedEvent)
         connectInternalHandler(TankerEvent.DEVICE_REVOKED, this::triggerDeviceRevokedEvent)
     }
 
@@ -355,25 +353,6 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Subscribes to the "Session Closed" Tanker event.
-     * @param callback The function to call when the event happens.
-     * @return A connection future, whose result can be passed to disconnectEvent.
-     */
-    fun connectSessionClosedHandler(eventCallback: TankerSessionClosedHandler) {
-        sessionClosedHandlers.add(eventCallback)
-    }
-
-    private fun triggerSessionClosedEvent() {
-        for (handler in sessionClosedHandlers)
-            try {
-                println("calling handler")
-                handler.call()
-            } catch (e: Throwable) {
-                Log.e(LOG_TAG, "Callback has thrown an exception", e)
-            }
-    }
-
-    /**
      * Subscribes to the "Device Revoked" Tanker event.
      * @param callback The function to call when the event happens.
      * @return A connection, which can be passed to disconnectEvent.
@@ -396,7 +375,6 @@ class Tanker(tankerOptions: TankerOptions) {
      * @see eventConnect
      */
     fun disconnectHandler(handler: Any) {
-        sessionClosedHandlers.remove(handler)
         deviceRevokedHandlers.remove(handler)
     }
 }

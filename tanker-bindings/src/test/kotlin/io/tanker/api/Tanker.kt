@@ -39,21 +39,6 @@ class TankerTests : TankerSpec() {
             tanker.stop().get()
         }
 
-        "Can connect to the session closed event" {
-            val tanker = Tanker(options)
-            val identity = tc.createIdentity()
-            tanker.start(identity).get()
-            tanker.registerIdentity(PassphraseVerification("pass")).get()
-
-            val sem = Semaphore(0)
-            tanker.connectSessionClosedHandler(TankerSessionClosedHandler {
-                sem.release()
-            })
-            tanker.stop().get()
-            val ok = sem.tryAcquire(1, TimeUnit.SECONDS)
-            ok shouldBe true
-        }
-
         "Can get our device ID" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
