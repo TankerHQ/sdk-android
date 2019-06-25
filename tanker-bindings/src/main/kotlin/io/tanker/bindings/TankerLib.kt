@@ -37,10 +37,6 @@ interface TankerLib : Library {
         fun callback(arg: Pointer?)
     }
 
-    interface LogHandlerCallback : Callback {
-        fun callback(logRecord: TankerLogRecord)
-    }
-
     fun tanker_init(): Void
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
