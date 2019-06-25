@@ -1,8 +1,8 @@
 package io.tanker.api
 
 import com.sun.jna.Pointer
-import com.sun.jna.Structure
 import io.tanker.bindings.TankerLib
+import io.tanker.bindings.TankerTrustchainDescriptor
 
 /**
  * The Tanker admin API allows managing your Trustchains.

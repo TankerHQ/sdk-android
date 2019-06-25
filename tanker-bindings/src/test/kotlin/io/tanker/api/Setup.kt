@@ -1,7 +1,7 @@
 package io.tanker.api
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.tanker.bindings.TankerLib
+import io.tanker.bindings.TankerTrustchainDescriptor
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
