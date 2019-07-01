@@ -12,7 +12,6 @@ import ci.conan
 import ci.cpp
 import ci.git
 import ci.gcp
-import ci.mail
 
 
 def build(*, native_from_sources: bool) -> None:
@@ -76,11 +75,6 @@ def deploy(*, git_tag: str) -> None:
     )
     ci.android.bucket_upload()
 
-def get_notifier(notifier: str):
-    if (notifier == "mail"):
-        return ci.mail.notify_failure("sdk-android")
-    else:
-        return contextlib.suppress()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -93,7 +87,6 @@ def main():
     check_parser.add_argument(
         "--use-tanker", choices=["local", "deployed", "same-as-branch"], default="local"
     )
-    check_parser.add_argument("--notifier", choices=["mail", "none"], default="none")
 
     deploy_parser = subparsers.add_parser("deploy")
     deploy_parser.add_argument("--git-tag", required=True)
@@ -107,8 +100,7 @@ def main():
     if args.command == "update-conan-config":
         ci.cpp.update_conan_config()
     elif args.command == "build-and-test":
-        with get_notifier(args.notifier):
-            build_and_test(args)
+        build_and_test(args)
     elif args.command == "deploy":
         deploy(git_tag=args.git_tag)
     elif args.command == "mirror":
