@@ -46,7 +46,9 @@ def build_and_test(args) -> None:
         native_from_sources = True
     elif args.use_tanker == "local":
         native_from_sources = True
-        ci.conan.export(src_path=Path.getcwd().parent / "sdk-native", ref_or_channel="tanker/dev")
+        ci.conan.export(
+            src_path=Path.getcwd().parent / "sdk-native", ref_or_channel="tanker/dev"
+        )
 
     with android_path:
         build(native_from_sources=native_from_sources)
@@ -78,7 +80,12 @@ def deploy(*, git_tag: str) -> None:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--isolate-conan-user-home", action="store_true", dest="home_isolation", default=False)
+    parser.add_argument(
+        "--isolate-conan-user-home",
+        action="store_true",
+        dest="home_isolation",
+        default=False,
+    )
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
     update_conan_config_parser = subparsers.add_parser("update-conan-config")
