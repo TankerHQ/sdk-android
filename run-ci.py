@@ -7,7 +7,6 @@ from path import Path
 import cli_ui as ui
 
 import ci
-import ci.android
 import ci.conan
 import ci.cpp
 import ci.git
@@ -17,17 +16,17 @@ import ci.gcp
 def build(*, native_from_sources: bool) -> None:
     ui.info_1("build everything")
     if native_from_sources:
-        ci.android.run_gradle("tanker-bindings:buildNativeRelease")
+        ci.run("./gradlew", "tanker-bindings:buildNativeRelease")
     else:
-        ci.android.run_gradle("tanker-bindings:useDeployedNativeRelease")
-    env = os.environ.copy()
-    ci.android.run_gradle("tanker-bindings:assembleRelease", env=env)
+        ci.run("./gradlew", "tanker-bindings:useDeployedNativeRelease")
+    ci.run("./gradlew", "tanker-bindings:assembleRelease")
 
 
 def test() -> None:
     ui.info_1("Running tests")
     config_path = ci.tanker_configs.get_path()
-    ci.android.run_gradle(
+    ci.run(
+        "./gradlew",
         "tanker-bindings:testRelease",
         f"-DTANKER_CONFIG_FILEPATH={config_path}",
         "-DTANKER_CONFIG_NAME=dev",
@@ -63,8 +62,7 @@ def deploy(*, git_tag: str) -> None:
 
     ui.info_1("Deploying SDK to maven.tanker.io")
     ci.gcp.GcpProject("tanker-prod").auth()
-    ci.android.run_gradle("tanker-bindings:assembleRelease")
-    ci.android.run_gradle("tanker-bindings:publish")
+    ci.run("./gradlew", "tanker-bindings:publish")
 
 
 def main():
