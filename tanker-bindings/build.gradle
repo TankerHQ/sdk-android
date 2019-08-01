@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.dokka'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
 apply from: 'native.gradle'
 
 group 'io.tanker'
@@ -113,19 +114,26 @@ dokka {
     }
 }
 
-artifacts {
-    archives javaDocJar
-    archives sourcesJar
-}
 
+publishing {
 
-uploadArchives {
+    publications {
+        tankerBindings(MavenPublication) {
+            from components.android
+
+            artifact javaDocJar
+            artifact sourcesJar
+        }
+    }
+
     repositories {
-        mavenDeployer {
-            repository(url: "file:///${findProperty("artifactsPath")}")
+        maven {
+          name = 'maven.tanker.io'
+          url = 'gcs://maven.tanker.io'
         }
     }
 }
+
 
 dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

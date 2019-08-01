@@ -7,7 +7,6 @@ from path import Path
 import cli_ui as ui
 
 import ci
-import ci.android
 import ci.conan
 import ci.cpp
 import ci.git
@@ -17,17 +16,17 @@ import ci.gcp
 def build(*, native_from_sources: bool) -> None:
     ui.info_1("build everything")
     if native_from_sources:
-        ci.android.run_gradle("tanker-bindings:buildNativeRelease")
+        ci.run("./gradlew", "tanker-bindings:buildNativeRelease")
     else:
-        ci.android.run_gradle("tanker-bindings:useDeployedNativeRelease")
-    env = os.environ.copy()
-    ci.android.run_gradle("tanker-bindings:assembleRelease", env=env)
+        ci.run("./gradlew", "tanker-bindings:useDeployedNativeRelease")
+    ci.run("./gradlew", "tanker-bindings:assembleRelease")
 
 
 def test() -> None:
     ui.info_1("Running tests")
     config_path = ci.tanker_configs.get_path()
-    ci.android.run_gradle(
+    ci.run(
+        "./gradlew",
         "tanker-bindings:testRelease",
         f"-DTANKER_CONFIG_FILEPATH={config_path}",
         "-DTANKER_CONFIG_NAME=dev",
@@ -46,7 +45,9 @@ def build_and_test(args) -> None:
         native_from_sources = True
     elif args.use_tanker == "local":
         native_from_sources = True
-        ci.conan.export(src_path=Path.getcwd().parent / "sdk-native", ref_or_channel="tanker/dev")
+        ci.conan.export(
+            src_path=Path.getcwd().parent / "sdk-native", ref_or_channel="tanker/dev"
+        )
 
     with android_path:
         build(native_from_sources=native_from_sources)
@@ -58,27 +59,20 @@ def deploy(*, git_tag: str) -> None:
     ci.bump_files(version)
     build(native_from_sources=False)
     test()
-    ui.info_1("Deploying SDK to maven.tanker.io")
-    ci.android.run_gradle("tanker-bindings:assembleRelease")
-    ci.gcp.GcpProject("tanker-prod").auth()
 
-    # Note: we need to downolad the *entire*
-    # bucket, otherwise the file:// maven deployer
-    # does not work.
-    # FIXME: use the GCS wagon plugin instead:
-    #  https://github.com/drcrallen/gswagon-maven-plugin
-    ci.android.bucket_download()
-    ci.android.run_gradle(
-        "tanker-bindings:uploadArchive",
-        "-P",
-        "artifactsPath=%s" % ci.android.TANKER_ARTIFACTS_PATH,
-    )
-    ci.android.bucket_upload()
+    ui.info_1("Deploying SDK to maven.tanker.io")
+    ci.gcp.GcpProject("tanker-prod").auth()
+    ci.run("./gradlew", "tanker-bindings:publish")
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--isolate-conan-user-home", action="store_true", dest="home_isolation", default=False)
+    parser.add_argument(
+        "--isolate-conan-user-home",
+        action="store_true",
+        dest="home_isolation",
+        default=False,
+    )
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
     update_conan_config_parser = subparsers.add_parser("update-conan-config")
