@@ -60,22 +60,11 @@ def deploy(*, git_tag: str) -> None:
     ci.bump_files(version)
     build(native_from_sources=False)
     test()
-    ui.info_1("Deploying SDK to maven.tanker.io")
-    ci.android.run_gradle("tanker-bindings:assembleRelease")
-    ci.gcp.GcpProject("tanker-prod").auth()
 
-    # Note: we need to downolad the *entire*
-    # bucket, otherwise the file:// maven deployer
-    # does not work.
-    # FIXME: use the GCS wagon plugin instead:
-    #  https://github.com/drcrallen/gswagon-maven-plugin
-    ci.android.bucket_download()
-    ci.android.run_gradle(
-        "tanker-bindings:uploadArchive",
-        "-P",
-        "artifactsPath=%s" % ci.android.TANKER_ARTIFACTS_PATH,
-    )
-    ci.android.bucket_upload()
+    ui.info_1("Deploying SDK to maven.tanker.io")
+    ci.gcp.GcpProject("tanker-prod").auth()
+    ci.android.run_gradle("tanker-bindings:assembleRelease")
+    ci.android.run_gradle("tanker-bindings:publish")
 
 
 def main():
