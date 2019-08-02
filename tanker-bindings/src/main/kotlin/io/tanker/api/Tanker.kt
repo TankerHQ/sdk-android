@@ -16,6 +16,7 @@ class Tanker(tankerOptions: TankerOptions) {
         private const val TANKER_ANDROID_VERSION = "dev"
 
         private val lib = TankerLib.create()
+        @ProguardKeep
         private var logCallbackLifeSupport: LogHandlerCallback? = null
 
         /**
@@ -44,6 +45,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     private val tanker: Pointer
     private var deviceRevokedHandlers = mutableListOf<TankerDeviceRevokedHandler>()
+    @ProguardKeep
     private var callbacksLifeSupport = mutableListOf<Any>()
 
     init {
@@ -268,7 +270,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encrypt(tanker, outBuf, inBuf, data.size.toLong(), options)
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallback {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf)  {
             outBuf.getByteArray(0, encryptedSize.toInt())
         })
     }
@@ -290,11 +292,8 @@ class Tanker(tankerOptions: TankerOptions) {
         }
 
         val outBuf = Memory(plainSize)
-
         val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong())
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallback {
-            @Suppress("UNUSED_VARIABLE")
-            val keepalive = inBuf
+        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
             outBuf.getByteArray(0, plainSize.toInt())
         })
     }

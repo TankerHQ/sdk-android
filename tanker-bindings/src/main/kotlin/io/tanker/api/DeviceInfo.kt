@@ -14,7 +14,7 @@ import io.tanker.bindings.TankerDeviceListFinalizer
 class DeviceInfo(ptr: Pointer) : Structure(ptr) {
     @JvmField val deviceIdField: Pointer = ptr.getPointer(0)
     @JvmField val isRevokedField: Byte = ptr.getByte(Pointer.SIZE.toLong())
-    var finalizer: TankerDeviceListFinalizer? = null
+    @ProguardKeep var finalizer: TankerDeviceListFinalizer? = null
 
     fun getDeviceId(): String {
         return deviceIdField.getString(0)
