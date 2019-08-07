@@ -1,11 +1,14 @@
 package io.tanker.api
 
+import androidx.annotation.RequiresApi
 import android.util.Log
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.StringArray
 import io.tanker.bindings.*
 import io.tanker.jni.KVMx86Bug
+import java.io.InputStream
+import java.nio.channels.AsynchronousByteChannel
 
 /**
  * Main entry point for the Tanker SDK. Can open a TankerSession.
@@ -15,7 +18,7 @@ class Tanker(tankerOptions: TankerOptions) {
         private const val LOG_TAG = "io.tanker.sdk"
         private const val TANKER_ANDROID_VERSION = "dev"
 
-        private val lib = TankerLib.create()
+        internal val lib = TankerLib.create()
         @ProguardKeep
         private var logCallbackLifeSupport: LogHandlerCallback? = null
 
@@ -270,8 +273,63 @@ class Tanker(tankerOptions: TankerOptions) {
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encrypt(tanker, outBuf, inBuf, data.size.toLong(), options)
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf)  {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
             outBuf.getByteArray(0, encryptedSize.toInt())
+        })
+    }
+
+    @RequiresApi(26)
+    fun encrypt(channel: AsynchronousByteChannel): TankerFuture<TankerStreamChannelWrapper> {
+        return encrypt(channel, null)
+    }
+
+    @RequiresApi(26)
+    fun encrypt(channel: AsynchronousByteChannel, options: EncryptOptions?): TankerFuture<TankerStreamChannelWrapper> {
+        return encrypt(AsynchronousByteChannelWrapper(channel), options).andThen(TankerCallback {
+            TankerStreamChannelWrapper(it)
+        })
+    }
+
+    @RequiresApi(26)
+    fun decrypt(channel: AsynchronousByteChannel): TankerFuture<TankerStreamChannelWrapper> {
+        return decrypt(AsynchronousByteChannelWrapper(channel)).andThen(TankerCallback {
+            TankerStreamChannelWrapper(it)
+        })
+    }
+
+    fun encrypt(stream: InputStream): TankerFuture<TankerInputStream> {
+        return encrypt(stream, null)
+    }
+
+    fun encrypt(stream: InputStream, options: EncryptOptions?): TankerFuture<TankerInputStream> {
+        return encrypt(InputStreamWrapper(stream), options).andThen(TankerCallback {
+            TankerInputStream(it)
+        })
+    }
+
+    fun encrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerStreamChannel> {
+        return encrypt(channel, null)
+    }
+
+    fun encrypt(channel: TankerAsynchronousByteChannel, options: EncryptOptions?): TankerFuture<TankerStreamChannel> {
+        val cb = TankerStreamInputSourceCallback(channel)
+        val futurePtr = lib.tanker_stream_encrypt(tanker, cb, null, options)
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+            TankerStreamChannel(it, cb)
+        })
+    }
+
+    fun decrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerStreamChannel> {
+        val cb = TankerStreamInputSourceCallback(channel)
+        val futurePtr = lib.tanker_stream_decrypt(tanker, cb, null)
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+            TankerStreamChannel(it, cb)
+        })
+    }
+
+    fun decrypt(stream: InputStream): TankerFuture<TankerInputStream> {
+        return decrypt(InputStreamWrapper(stream)).andThen(TankerCallback {
+            TankerInputStream(it)
         })
     }
 
@@ -312,6 +370,29 @@ class Tanker(tankerOptions: TankerOptions) {
         val outString = outStringPtr.getString(0, "UTF-8")
         lib.tanker_free_buffer(outStringPtr)
         return outString
+    }
+
+    /**
+     * Get the resource ID used for sharing encrypted data.
+     * @param channel Tanker channel returned either by {@code encrypt} or {@code decrypt}.
+     * @return The resource ID of the encrypted data (base64 encoded).
+     */
+    fun getResourceID(channel: TankerStreamChannel): String {
+        return channel.resourceID
+    }
+
+    @RequiresApi(26)
+    fun getResourceID(channel: TankerStreamChannelWrapper): String {
+      return channel.streamChannel.resourceID
+    }
+
+    /**
+     * Get the resource ID used for sharing encrypted data.
+     * @param stream Tanker input stream returned either by {@code encrypt} or {@code decrypt}.
+     * @return The resource ID of the encrypted data (base64 encoded).
+     */
+    fun getResourceID(stream: TankerInputStream): String {
+        return stream.resourceID
     }
 
     /**

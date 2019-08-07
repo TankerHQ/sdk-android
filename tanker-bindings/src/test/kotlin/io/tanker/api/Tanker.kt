@@ -28,7 +28,7 @@ class TankerTests : TankerSpec() {
             versionString shouldNot haveLength(0)
         }
 
-        "Can open a Tanker session by signin up" {
+        "Can open a Tanker session by starting" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
             val status = tanker.start(identity).get()
@@ -66,6 +66,23 @@ class TankerTests : TankerSpec() {
             tanker.stop().get()
         }
 
+        "Can stream encrypt and stream decrypt back" {
+            val tanker = Tanker(options)
+            val identity = tc.createIdentity()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+            val plaintext = ByteArray(3 * 1024 * 1024)
+            val clear = plaintext.inputStream()
+
+            val encryptor = tanker.encrypt(clear).get()
+            val decryptor = tanker.decrypt(encryptor).get()
+
+            val decrypted = decryptor.readBytes()
+            decrypted shouldBe plaintext
+            tanker.stop().get()
+        }
+
         "Can encrypt, share, and decrypt between two users" {
             val aliceId = tc.createIdentity()
             val bobId = tc.createIdentity()
@@ -83,6 +100,64 @@ class TankerTests : TankerSpec() {
             val shareOptions = ShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), shareOptions).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+        }
+
+        "Can retrieve the resource ID in both encryption and decryption streams" {
+            val tanker = Tanker(options)
+            val identity = tc.createIdentity()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+            val clear = ByteArray(0).inputStream()
+
+            val encryptor = tanker.encrypt(clear).get()
+            val decryptor = tanker.decrypt(encryptor).get()
+
+            tanker.getResourceID(encryptor) shouldBe tanker.getResourceID(decryptor)
+            tanker.stop().get()
+        }
+
+        "Can stream encrypt, share, and stream decrypt between two users" {
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
+
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val tankerBob = Tanker(options)
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            val plaintext = "plain text"
+            val encryptor = tankerAlice.encrypt(plaintext.toByteArray().inputStream()).get()
+            val shareOptions = ShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+            tankerAlice.share(arrayOf(tankerAlice.getResourceID(encryptor)), shareOptions).get()
+            String(tankerBob.decrypt(encryptor).get().readBytes()) shouldBe plaintext
+
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+        }
+
+        "Can stream encrypt and share, then stream decrypt, between two users" {
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
+
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val tankerBob = Tanker(options)
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            val plaintext = "There are no mistakes, just happy accidents"
+            val encryptOptions = EncryptOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+            val encryptor = tankerAlice.encrypt(plaintext.toByteArray().inputStream(), encryptOptions).get()
+            String(tankerBob.decrypt(encryptor).get().readBytes()) shouldBe plaintext
 
             tankerAlice.stop().get()
             tankerBob.stop().get()
