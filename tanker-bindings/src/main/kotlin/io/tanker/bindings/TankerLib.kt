@@ -94,7 +94,7 @@ interface TankerLib : Library {
 
     fun tanker_stream_encrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?, options: EncryptOptions?): FuturePointer
     fun tanker_stream_decrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?): FuturePointer
-    fun tanker_stream_read(stream: StreamPointer, buffer: Pointer, buffer_size: Long): FuturePointer
+    fun tanker_stream_read(stream: StreamPointer, buffer: Pointer?, buffer_size: Long): FuturePointer
     fun tanker_stream_read_operation_finish(op: StreamInputSourceReadOperationPointer, nb_read: Long)
     fun tanker_stream_get_resource_id(stream: StreamPointer): ExpectedPointer
     fun tanker_stream_close(stream: StreamPointer): FuturePointer

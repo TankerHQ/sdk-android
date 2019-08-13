@@ -6,7 +6,7 @@ import java.nio.channels.AsynchronousByteChannel
 import java.nio.channels.CompletionHandler
 
 @RequiresApi(26)
-class AsynchronousByteChannelWrapper(private val channel: AsynchronousByteChannel) : TankerAsynchronousByteChannel {
+internal class AsynchronousByteChannelWrapper(private val channel: AsynchronousByteChannel) : TankerAsynchronousByteChannel {
     override fun close() {
         channel.close()
     }
@@ -15,14 +15,15 @@ class AsynchronousByteChannelWrapper(private val channel: AsynchronousByteChanne
         return channel.isOpen
     }
 
-    override fun <A> read(dst: ByteBuffer?, attachment: A, handler: TankerCompletionHandler<Int, in A>?) {
+    override fun <A> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
+        // CompletionHandler is API 26 only, hence the boilerplate
         channel.read(dst, attachment, object : CompletionHandler<Int, A> {
             override fun completed(result: Int, attachment: A) {
-                handler!!.completed(result, attachment)
+                handler.completed(result, attachment)
             }
 
             override fun failed(exc: Throwable, attachment: A) {
-                handler!!.failed(exc, attachment)
+                handler.failed(exc, attachment)
             }
         })
     }

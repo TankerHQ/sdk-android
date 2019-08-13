@@ -73,12 +73,12 @@ class TankerTests : TankerSpec() {
             tanker.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = ByteArray(3 * 1024 * 1024)
-            val clear = plaintext.inputStream()
+            val clear = InputStreamWrapper(plaintext.inputStream())
 
             val encryptor = tanker.encrypt(clear).get()
             val decryptor = tanker.decrypt(encryptor).get()
 
-            val decrypted = decryptor.readBytes()
+            val decrypted = TankerInputStream(decryptor).readBytes()
             decrypted shouldBe plaintext
             tanker.stop().get()
         }
@@ -111,7 +111,7 @@ class TankerTests : TankerSpec() {
             tanker.start(identity).get()
             tanker.registerIdentity(PassphraseVerification("pass")).get()
 
-            val clear = ByteArray(0).inputStream()
+            val clear = InputStreamWrapper(ByteArray(0).inputStream())
 
             val encryptor = tanker.encrypt(clear).get()
             val decryptor = tanker.decrypt(encryptor).get()
@@ -133,10 +133,12 @@ class TankerTests : TankerSpec() {
             tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             val plaintext = "plain text"
-            val encryptor = tankerAlice.encrypt(plaintext.toByteArray().inputStream()).get()
+            val channel = InputStreamWrapper(plaintext.toByteArray().inputStream())
+            val encryptor = tankerAlice.encrypt(channel).get()
             val shareOptions = ShareOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encryptor)), shareOptions).get()
-            String(tankerBob.decrypt(encryptor).get().readBytes()) shouldBe plaintext
+            val decryptionStream = TankerInputStream(tankerBob.decrypt(encryptor).get())
+            String(decryptionStream.readBytes()) shouldBe plaintext
 
             tankerAlice.stop().get()
             tankerBob.stop().get()
@@ -156,8 +158,10 @@ class TankerTests : TankerSpec() {
 
             val plaintext = "There are no mistakes, just happy accidents"
             val encryptOptions = EncryptOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
-            val encryptor = tankerAlice.encrypt(plaintext.toByteArray().inputStream(), encryptOptions).get()
-            String(tankerBob.decrypt(encryptor).get().readBytes()) shouldBe plaintext
+            val channel = InputStreamWrapper(plaintext.toByteArray().inputStream())
+            val encryptor = tankerAlice.encrypt(channel, encryptOptions).get()
+            val decryptionStream = TankerInputStream(tankerBob.decrypt(encryptor).get())
+            String(decryptionStream.readBytes()) shouldBe plaintext
 
             tankerAlice.stop().get()
             tankerBob.stop().get()

@@ -4,7 +4,7 @@ import androidx.annotation.RequiresApi
 import io.kotlintest.Description
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
-import org.eclipse.jgit.merge.ThreeWayMergeStrategy
+import io.kotlintest.shouldThrow
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousByteChannel
 import java.nio.channels.ClosedChannelException
@@ -17,67 +17,22 @@ class DummyChannel : TankerAsynchronousByteChannel {
     val clearBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
     private var isClosed = false
 
-    override fun <A> read(dst: ByteBuffer?, attachment: A, handler: TankerCompletionHandler<Int, in A>?) {
+    override fun <A> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
         try {
-            if (dst!!.remaining() == 0) {
-                handler!!.completed(0, attachment)
+            if (dst.remaining() == 0) {
+                handler.completed(0, attachment)
             } else if (clearBuffer.remaining() == 0) {
-                handler!!.completed(-1, attachment)
+                handler.completed(-1, attachment)
             } else {
                 val clearArray = clearBuffer.array()
                 val currentPos = clearBuffer.arrayOffset()
                 val finalLength = minOf(dst.remaining(), clearBuffer.remaining())
                 dst.put(clearArray, currentPos, finalLength)
                 clearBuffer.position(clearBuffer.position() + finalLength)
-                handler!!.completed(finalLength, attachment)
+                handler.completed(finalLength, attachment)
             }
         } catch (e: Throwable) {
-            handler!!.failed(e, attachment)
-        }
-    }
-
-    override fun isOpen(): Boolean {
-        return !isClosed
-    }
-
-    override fun close() {
-        isClosed = true
-    }
-}
-
-@RequiresApi(26)
-class API26DummyChannel : AsynchronousByteChannel {
-    override fun write(src: ByteBuffer?): Future<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun <A : Any?> write(src: ByteBuffer?, attachment: A, handler: CompletionHandler<Int, in A>?) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun read(dst: ByteBuffer?): Future<Int> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    val clearBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
-    private var isClosed = false
-
-    override fun <A> read(dst: ByteBuffer?, attachment: A, handler: CompletionHandler<Int, in A>?) {
-        try {
-            if (dst!!.remaining() == 0) {
-                handler!!.completed(0, attachment)
-            } else if (clearBuffer.remaining() == 0) {
-                handler!!.completed(-1, attachment)
-            } else {
-                val clearArray = clearBuffer.array()
-                val currentPos = clearBuffer.arrayOffset()
-                val finalLength = minOf(dst.remaining(), clearBuffer.remaining())
-                dst.put(clearArray, currentPos, finalLength)
-                clearBuffer.position(clearBuffer.position() + finalLength)
-                handler!!.completed(finalLength, attachment)
-            }
-        } catch (e: Throwable) {
-            handler!!.failed(e, attachment)
+            handler.failed(e, attachment)
         }
     }
 
@@ -92,7 +47,8 @@ class API26DummyChannel : AsynchronousByteChannel {
 
 @RequiresApi(26)
 class API26StreamChannelTestHelper(tanker: Tanker) {
-    val clearChannel = API26DummyChannel()
+    val dummyChannel = DummyChannel()
+    val clearChannel = TankerChannels.toAsynchronousByteChannel(dummyChannel)
     var err: Throwable? = null
     var nbRead = 0
     var decryptor: AsynchronousByteChannel
@@ -118,7 +74,8 @@ class API26StreamChannelTestHelper(tanker: Tanker) {
     }
 
     init {
-        decryptor = tanker.decrypt(tanker.encrypt(clearChannel).get()).get()
+        val encryptionChannel = tanker.encrypt(TankerChannels.fromAsynchronousByteChannel(clearChannel)).get()
+        decryptor = TankerChannels.toAsynchronousByteChannel(tanker.decrypt(encryptionChannel).get())
     }
 }
 
@@ -126,7 +83,7 @@ class StreamChannelTestHelper(tanker: Tanker) {
     val clearChannel = DummyChannel()
     var err: Throwable? = null
     var nbRead = 0
-    var decryptor: TankerStreamChannel
+    var decryptor: TankerAsynchronousByteChannel
     val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)
     val fut = FutureTask {}
 
@@ -187,15 +144,12 @@ class StreamChannelTests : TankerSpec() {
         "Attempting two read operations simultaneously throws" {
             val secondBuffer = ByteBuffer.allocate(helper.decryptedBuffer.capacity())
             helper.decryptor.read(helper.decryptedBuffer, Unit, helper.callback())
-            helper.decryptor.read(secondBuffer, Unit, helper.callback())
-            helper.fut.get()
-            helper.err shouldNotBe null
-            (helper.err is TankerReadPendingException) shouldBe true
+            shouldThrow<TankerPendingReadException> { helper.decryptor.read(secondBuffer, Unit, helper.callback()) }
         }
     }
 }
 
-@RequiresApi (26)
+@RequiresApi(26)
 class API26StreamChannelTests : TankerSpec() {
     lateinit var tanker: Tanker
     lateinit var helper: API26StreamChannelTestHelper
@@ -214,8 +168,8 @@ class API26StreamChannelTests : TankerSpec() {
             helper.fut.get()
             helper.err shouldBe null
             helper.nbRead shouldBe helper.decryptedBuffer.capacity()
-            helper.clearChannel.clearBuffer.position(0)
-            helper.decryptedBuffer shouldBe helper.clearChannel.clearBuffer
+            helper.dummyChannel.clearBuffer.position(0)
+            helper.decryptedBuffer shouldBe helper.dummyChannel.clearBuffer
         }
 
         "Reading a closed channel throws" {
@@ -229,10 +183,7 @@ class API26StreamChannelTests : TankerSpec() {
         "Attempting two read operations simultaneously throws" {
             val secondBuffer = ByteBuffer.allocate(helper.decryptedBuffer.capacity())
             helper.decryptor.read(helper.decryptedBuffer, Unit, helper.callback())
-            helper.decryptor.read(secondBuffer, Unit, helper.callback())
-            helper.fut.get()
-            helper.err shouldNotBe null
-            (helper.err is ReadPendingException) shouldBe true
+            shouldThrow<ReadPendingException> { helper.decryptor.read(secondBuffer, Unit, helper.callback()) }
         }
     }
 }

@@ -8,24 +8,27 @@ import java.nio.channels.ReadPendingException
 import java.util.concurrent.Future
 
 @RequiresApi(26)
-class TankerStreamChannelWrapper(internal val streamChannel: TankerStreamChannel) : AsynchronousByteChannel {
+internal class TankerAsynchronousByteChannelWrapper(internal val streamChannel: TankerAsynchronousByteChannel) : AsynchronousByteChannel {
     override fun read(dst: ByteBuffer?): Future<Int> {
         throw UnsupportedOperationException()
     }
 
-    override fun <A : Any?> read(dst: ByteBuffer?, attachment: A, handler: CompletionHandler<Int, in A>?) {
-        return streamChannel.read(dst, attachment, object : TankerCompletionHandler<Int, A> {
-            override fun completed(result: Int, attachment: A) {
-                handler!!.completed(result, attachment)
-            }
+    override fun <A : Any?> read(dst: ByteBuffer, attachment: A, handler: CompletionHandler<Int, in A>) {
+        try {
+            return streamChannel.read(dst, attachment, object : TankerCompletionHandler<Int, A> {
+                override fun completed(result: Int, attachment: A) {
+                    handler.completed(result, attachment)
+                }
 
-            override fun failed(exc: Throwable, attachment: A) {
-                if (exc is TankerReadPendingException)
-                    handler!!.failed(ReadPendingException(), attachment)
-                else
-                    handler!!.failed(exc, attachment)
-            }
-        })
+                override fun failed(exc: Throwable, attachment: A) {
+                    handler.failed(exc, attachment)
+                }
+            })
+        } catch (exc: Throwable) {
+            if (exc is TankerPendingReadException)
+                throw ReadPendingException()
+            throw exc
+        }
     }
 
     override fun close() {

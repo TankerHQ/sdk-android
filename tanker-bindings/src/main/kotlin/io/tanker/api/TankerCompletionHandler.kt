@@ -4,6 +4,6 @@ package io.tanker.api
 // provide our own interface as a replacement
 
 interface TankerCompletionHandler<V, A> {
-    public abstract fun completed(result: V, attachment: A): Unit
-    public abstract fun failed(exc: Throwable, attachment: A): Unit
+    fun completed(result: V, attachment: A)
+    fun failed(exc: Throwable, attachment: A)
 }

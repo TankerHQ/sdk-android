@@ -3,19 +3,14 @@ package io.tanker.api
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import io.tanker.bindings.StreamPointer
-import io.tanker.bindings.TankerError
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
-import java.nio.channels.ReadPendingException
-import java.util.concurrent.Future
 
-// FIXME wrap it in an API 26 class
-
-class TankerStreamChannel internal constructor(private var cStream: StreamPointer?, private val cb: TankerStreamInputSourceCallback) : TankerAsynchronousByteChannel {
+internal class TankerResourceChannel constructor(private var cStream: StreamPointer?, private val cb: TankerStreamInputSourceCallback) : TankerAsynchronousByteChannel {
 
     val resourceID = initResourceID()
-    var pendingReadOperation = false
+    private var pendingReadOperation = false
 
     private fun initResourceID(): String {
         if (cStream == null)
@@ -40,22 +35,22 @@ class TankerStreamChannel internal constructor(private var cStream: StreamPointe
         cStream = null
     }
 
-    override fun <A : Any?> read(dst: ByteBuffer?, attachment: A, handler: TankerCompletionHandler<Int, in A>?) {
+    override fun <A : Any?> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
         if (pendingReadOperation)
-            handler!!.failed(TankerReadPendingException(), attachment)
-        else
-            readTankerInput(dst!!, attachment, handler!!)
+            throw TankerPendingReadException()
+        readTankerInput(dst, attachment, handler)
     }
 
     private fun <A : Any?> readTankerInput(buffer: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
         val offset = buffer.position()
         val size = buffer.remaining()
-        if (size == 0)
-            handler.completed(0, attachment)
-        else if (cStream == null)
+        if (cStream == null)
             handler.failed(ClosedChannelException(), attachment)
         else {
-            val inBuf = Memory(size.toLong())
+            var inBuf: Pointer? = null
+            // handle special 0 case, which will trigger a buffering operation
+            if (size != 0)
+                inBuf = Memory(size.toLong())
 
             pendingReadOperation = true
             TankerFuture<Int>(Tanker.lib.tanker_stream_read(cStream!!, inBuf, size.toLong()), Int::class.java).then(TankerVoidCallback {
@@ -73,16 +68,20 @@ class TankerStreamChannel internal constructor(private var cStream: StreamPointe
                     }
                 } else {
                     var nbRead = it.get()
-                    if (buffer.hasArray()) {
-                        inBuf.read(0, buffer.array(), offset, nbRead)
+                    if (inBuf == null) {
+                        handler.completed(nbRead, attachment)
                     } else {
-                        val b = inBuf.getByteBuffer(0, nbRead.toLong())
-                        buffer.put(b)
+                        if (buffer.hasArray()) {
+                            inBuf.read(0, buffer.array(), offset, nbRead)
+                        } else {
+                            val b = inBuf.getByteBuffer(0, nbRead.toLong())
+                            buffer.put(b)
+                        }
+                        if (nbRead == 0) {
+                            nbRead = -1
+                        }
+                        handler.completed(nbRead, attachment)
                     }
-                    if (nbRead == 0) {
-                        nbRead = -1
-                    }
-                    handler.completed(nbRead, attachment)
                 }
             })
         }
