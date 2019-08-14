@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import androidx.annotation.RequiresApi
 import android.util.Log
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
@@ -15,7 +16,7 @@ class Tanker(tankerOptions: TankerOptions) {
         private const val LOG_TAG = "io.tanker.sdk"
         private const val TANKER_ANDROID_VERSION = "dev"
 
-        private val lib = TankerLib.create()
+        internal val lib = TankerLib.create()
         @ProguardKeep
         private var logCallbackLifeSupport: LogHandlerCallback? = null
 
@@ -270,11 +271,30 @@ class Tanker(tankerOptions: TankerOptions) {
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encrypt(tanker, outBuf, inBuf, data.size.toLong(), options)
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf)  {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
             outBuf.getByteArray(0, encryptedSize.toInt())
         })
     }
 
+    fun encrypt(channel: TankerAsynchronousByteChannel, options: EncryptOptions?): TankerFuture<TankerAsynchronousByteChannel> {
+        val cb = TankerStreamInputSourceCallback(channel)
+        val futurePtr = lib.tanker_stream_encrypt(tanker, cb, null, options)
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+            TankerResourceChannel(it, cb)
+        })
+    }
+
+    fun encrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
+        return encrypt(channel, null)
+    }
+
+    fun decrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
+        val cb = TankerStreamInputSourceCallback(channel)
+        val futurePtr = lib.tanker_stream_decrypt(tanker, cb, null)
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+            TankerResourceChannel(it, cb)
+        })
+    }
 
     /**
      * Decrypts {@code data} with options, assuming the data was encrypted and shared beforehand.
@@ -312,6 +332,15 @@ class Tanker(tankerOptions: TankerOptions) {
         val outString = outStringPtr.getString(0, "UTF-8")
         lib.tanker_free_buffer(outStringPtr)
         return outString
+    }
+
+    /**
+     * Get the resource ID used for sharing encrypted data.
+     * @param channel Tanker channel returned either by {@code encrypt} or {@code decrypt}.
+     * @return The resource ID of the encrypted data (base64 encoded).
+     */
+    fun getResourceID(channel: TankerAsynchronousByteChannel): String {
+        return (channel as TankerResourceChannel).resourceID
     }
 
     /**

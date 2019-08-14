@@ -14,6 +14,8 @@ typealias SessionPointer = Pointer
 typealias ConnectionPointer = Pointer
 typealias AdminPointer = Pointer
 typealias TrustchainDescriptorPointer = Pointer
+typealias StreamInputSourceReadOperationPointer = Pointer
+typealias StreamPointer = Pointer
 // JNA messes up functions that return bool on x86
 // so we return Int instead, but we must not forget to take only the first byte of the result
 // https://github.com/java-native-access/jna/issues/1076
@@ -35,6 +37,10 @@ interface TankerLib : Library {
 
     interface EventCallback : Callback {
         fun callback(arg: Pointer?)
+    }
+
+    interface StreamInputSourceCallback : Callback {
+        fun callback(buffer: Pointer, buffer_size: Long, op: StreamInputSourceReadOperationPointer, userArg: Pointer?)
     }
 
     fun tanker_init(): Void
@@ -85,6 +91,13 @@ interface TankerLib : Library {
     fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
                      recipient_gids: StringArray, nbRecipientGids: Long,
                      resource_ids: StringArray, nbResourceIds: Long): FuturePointer
+
+    fun tanker_stream_encrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?, options: EncryptOptions?): FuturePointer
+    fun tanker_stream_decrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?): FuturePointer
+    fun tanker_stream_read(stream: StreamPointer, buffer: Pointer?, buffer_size: Long): FuturePointer
+    fun tanker_stream_read_operation_finish(op: StreamInputSourceReadOperationPointer, nb_read: Long)
+    fun tanker_stream_get_resource_id(stream: StreamPointer): ExpectedPointer
+    fun tanker_stream_close(stream: StreamPointer): FuturePointer
 
     fun tanker_create_group(tanker: SessionPointer, member_uids: StringArray, nbMembers: Long): FuturePointer
     fun tanker_update_group_members(tanker: SessionPointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer

@@ -19,4 +19,5 @@ enum class ErrorCode(val value: Int) {
     INVALID_VERIFICATION(8),
     TOO_MANY_ATTEMPTS(9),
     EXPIRED_VERIFICATION(10),
+    IO_ERROR(11),
 }
