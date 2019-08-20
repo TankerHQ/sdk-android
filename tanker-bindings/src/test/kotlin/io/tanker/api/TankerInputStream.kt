@@ -35,7 +35,7 @@ class InputStreamTests : TankerSpec() {
             shouldThrow<IOException> { encryptionStream.read() }
         }
 
-        "Attempting to decrypt a closed  throws" {
+        "Attempting to decrypt a closed stream throws" {
             val channel = InputStreamWrapper(array.inputStream())
             val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
             encryptionStream.close()
