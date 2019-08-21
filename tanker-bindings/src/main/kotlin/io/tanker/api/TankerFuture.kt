@@ -6,7 +6,7 @@ import com.sun.jna.Pointer
 import io.tanker.bindings.TankerLib
 import java.lang.reflect.Type
 import java.util.concurrent.Executors
-import androidx.annotation.WorkerThread
+import android.support.annotation.WorkerThread
 
 class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type) {
     private sealed class ThenResult {
