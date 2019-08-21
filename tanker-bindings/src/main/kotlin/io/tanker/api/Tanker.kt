@@ -1,6 +1,5 @@
 package io.tanker.api
 
-import androidx.annotation.RequiresApi
 import android.util.Log
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
