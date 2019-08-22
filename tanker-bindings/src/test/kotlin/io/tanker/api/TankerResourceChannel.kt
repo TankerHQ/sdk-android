@@ -1,6 +1,6 @@
 package io.tanker.api
 
-import androidx.annotation.RequiresApi
+import android.support.annotation.RequiresApi
 import io.kotlintest.Description
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldNotBe
