@@ -1,7 +1,7 @@
 package io.tanker.api
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.tanker.bindings.TankerTrustchainDescriptor
+import io.tanker.bindings.TankerAppDescriptor
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Files
@@ -35,7 +35,7 @@ class Config{
     companion object {
         var instance: ConfigData? = null
 
-        fun getTrustchainUrl(): String {
+        fun getUrl(): String {
             if (instance == null)
                 Config()
             return instance!!.url
@@ -58,13 +58,13 @@ class Config{
     }
 }
 
-class Trustchain {
-    val admin = Admin(Config.getTrustchainUrl(), Config.getIdToken())
-    private val descriptor: TankerTrustchainDescriptor
+class App {
+    val admin = Admin(Config.getUrl(), Config.getIdToken())
+    private val descriptor: TankerAppDescriptor
 
     init {
         admin.connect().get()
-        descriptor = admin.createTrustchain("android-test").get()
+        descriptor = admin.createApp("android-test").get()
         println(descriptor)
     }
 
@@ -82,11 +82,10 @@ class Trustchain {
     }
 
     fun delete() {
-        admin.deleteTrustchain(id()).get()
+        admin.deleteApp(id()).get()
     }
 
-    val url: String = Config.getTrustchainUrl()
-
+    val url: String = Config.getUrl()
 }
 
 fun createTmpDir(): Path {
