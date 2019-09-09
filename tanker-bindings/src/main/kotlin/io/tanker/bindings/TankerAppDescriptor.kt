@@ -16,11 +16,11 @@ class TankerAppDescriptor(p: Pointer) : Structure(p) {
     }
 
     companion object {
-        private val lib = TankerLib.create()
+        private val lib = AdminLib.create()
     }
 
     @Suppress("ProtectedInFinal", "Unused") protected fun finalize() {
-        lib.tanker_admin_app_descritor_free(pointer)
+        lib.tanker_admin_app_descriptor_free(pointer)
     }
 
     override fun getFieldOrder(): List<String> {

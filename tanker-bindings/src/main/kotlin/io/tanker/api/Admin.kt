@@ -1,26 +1,23 @@
 package io.tanker.api
 
 import com.sun.jna.Pointer
+import io.tanker.bindings.AdminLib
 import io.tanker.bindings.TankerLib
 import io.tanker.bindings.TankerAppDescriptor
 
-/**
- * The Tanker admin API allows managing your Tanker apps.
- *
- * @param url The URL of the tanker server to connect to
- * @param idToken The authentication token string for the admin API
- */
 class Admin(private val url: String, private val idToken: String) {
     private var cadmin: Pointer? = null
 
     companion object {
-        private val lib = TankerLib.create()
+        private val tankerlib = TankerLib.create()
+        private val lib = AdminLib.create()
     }
 
 
     @Suppress("ProtectedInFinal", "Unused") protected fun finalize() {
-        if (cadmin != null)
+        if (cadmin != null) {
             lib.tanker_admin_destroy(cadmin!!)
+        }
     }
 
     /**
@@ -57,7 +54,7 @@ class Admin(private val url: String, private val idToken: String) {
         return fut.then(TankerCallback{
             val ptr = it.get()
             val str = ptr.getString(0)
-            lib.tanker_free_buffer(ptr)
+            tankerlib.tanker_free_buffer(ptr)
             str
         })
     }

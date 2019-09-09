@@ -12,7 +12,6 @@ typealias ExpectedPointer = FuturePointer
 typealias PromisePointer = Pointer
 typealias SessionPointer = Pointer
 typealias ConnectionPointer = Pointer
-typealias AdminPointer = Pointer
 typealias AppDescriptorPointer = Pointer
 typealias StreamInputSourceReadOperationPointer = Pointer
 typealias StreamPointer = Pointer
@@ -106,13 +105,6 @@ interface TankerLib : Library {
     fun tanker_base64_decoded_max_size(encoded_size: Long): Long
     fun tanker_base64_encode(to: Pointer, from: Pointer, from_size: Long): Void
     fun tanker_base64_decode(to: Pointer, to_size: LongByReference, from: Pointer, from_size: Long): Void
-
-    fun tanker_admin_connect(url: String, id_token: String): FuturePointer
-    fun tanker_admin_create_app(admin: AdminPointer, name: String): FuturePointer
-    fun tanker_admin_delete_app(admin: AdminPointer, app_id: String): FuturePointer
-    fun tanker_admin_destroy(admin: AdminPointer): FuturePointer
-    fun tanker_admin_app_descritor_free(app: AppDescriptorPointer): Void
-    fun tanker_admin_get_verification_code(admin: AdminPointer, app_id: String, email: String): FuturePointer
 
     fun tanker_free_buffer(buffer: Pointer): Void
     fun tanker_free_device_list(list: Pointer): Void
