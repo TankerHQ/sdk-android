@@ -4,9 +4,9 @@ import com.sun.jna.Pointer
 import com.sun.jna.Structure
 
 /**
- * Describes the main properties of a trustchain
+ * Describes the main properties of a Tanker app
  */
-class TankerTrustchainDescriptor(p: Pointer) : Structure(p) {
+class TankerAppDescriptor(p: Pointer) : Structure(p) {
     @JvmField var name: String? = null
     @JvmField var id: String? = null
     @JvmField var privateKey: String? = null
@@ -20,7 +20,7 @@ class TankerTrustchainDescriptor(p: Pointer) : Structure(p) {
     }
 
     @Suppress("ProtectedInFinal", "Unused") protected fun finalize() {
-        lib.tanker_admin_trustchain_descritor_free(pointer)
+        lib.tanker_admin_app_descritor_free(pointer)
     }
 
     override fun getFieldOrder(): List<String> {

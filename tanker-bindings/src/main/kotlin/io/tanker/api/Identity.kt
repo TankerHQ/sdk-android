@@ -7,8 +7,8 @@ class Identity {
     companion object {
         private val libIdentity = IdentityLib.create()
 
-        @JvmStatic fun createIdentity(trustchainId: String, trustchainPrivateKey: String, userId: String): String {
-            val identityCFut = libIdentity.tanker_create_identity(trustchainId, trustchainPrivateKey, userId)
+        @JvmStatic fun createIdentity(appId: String, appSecret: String, userId: String): String {
+            val identityCFut = libIdentity.tanker_create_identity(appId, appSecret, userId)
             return TankerFuture<Pointer>(identityCFut, Pointer::class.java).get().getString(0)
         }
 
@@ -17,8 +17,8 @@ class Identity {
             return TankerFuture<Pointer>(identityCFut, Pointer::class.java).get().getString(0)
         }
 
-        @JvmStatic fun createProvisionalIdentity(trustchainId: String, email: String): String {
-            val identityCFut = libIdentity.tanker_create_provisional_identity(trustchainId, email)
+        @JvmStatic fun createProvisionalIdentity(appId: String, email: String): String {
+            val identityCFut = libIdentity.tanker_create_provisional_identity(appId, email)
             return TankerFuture<Pointer>(identityCFut, Pointer::class.java).get().getString(0)
         }
     }

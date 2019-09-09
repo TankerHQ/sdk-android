@@ -13,7 +13,7 @@ typealias PromisePointer = Pointer
 typealias SessionPointer = Pointer
 typealias ConnectionPointer = Pointer
 typealias AdminPointer = Pointer
-typealias TrustchainDescriptorPointer = Pointer
+typealias AppDescriptorPointer = Pointer
 typealias StreamInputSourceReadOperationPointer = Pointer
 typealias StreamPointer = Pointer
 // JNA messes up functions that return bool on x86
@@ -107,12 +107,12 @@ interface TankerLib : Library {
     fun tanker_base64_encode(to: Pointer, from: Pointer, from_size: Long): Void
     fun tanker_base64_decode(to: Pointer, to_size: LongByReference, from: Pointer, from_size: Long): Void
 
-    fun tanker_admin_connect(trustchain_url: String, id_token: String): FuturePointer
-    fun tanker_admin_create_trustchain(admin: AdminPointer, name: String): FuturePointer
-    fun tanker_admin_delete_trustchain(admin: AdminPointer, trustchain_id: String): FuturePointer
+    fun tanker_admin_connect(url: String, id_token: String): FuturePointer
+    fun tanker_admin_create_app(admin: AdminPointer, name: String): FuturePointer
+    fun tanker_admin_delete_app(admin: AdminPointer, app_id: String): FuturePointer
     fun tanker_admin_destroy(admin: AdminPointer): FuturePointer
-    fun tanker_admin_trustchain_descritor_free(trustchain: TrustchainDescriptorPointer): Void
-    fun tanker_admin_get_verification_code(admin: AdminPointer, trustchain_id: String, email: String): FuturePointer
+    fun tanker_admin_app_descritor_free(app: AppDescriptorPointer): Void
+    fun tanker_admin_get_verification_code(admin: AdminPointer, app_id: String, email: String): FuturePointer
 
     fun tanker_free_buffer(buffer: Pointer): Void
     fun tanker_free_device_list(list: Pointer): Void

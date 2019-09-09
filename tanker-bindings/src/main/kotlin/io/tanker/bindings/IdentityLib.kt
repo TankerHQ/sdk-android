@@ -11,7 +11,7 @@ interface IdentityLib : Library {
         }
     }
 
-    fun tanker_create_identity(trustchain_id: String, trustchain_private_key: String, user_id: String): ExpectedPointer
+    fun tanker_create_identity(app_id: String, app_secret: String, user_id: String): ExpectedPointer
     fun tanker_get_public_identity(identity: String): ExpectedPointer
-    fun tanker_create_provisional_identity(trustchain_id: String, email: String): ExpectedPointer
+    fun tanker_create_provisional_identity(app_id: String, email: String): ExpectedPointer
 }

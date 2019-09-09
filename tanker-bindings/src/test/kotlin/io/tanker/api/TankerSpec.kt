@@ -8,13 +8,13 @@ import io.kotlintest.specs.StringSpec
 abstract class TankerSpec : StringSpec() {
     protected val options = TankerOptions()
     override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
-    lateinit var tc: Trustchain
+    lateinit var tc: App
 
 
     override fun beforeSpec(spec: Spec) {
-        tc = Trustchain()
+        tc = App()
         options.setTrustchainId(tc.id())
-                .setTrustchainUrl(tc.url)
+                .setUrl(tc.url)
                 .setWritablePath(createTmpDir().toString())
                 .setSdkType("test")
         setupTestEnv()
