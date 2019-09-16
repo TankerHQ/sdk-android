@@ -39,20 +39,6 @@ class TankerTests : TankerSpec() {
             tanker.stop().get()
         }
 
-        "Can get our device ID" {
-            val tanker = Tanker(options)
-            val identity = tc.createIdentity()
-            tanker.start(identity).get()
-            tanker.registerIdentity(PassphraseVerification("pass")).get()
-
-            val devId = tanker.getDeviceId()
-            val devIdRoundtrip = Base64.encodeToString(Base64.decode(devId))
-
-            devId shouldBe devIdRoundtrip
-
-            tanker.stop().get()
-        }
-
         "Can encrypt and decrypt back" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()

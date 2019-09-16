@@ -1,6 +1,7 @@
 package io.tanker.api
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.tanker.admin.Admin
 import io.tanker.bindings.TankerAppDescriptor
 import java.io.File
 import java.io.FileNotFoundException

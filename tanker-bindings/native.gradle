@@ -37,13 +37,18 @@ class NativeHelper {
                 "--build missing ", installPath)
     }
     // This creates a .jar with our .so inside, so we can put it in the classpath for tests
-    static def createNativeLibJar(File libPath, String jarName) {
+    static def createNativeLibJar(File installPath, ArrayList libNames, String jarName) {
+        def libPaths = libNames.collect { new File(installPath, it) }
         def platformPrefix = Platform.getNativeLibraryResourcePrefix()
-        def relPrefixedPath = platformPrefix + '/' + libPath.name
-        def prefixedLibPath = new File(libPath.parent + '/' + relPrefixedPath)
-        prefixedLibPath.parentFile.mkdirs()
-        prefixedLibPath.bytes = libPath.bytes // This is just a file copy in Groovy
-        runCmd("jar cf ${jarName} -C ${libPath.parent} $relPrefixedPath", libPath.parentFile)
+        def prefixList = []
+        for (libPath in libPaths) {
+          def relPrefixedPath = platformPrefix + '/' + libPath.name
+          prefixList << relPrefixedPath
+          def prefixedLibPath = new File(libPath.parent + '/' + relPrefixedPath)
+          prefixedLibPath.parentFile.mkdirs()
+          prefixedLibPath.bytes = libPath.bytes // This is just a file copy in Groovy
+        }
+        runCmd("jar cf ${jarName} -C ${installPath} ${prefixList.join(" ")}", installPath)
     }
 }
 
@@ -74,7 +79,7 @@ class Builder extends DefaultTask {
     void compileForHost(String tankerConanRef) {
         def installPath = this.conanOutputPath
         NativeHelper.conanInstall(tankerConanRef, installPath, "gcc8-release")
-        NativeHelper.createNativeLibJar(new File(installPath, "libctanker.so"), 'tanker-native.jar')
+        NativeHelper.createNativeLibJar(installPath, ["libctanker.so", "libtanker_admin-c.so"], 'tanker-native.jar')
     }
 }
 

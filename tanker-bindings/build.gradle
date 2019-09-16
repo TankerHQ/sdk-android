@@ -60,6 +60,7 @@ android {
 
     sourceSets.main {
         java.srcDirs += 'src/main/kotlin'
+        java.excludes += 'src/main/kotlin/io/tanker/admin/**'
     }
 
     sourceSets.test {
@@ -105,6 +106,11 @@ dokka {
     // Exclude low-level JNA bindings
     packageOptions {
         prefix = "io.tanker.bindings"
+        suppress = true
+    }
+
+    packageOptions {
+        prefix = "io.tanker.admin"
         suppress = true
     }
 
