@@ -7,14 +7,15 @@ import io.tanker.bindings.TankerLib
 import java.lang.reflect.Type
 import java.util.concurrent.Executors
 import android.support.annotation.WorkerThread
+import io.tanker.bindings.AsyncLib
 
-class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type) {
+class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type, private var lib: AsyncLib = tankerlib) {
     private sealed class ThenResult {
         data class Object(val result: Any?) : ThenResult()
         data class Error(val error: Throwable) : ThenResult()
     }
 
-    private var callback: TankerLib.FutureCallback? = null
+    private var callback: AsyncLib.FutureCallback? = null
     private var parent: TankerFuture<*>? = null
     private var thenResult: ThenResult? = null
 
@@ -25,7 +26,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
         private var lifeSupport: MutableList<TankerFuture<*>> = ArrayList()
 
         internal var threadPool = Executors.newCachedThreadPool()
-        private val lib = TankerLib.create()
+        private val tankerlib = TankerLib.create()
 
         /**
          * Creates a future that completes when all the futures complete
@@ -53,7 +54,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
     /**
      * Create a ready future returning Unit
      */
-    constructor() : this(Pointer(0), Unit.javaClass) {
+    constructor(lib: AsyncLib = tankerlib) : this(Pointer(0), Unit.javaClass) {
         val prom = lib.tanker_promise_create()
         cfuture = lib.tanker_promise_get_future(prom)
         lib.tanker_promise_set_value(prom, Pointer(0))
@@ -152,7 +153,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
         val thenAsyncFuture = lib.tanker_promise_get_future(thenAsyncPromise)
         val resultFuture = TankerFuture<U>(this, thenAsyncFuture)
 
-        callback = object : TankerLib.FutureCallback {
+        callback = object : AsyncLib.FutureCallback {
             override fun callback(userArg: Pointer?): Pointer {
                 threadPool.execute({
                     try {
@@ -166,7 +167,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
                 return Pointer(0)
             }
         }
-        val thenCFuture = lib.tanker_future_then(cfuture, callback as TankerLib.FutureCallback, Pointer(0))
+        val thenCFuture = lib.tanker_future_then(cfuture, callback as AsyncLib.FutureCallback, Pointer(0))
         lib.tanker_future_destroy(thenCFuture)
         return resultFuture
     }
@@ -188,7 +189,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
         val thenUnwrapFuture = lib.tanker_promise_get_future(thenUnwrapPromise)
         val resultFuture = TankerFuture<U>(this, thenUnwrapFuture)
 
-        callback = object : TankerLib.FutureCallback {
+        callback = object : AsyncLib.FutureCallback {
             override fun callback(userArg: Pointer?): Pointer {
                 threadPool.execute({
                     try {
@@ -198,7 +199,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
 
                         lifeSupport.add(wrappedFut)
 
-                        wrappedFut.callback = object : TankerLib.FutureCallback {
+                        wrappedFut.callback = object : AsyncLib.FutureCallback {
                             override fun callback(userArg: Pointer?): Pointer {
                                 try {
                                     lifeSupport.remove(wrappedFut)
@@ -224,7 +225,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type)
             }
         }
 
-        val thenCFuture = lib.tanker_future_then(cfuture, callback as TankerLib.FutureCallback, Pointer(0))
+        val thenCFuture = lib.tanker_future_then(cfuture, callback as AsyncLib.FutureCallback, Pointer(0))
         lib.tanker_future_destroy(thenCFuture)
         return resultFuture
     }

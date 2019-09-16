@@ -1,11 +1,14 @@
-package io.tanker.bindings
+package io.tanker.admin
 
 import com.sun.jna.*
+import io.tanker.bindings.AppDescriptorPointer
+import io.tanker.bindings.AsyncLib
+import io.tanker.bindings.FuturePointer
 
 typealias AdminPointer = Pointer
 
 @Suppress("FunctionName")
-interface AdminLib : Library {
+interface AdminLib : AsyncLib, Library {
     companion object {
         fun create(): AdminLib {
             System.setProperty("jna.debug_load", "true")

@@ -2,6 +2,7 @@ package io.tanker.bindings
 
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
+import io.tanker.admin.AdminLib
 
 /**
  * Describes the main properties of a Tanker app
