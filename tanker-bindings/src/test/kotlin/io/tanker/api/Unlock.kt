@@ -1,16 +1,15 @@
 package io.tanker.api
 
-import io.kotlintest.Description
+import io.kotlintest.TestCase
 import io.kotlintest.shouldBe
 
 
 class UnlockTests : TankerSpec() {
-    lateinit var userId: String
     lateinit var identity: String
     lateinit var tanker1: Tanker
     lateinit var tanker2: Tanker
 
-    override fun beforeTest(description: Description) {
+    override fun beforeTest(testCase: TestCase) {
         identity = tc.createIdentity()
         tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
         tanker2 = Tanker(options.setWritablePath(createTmpDir().toString()))

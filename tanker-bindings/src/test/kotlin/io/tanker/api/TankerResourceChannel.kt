@@ -1,16 +1,12 @@
 package io.tanker.api
 
 import android.support.annotation.RequiresApi
-import io.kotlintest.Description
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldNotBe
-import io.kotlintest.shouldThrow
+import io.kotlintest.*
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousByteChannel
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
 import java.nio.channels.ReadPendingException
-import java.util.concurrent.Future
 import java.util.concurrent.FutureTask
 
 class DummyChannel : TankerAsynchronousByteChannel {
@@ -115,7 +111,7 @@ class StreamChannelTests : TankerSpec() {
     lateinit var tanker: Tanker
     lateinit var helper: StreamChannelTestHelper
 
-    override fun beforeTest(description: Description) {
+    override fun beforeTest(testCase: TestCase) {
         tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
         st shouldBe Status.IDENTITY_REGISTRATION_NEEDED
@@ -154,7 +150,7 @@ class API26StreamChannelTests : TankerSpec() {
     lateinit var tanker: Tanker
     lateinit var helper: API26StreamChannelTestHelper
 
-    override fun beforeTest(description: Description) {
+    override fun beforeTest(testCase: TestCase) {
         tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
         st shouldBe Status.IDENTITY_REGISTRATION_NEEDED
