@@ -23,7 +23,7 @@ interface TankerLib : AsyncLib, Library {
         val options = hashMapOf<String, Any>(Library.OPTION_TYPE_MAPPER to TankerTypeMapper())
         fun create(): TankerLib {
             System.setProperty("jna.debug_load", "true")
-            return Native.loadLibrary("ctanker", TankerLib::class.java, options)
+            return Native.load("ctanker", TankerLib::class.java, options)
         }
     }
 

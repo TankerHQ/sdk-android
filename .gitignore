@@ -42,6 +42,7 @@ tanker-bindings/src/release/
 tanker-bindings/src/debug/
 tanker-bindings/src/main/jniLibs
 
+tanker-bindings/.cxx/
 
 .venv/
 

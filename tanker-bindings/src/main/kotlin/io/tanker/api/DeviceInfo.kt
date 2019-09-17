@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import io.tanker.bindings.TankerDeviceListFinalizer
@@ -13,7 +14,7 @@ import io.tanker.bindings.TankerDeviceListFinalizer
  */
 class DeviceInfo(ptr: Pointer) : Structure(ptr) {
     @JvmField val deviceIdField: Pointer = ptr.getPointer(0)
-    @JvmField val isRevokedField: Byte = ptr.getByte(Pointer.SIZE.toLong())
+    @JvmField val isRevokedField: Byte = ptr.getByte(Native.POINTER_SIZE.toLong())
     @ProguardKeep var finalizer: TankerDeviceListFinalizer? = null
 
     fun getDeviceId(): String {
