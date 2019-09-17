@@ -2,6 +2,7 @@ package io.tanker.api
 
 import android.util.Log
 import com.sun.jna.Memory
+import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.StringArray
 import io.tanker.bindings.*
@@ -137,7 +138,7 @@ class Tanker(tankerOptions: TankerOptions) {
         return fut.then(TankerCallback {
             val attachResultPtr = it.get()
             val status = attachResultPtr.getByte(1).toInt()
-            val method = attachResultPtr.getPointer(Pointer.SIZE.toLong())
+            val method = attachResultPtr.getPointer(Native.POINTER_SIZE.toLong())
             var outMethod: VerificationMethod? = null
             if (method != Pointer.NULL) {
                 outMethod = verificationMethodFromCVerification(TankerVerificationMethod(method))
@@ -177,7 +178,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val fut = TankerFuture<Pointer>(lib.tanker_get_device_list(tanker), Pointer::class.java)
         return fut.then(TankerCallback {
             val devListPtr = it.get()
-            val count = devListPtr.getInt(Pointer.SIZE.toLong())
+            val count = devListPtr.getInt(Native.POINTER_SIZE.toLong())
             val finalizer = TankerDeviceListFinalizer(lib, devListPtr)
             val firstDevice = DeviceInfo(devListPtr.getPointer(0))
             if (count == 0) {
@@ -222,7 +223,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val fut = TankerFuture<Pointer>(lib.tanker_get_verification_methods(tanker), Pointer::class.java)
         return fut.then(TankerCallback {
             val methodListPtr = it.get()
-            val count = methodListPtr.getInt(Pointer.SIZE.toLong())
+            val count = methodListPtr.getInt(Native.POINTER_SIZE.toLong())
             if (count == 0) {
                 listOf()
             } else {

@@ -13,13 +13,13 @@ class FutureTests : StringSpec() {
     lateinit var tankerFuture: FuturePointer
     override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
 
-    override fun beforeTest(description: Description) {
+    override fun beforeTest(testCase: TestCase) {
         tankerPromise = lib.tanker_promise_create()
         tankerFuture = lib.tanker_promise_get_future(tankerPromise)
         lib.tanker_promise_set_value(tankerPromise, Pointer(0))
     }
 
-    override fun afterTest(description: Description, result: TestResult) {
+    override fun afterTest(testCase: TestCase, result: TestResult) {
         lib.tanker_promise_destroy(tankerPromise)
     }
     init {

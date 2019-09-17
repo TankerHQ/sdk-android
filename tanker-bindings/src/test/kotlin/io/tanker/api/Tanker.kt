@@ -2,13 +2,12 @@ package io.tanker.api
 
 import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
-import io.tanker.utils.Base64
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
 class TankerTests : TankerSpec() {
 
-    override fun beforeTest(description: Description) {
+    override fun beforeTest(testCase: TestCase) {
         options.setTrustchainId(tc.id())
     }
 

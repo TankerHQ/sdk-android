@@ -1,6 +1,6 @@
 package io.tanker.api
 
-import io.kotlintest.Description
+import io.kotlintest.TestCase
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import java.io.IOException
@@ -11,7 +11,7 @@ class InputStreamTests : TankerSpec() {
     lateinit var array: ByteArray
     lateinit var buffer: ByteBuffer
 
-    override fun beforeTest(description: Description) {
+    override fun beforeTest(testCase: TestCase) {
         tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
         st shouldBe Status.IDENTITY_REGISTRATION_NEEDED

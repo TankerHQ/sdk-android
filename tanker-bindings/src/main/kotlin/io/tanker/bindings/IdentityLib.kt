@@ -7,7 +7,7 @@ interface IdentityLib : Library {
     companion object {
         fun create(): IdentityLib {
             System.setProperty("jna.debug_load", "true")
-            return Native.loadLibrary("ctanker", IdentityLib::class.java)
+            return Native.load("ctanker", IdentityLib::class.java)
         }
     }
 

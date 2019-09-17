@@ -12,7 +12,7 @@ interface AdminLib : AsyncLib, Library {
     companion object {
         fun create(): AdminLib {
             System.setProperty("jna.debug_load", "true")
-            return Native.loadLibrary("tanker_admin-c", AdminLib::class.java)
+            return Native.load("tanker_admin-c", AdminLib::class.java)
         }
     }
 
