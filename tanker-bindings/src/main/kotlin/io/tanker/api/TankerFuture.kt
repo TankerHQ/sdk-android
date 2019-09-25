@@ -8,6 +8,8 @@ import java.lang.reflect.Type
 import java.util.concurrent.Executors
 import android.support.annotation.WorkerThread
 import io.tanker.bindings.AsyncLib
+import java.util.*
+import kotlin.collections.ArrayList
 
 class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type, private var lib: AsyncLib = tankerlib) {
     private sealed class ThenResult {
@@ -23,7 +25,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
         // When passing a callback to C, we need to keep ourselves alive until the callback is
         // invoked, or it will crash. This is the list of futures whose callbacks are pending.
         @JvmStatic
-        private var lifeSupport: MutableList<TankerFuture<*>> = ArrayList()
+        private var lifeSupport: MutableList<TankerFuture<*>> = Collections.synchronizedList(ArrayList())
 
         internal var threadPool = Executors.newCachedThreadPool()
         private val tankerlib = TankerLib.create()
