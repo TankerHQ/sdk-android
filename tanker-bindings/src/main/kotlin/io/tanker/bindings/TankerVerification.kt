@@ -14,25 +14,20 @@ class TankerVerification : Structure() {
         const val TypeVerificationKey: Byte = 3
     }
 
-    class NestedUnion: Union() {
-        @JvmField
-        var verificationKey: String? = null
-        @JvmField
-        var emailVerification: TankerEmailVerification? = null
-        @JvmField
-        var passphrase: String? = null
-    }
-
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField
-    var version: Byte = 1
+    var version: Byte = 2
     @JvmField
     var type: Byte = 0
     @JvmField
-    var nestedUnion: NestedUnion = NestedUnion()
+    var verificationKey: String? = null
+    @JvmField
+    var emailVerification: TankerEmailVerification? = null
+    @JvmField
+    var passphrase: String? = null
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "type", "nestedUnion")
+        return listOf("version", "type", "verificationKey", "emailVerification", "passphrase")
     }
 }
 
@@ -41,20 +36,17 @@ fun Verification.toCVerification(): TankerVerification {
     when (this) {
         is EmailVerification -> {
             out.type = TankerVerification.TypeEmail
-            out.nestedUnion.setType("emailVerification")
-            out.nestedUnion.emailVerification = TankerEmailVerification()
+            out.emailVerification = TankerEmailVerification()
                     .setEmail(this.email)
                     .setVerificationCode(this.verificationCode)
         }
         is PassphraseVerification -> {
             out.type = TankerVerification.TypePassphrase
-            out.nestedUnion.setType("passphrase")
-            out.nestedUnion.passphrase = this.passphrase
+            out.passphrase = this.passphrase
         }
         is VerificationKeyVerification -> {
             out.type = TankerVerification.TypeVerificationKey
-            out.nestedUnion.setType("verificationKey")
-            out.nestedUnion.verificationKey = this.verificationKey
+            out.verificationKey = this.verificationKey
         }
     }
     return out
