@@ -382,7 +382,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     /**
      * Subscribes to the "Device Revoked" Tanker event.
-     * @param callback The function to call when the event happens.
+     * @param eventCallback The function to call when the event happens.
      * @return A connection, which can be passed to disconnectEvent.
      */
     fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler) {
@@ -400,7 +400,6 @@ class Tanker(tankerOptions: TankerOptions) {
 
     /**
      * Unsubscribes from a Tanker event.
-     * @see eventConnect
      */
     fun disconnectHandler(handler: Any) {
         deviceRevokedHandlers.remove(handler)

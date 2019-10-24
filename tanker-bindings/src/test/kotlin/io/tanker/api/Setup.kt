@@ -11,6 +11,18 @@ import java.util.*
 
 data class ConfigData(val idToken: String, val url: String)
 
+data class ConfigOIDC(
+        val clientId: String,
+        val clientSecret: String,
+        val provider: String,
+        val users: Map<String, ConfigOIDCUser>
+)
+
+data class ConfigOIDCUser(
+        val email: String,
+        val refreshToken: String
+)
+
 fun safeGetEnv(key: String): String {
     val path = System.getProperty(key) ?: System.getenv(key)
     if(path == null || path.isEmpty()) {
@@ -28,6 +40,14 @@ fun getConfigFromFile(configName: String): ConfigData {
     return mapper.treeToValue(node.get(configName), ConfigData::class.java)
 }
 
+fun getOIDCConfigFromFile(): ConfigOIDC {
+    val filePath = safeGetEnv("TANKER_CONFIG_FILEPATH")
+    val json = File(filePath).readText(Charsets.UTF_8)
+    val mapper = jacksonObjectMapper()
+    val node = mapper.readTree(json)
+    return mapper.treeToValue(node.get("oidc").get("googleAuth"), ConfigOIDC::class.java)
+}
+
 fun getConfigFromEnv(): ConfigData {
     return ConfigData(safeGetEnv("TANKER_URL"), safeGetEnv("TANKER_TOKEN"))
 }
@@ -35,6 +55,7 @@ fun getConfigFromEnv(): ConfigData {
 class Config{
     companion object {
         var instance: ConfigData? = null
+        var instanceOIDC: ConfigOIDC? = null
 
         fun getUrl(): String {
             if (instance == null)
@@ -48,6 +69,13 @@ class Config{
 
             return instance!!.idToken
         }
+
+        fun getOIDCConfig(): ConfigOIDC {
+            if (instanceOIDC == null)
+                Config()
+
+            return instanceOIDC!!
+        }
     }
 
     init {
@@ -56,21 +84,21 @@ class Config{
             getConfigFromEnv()
         else
             getConfigFromFile(configName)
+        instanceOIDC = getOIDCConfigFromFile()
     }
 }
 
 class App {
     val admin = Admin(Config.getUrl(), Config.getIdToken())
+    val url: String = Config.getUrl()
     private val descriptor: TankerAppDescriptor
 
     init {
         admin.connect().get()
         descriptor = admin.createApp("android-test").get()
-        println(descriptor)
     }
 
-    fun createIdentity(): String {
-        val userId = UUID.randomUUID().toString()
+    fun createIdentity(userId: String = UUID.randomUUID().toString()): String {
         return Identity.createIdentity(
                 descriptor.id!!,
                 descriptor.privateKey!!,
@@ -85,8 +113,6 @@ class App {
     fun delete() {
         admin.deleteApp(id()).get()
     }
-
-    val url: String = Config.getUrl()
 }
 
 fun createTmpDir(): Path {
