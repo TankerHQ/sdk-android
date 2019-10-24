@@ -1,7 +1,13 @@
 package io.tanker.api
 
+import arrow.core.success
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotlintest.TestCase
 import io.kotlintest.shouldBe
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 
 
 class UnlockTests : TankerSpec() {
@@ -135,6 +141,48 @@ class UnlockTests : TankerSpec() {
             verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
             tanker2.verifyIdentity(EmailVerification(email, verificationCode)).get()
             tanker2.getStatus() shouldBe Status.READY
+        }
+
+        "Can use OIDC ID Tokens as verification" {
+            val oidcConfig = getOIDCConfigFromFile()
+            val martineConfig = oidcConfig.users.getValue("martine")
+            val martineIdentity = tc.createIdentity(martineConfig.email)
+
+            tc.admin.appUpdate(tc.id(), oidcConfig.clientId, oidcConfig.provider).get()
+
+            // Get a fresh OIDC ID token from GOOG
+            val jsonMapper = ObjectMapper()
+            val jsonObj = jsonMapper.createObjectNode()
+            jsonObj.put("grant_type", "refresh_token")
+            jsonObj.put("refresh_token", martineConfig.refreshToken)
+            jsonObj.put("client_id", oidcConfig.clientId)
+            jsonObj.put("client_secret", oidcConfig.clientSecret)
+            val jsonBody = jsonMapper.writeValueAsString(jsonObj)
+
+            val request = Request.Builder()
+                    .url("https://www.googleapis.com/oauth2/v4/token")
+                    .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonBody))
+                    .build()
+            val response = OkHttpClient().newCall(request).execute()
+            if (!response.isSuccessful)
+                throw java.lang.RuntimeException("Google OAuth test request failed!")
+            val jsonResponse = jsonMapper.readTree(response.body()?.string())
+            val oidcIdToken = jsonResponse.get("id_token").asText()
+
+            // Check that we can use our ID token as a verification method
+            tanker1.start(martineIdentity).get()
+            tanker1.registerIdentity(OIDCIDTokenVerification(oidcIdToken)).get()
+            tanker1.stop().get()
+
+            tanker2.start(martineIdentity).get()
+            tanker2.getStatus() shouldBe Status.IDENTITY_VERIFICATION_NEEDED
+            tanker2.verifyIdentity(OIDCIDTokenVerification(oidcIdToken)).get()
+            tanker2.getStatus() shouldBe Status.READY
+
+            val methods = tanker2.getVerificationMethods().get()
+            assert(methods[0] is OIDCIDTokenVerificationMethod)
+
+            tanker2.stop().get()
         }
     }
 }
