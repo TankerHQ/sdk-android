@@ -154,6 +154,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.10.0.pr3'
+    testImplementation 'com.squareup.okhttp3:okhttp:3.11.0'
     testImplementation 'org.slf4j:slf4j-nop:1.7.28'
     testImplementation files('jna.jar')
     testImplementation files('conan/host/tanker-native.jar')

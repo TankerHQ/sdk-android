@@ -7,11 +7,13 @@ sealed class VerificationMethod
 data class EmailVerificationMethod(val email: String) : VerificationMethod()
 object PassphraseVerificationMethod : VerificationMethod()
 object VerificationKeyVerificationMethod : VerificationMethod()
+object OIDCIDTokenVerificationMethod : VerificationMethod()
 
 fun verificationMethodFromCVerification(method: TankerVerificationMethod) =
         when (method.type) {
             TankerVerification.TypeEmail -> EmailVerificationMethod(method.email!!)
             TankerVerification.TypeVerificationKey -> VerificationKeyVerificationMethod
             TankerVerification.TypePassphrase -> PassphraseVerificationMethod
+            TankerVerification.TypeOIDCIDToken -> OIDCIDTokenVerificationMethod
             else -> throw RuntimeException("unknown verification method type: ${method.type}")
         }

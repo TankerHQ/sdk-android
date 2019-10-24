@@ -39,7 +39,6 @@ class Admin(private val url: String, private val idToken: String) {
             throw IllegalArgumentException("You need to connect() before using the admin API!")
         val cfut = lib.tanker_admin_create_app(cadmin!!, name)
         return TankerFuture<Pointer>(cfut, Pointer::class.java, lib).andThen(TankerCallback {
-            println(it.getPointer(0).getString(0))
             TankerAppDescriptor(it)
         })
     }
@@ -60,5 +59,14 @@ class Admin(private val url: String, private val idToken: String) {
             tankerlib.tanker_free_buffer(ptr)
             str
         })
+    }
+
+    /**
+     * Updates the app properties
+     */
+    fun appUpdate(appId: String, oidcClientID: String, oidcClientProvider: String): TankerFuture<Unit> {
+        if (cadmin == null)
+            throw IllegalArgumentException("You need to connect() before using the admin API!")
+        return TankerFuture(lib.tanker_admin_app_update(cadmin!!, appId, oidcClientID, oidcClientProvider), Unit::class.java, lib)
     }
 }
