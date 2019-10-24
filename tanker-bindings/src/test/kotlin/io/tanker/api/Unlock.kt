@@ -1,6 +1,5 @@
 package io.tanker.api
 
-import arrow.core.success
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotlintest.TestCase
 import io.kotlintest.shouldBe
@@ -11,9 +10,9 @@ import okhttp3.RequestBody
 
 
 class UnlockTests : TankerSpec() {
-    lateinit var identity: String
-    lateinit var tanker1: Tanker
-    lateinit var tanker2: Tanker
+    private lateinit var identity: String
+    private lateinit var tanker1: Tanker
+    private lateinit var tanker2: Tanker
 
     override fun beforeTest(testCase: TestCase) {
         identity = tc.createIdentity()
@@ -144,7 +143,7 @@ class UnlockTests : TankerSpec() {
         }
 
         "Can use OIDC ID Tokens as verification" {
-            val oidcConfig = getOIDCConfigFromFile()
+            val oidcConfig = Config.getOIDCConfig()
             val martineConfig = oidcConfig.users.getValue("martine")
             val martineIdentity = tc.createIdentity(martineConfig.email)
 

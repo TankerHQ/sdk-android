@@ -1,14 +1,10 @@
 package io.tanker.api
 
-import io.tanker.bindings.TankerError
-import io.tanker.bindings.TankerLib
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
-import java.util.concurrent.Callable
 import java.util.concurrent.FutureTask
-import java.util.concurrent.ThreadPoolExecutor
 
 
 internal class TankerInputStream constructor(private val channel: TankerAsynchronousByteChannel) : InputStream() {

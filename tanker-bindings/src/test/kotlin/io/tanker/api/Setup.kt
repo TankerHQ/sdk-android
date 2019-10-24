@@ -84,7 +84,7 @@ class Config{
             getConfigFromEnv()
         else
             getConfigFromFile(configName)
-        getOIDCConfigFromFile()
+        instanceOIDC = getOIDCConfigFromFile()
     }
 }
 

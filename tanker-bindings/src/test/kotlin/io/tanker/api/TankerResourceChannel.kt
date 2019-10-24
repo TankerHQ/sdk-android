@@ -48,7 +48,7 @@ class API26StreamChannelTestHelper(tanker: Tanker) {
     var err: Throwable? = null
     var nbRead = 0
     var decryptor: AsynchronousByteChannel
-    val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)
+    val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
     val fut = FutureTask {}
 
     fun callback(): CompletionHandler<Int, Unit> {
@@ -80,7 +80,7 @@ class StreamChannelTestHelper(tanker: Tanker) {
     var err: Throwable? = null
     var nbRead = 0
     var decryptor: TankerAsynchronousByteChannel
-    val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)
+    val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
     val fut = FutureTask {}
 
     fun callback(): TankerCompletionHandler<Int, Unit> {

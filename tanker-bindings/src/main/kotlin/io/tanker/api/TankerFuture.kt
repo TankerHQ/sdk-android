@@ -157,7 +157,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
 
         callback = object : AsyncLib.FutureCallback {
             override fun callback(userArg: Pointer?): Pointer {
-                threadPool.execute({
+                threadPool.execute {
                     try {
                         resultFuture.thenResult = ThenResult.Object(userCallback.call(this@TankerFuture))
                     } catch (e: Throwable) {
@@ -165,7 +165,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
                     }
                     lifeSupport.remove(this@TankerFuture)
                     lib.tanker_promise_set_value(thenAsyncPromise, Pointer(0))
-                })
+                }
                 return Pointer(0)
             }
         }
@@ -193,7 +193,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
 
         callback = object : AsyncLib.FutureCallback {
             override fun callback(userArg: Pointer?): Pointer {
-                threadPool.execute({
+                threadPool.execute {
                     try {
                         val wrappedFut = userCallback.call(this@TankerFuture)
                         if (wrappedFut.callback != null)
@@ -222,7 +222,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
                         lib.tanker_promise_destroy(thenUnwrapPromise)
                     }
                     lifeSupport.remove(this@TankerFuture)
-                })
+                }
                 return Pointer(0)
             }
         }

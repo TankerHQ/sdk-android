@@ -1,7 +1,6 @@
 package io.tanker.bindings
 
 import com.sun.jna.Structure
-import com.sun.jna.Union
 import io.tanker.api.*
 
 class TankerVerification : Structure() {

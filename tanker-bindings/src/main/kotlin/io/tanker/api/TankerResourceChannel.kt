@@ -27,7 +27,7 @@ internal class TankerResourceChannel constructor(private var cStream: StreamPoin
         return cStream != null
     }
 
-    override fun close(): Unit {
+    override fun close() {
         if (cStream == null)
             return
         TankerFuture<Unit>(Tanker.lib.tanker_stream_close(cStream!!), Unit::class.java).get()

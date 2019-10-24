@@ -35,8 +35,7 @@ class Admin(private val url: String, private val idToken: String) {
     }
 
     fun createApp(name: String): TankerFuture<TankerAppDescriptor> {
-        if (cadmin == null)
-            throw IllegalArgumentException("You need to connect() before using the admin API!")
+        requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         val cfut = lib.tanker_admin_create_app(cadmin!!, name)
         return TankerFuture<Pointer>(cfut, Pointer::class.java, lib).andThen(TankerCallback {
             TankerAppDescriptor(it)
@@ -44,14 +43,12 @@ class Admin(private val url: String, private val idToken: String) {
     }
 
     fun deleteApp(appId: String): TankerFuture<Unit> {
-        if (cadmin == null)
-            throw IllegalArgumentException("You need to connect() before using the admin API!")
+        requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         return TankerFuture(lib.tanker_admin_delete_app(cadmin!!, appId), Unit::class.java, lib)
     }
 
     fun getVerificationCode(appId: String, email: String): TankerFuture<String> {
-        if (cadmin == null)
-            throw IllegalArgumentException("You need to connect() before using the admin API!")
+        requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         val fut = TankerFuture<Pointer>(lib.tanker_admin_get_verification_code(cadmin!!, appId, email), Pointer::class.java, lib)
         return fut.then(TankerCallback {
             val ptr = it.get()
@@ -65,8 +62,7 @@ class Admin(private val url: String, private val idToken: String) {
      * Updates the app properties
      */
     fun appUpdate(appId: String, oidcClientID: String, oidcClientProvider: String): TankerFuture<Unit> {
-        if (cadmin == null)
-            throw IllegalArgumentException("You need to connect() before using the admin API!")
+        requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         return TankerFuture(lib.tanker_admin_app_update(cadmin!!, appId, oidcClientID, oidcClientProvider), Unit::class.java, lib)
     }
 }

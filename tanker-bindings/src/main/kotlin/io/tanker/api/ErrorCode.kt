@@ -2,7 +2,7 @@ package io.tanker.api
 
 /**
  * Error codes in a TankerException
- * @see TankerError
+ * @see TankerException
  */
 enum class ErrorCode(val value: Int) {
     NO_ERROR(0),

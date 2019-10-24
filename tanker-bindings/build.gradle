@@ -80,12 +80,12 @@ android {
 
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
+    archiveClassifier.set('sources')
 }
 
 task javaDocJar(type: Jar, dependsOn: dokka) {
     from dokka.outputDirectory
-    classifier = 'javadoc'
+    archiveClassifier.set('javadoc')
 }
 
 dokka {

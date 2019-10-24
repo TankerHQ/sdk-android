@@ -9,8 +9,8 @@ import io.tanker.bindings.TankerLib
 
 class FutureTests : StringSpec() {
     private val lib = TankerLib.create()
-    lateinit var tankerPromise: PromisePointer
-    lateinit var tankerFuture: FuturePointer
+    private lateinit var tankerPromise: PromisePointer
+    private lateinit var tankerFuture: FuturePointer
     override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
 
     override fun beforeTest(testCase: TestCase) {
@@ -51,7 +51,7 @@ class FutureTests : StringSpec() {
         }
 
         "then() can return a ByteArray" {
-            val data = ByteArray(16, { idx -> idx.toByte() })
+            val data = ByteArray(16) { idx -> idx.toByte() }
             val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
             val newFut = future.then<ByteArray>(TankerCallback { data })
             System.gc() // Make sure we got our lifetimes right
@@ -121,10 +121,10 @@ class FutureTests : StringSpec() {
 
         "A get() in a then() does not hang" {
             val testThread = Thread.currentThread()
-            val watchdogThread = Thread({
+            val watchdogThread = Thread {
                 Thread.sleep(3000)
                 testThread.interrupt()
-            })
+            }
             watchdogThread.start()
 
             val innerCPromise = lib.tanker_promise_create()
@@ -144,10 +144,10 @@ class FutureTests : StringSpec() {
 
         "A get() in an unwrapping then() does not hang" {
             val testThread = Thread.currentThread()
-            val watchdogThread = Thread({
+            val watchdogThread = Thread {
                 Thread.sleep(3000)
                 testThread.interrupt()
-            })
+            }
             watchdogThread.start()
 
             val innerCPromise = lib.tanker_promise_create()
@@ -239,7 +239,7 @@ class FutureTests : StringSpec() {
             val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
             .andThen<Double>(TankerCallback {
                 throw except
-            }).andThen<String>(TankerCallback { _ ->
+            }).andThen<String>(TankerCallback {
                 "This should never be returned"
             })
             fut.block()

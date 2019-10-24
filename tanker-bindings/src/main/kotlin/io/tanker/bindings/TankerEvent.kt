@@ -2,7 +2,7 @@ package io.tanker.bindings
 
 /**
  * Tanker events that can be subscribed to
- * @see Tanker
+ * @see io.tanker.api.Tanker
  */
 enum class TankerEvent(val value: Int) {
     SESSION_CLOSED(0),
