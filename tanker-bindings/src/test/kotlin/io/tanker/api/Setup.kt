@@ -48,10 +48,6 @@ fun getOIDCConfigFromFile(): ConfigOIDC {
     return mapper.treeToValue(node.get("oidc").get("googleAuth"), ConfigOIDC::class.java)
 }
 
-fun getConfigFromEnv(): ConfigData {
-    return ConfigData(safeGetEnv("TANKER_URL"), safeGetEnv("TANKER_TOKEN"))
-}
-
 class Config{
     companion object {
         var instance: ConfigData? = null
@@ -80,10 +76,7 @@ class Config{
 
     init {
         val configName = safeGetEnv("TANKER_CONFIG_NAME")
-        instance = if (configName == "ci")
-            getConfigFromEnv()
-        else
-            getConfigFromFile(configName)
+        instance = getConfigFromFile(configName)
         instanceOIDC = getOIDCConfigFromFile()
     }
 }
