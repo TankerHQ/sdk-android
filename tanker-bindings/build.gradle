@@ -159,3 +159,14 @@ dependencies {
     testImplementation files('jna.jar')
     testImplementation files('conan/host/tanker-native.jar')
 }
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.6'
+    }
+}
+
+apply plugin: 'com.getkeepsafe.dexcount'
