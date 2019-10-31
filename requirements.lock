@@ -1,21 +1,24 @@
-# Generated with dmenv 0.14.2, python 3.7.3, on Linux
+# Generated with dmenv 0.17.0, python 3.7.4, on Darwin
 -e git+ssh://git@tanker.local/Tanker/ci@master#egg=ci
 appdirs==1.4.3
+asn1crypto==1.2.0
 astroid==2.2.5
 attrs==19.1.0
 bottle==0.12.16
 certifi==2019.3.9
+cffi==1.13.1
 chardet==3.0.4
 cli-ui==0.9.1
 colorama==0.4.1
-conan==1.16.0
+conan==1.19.2
 contextlib2==0.5.5
+cryptography==2.3.1
 deprecation==2.0.6
 distro==1.1.0
 docopt==0.6.2
 fasteners==0.14.1
 future==0.16.0
-idna==2.8
+idna==2.6
 importlib-metadata==0.8
 isort==4.3.15
 Jinja2==2.10
@@ -28,12 +31,14 @@ node-semver==0.6.1
 packaging==19.0
 patch==1.16
 path.py==11.5.0
-pip==19.1.1
+pip==19.3.1
 pluginbase==0.7
 psutil==5.6.1
+pycparser==2.19
 Pygments==2.3.1
 PyJWT==1.7.1
 pylint==2.3.1
+pyOpenSSL==18.0.0
 pyparsing==2.3.1
 python-dateutil==2.8.0
 python-gitlab==1.8.0
