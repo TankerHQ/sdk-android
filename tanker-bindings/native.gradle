@@ -33,8 +33,7 @@ class NativeHelper {
                 "--update " +
                 "--profile $profile " +
                 "--option tanker:tankerlib_shared=True " +
-                "--install-folder=$installPath " +
-                "--build missing ", installPath)
+                "--install-folder=$installPath ", installPath)
     }
     // This creates a .jar with our .so inside, so we can put it in the classpath for tests
     static def createNativeLibJar(File installPath, ArrayList libNames, String jarName) {
