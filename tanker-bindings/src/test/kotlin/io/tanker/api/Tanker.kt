@@ -293,11 +293,11 @@ class TankerTests : TankerSpec() {
                 revoked = true
             })
             tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
-            Thread.sleep(500)
+            val e = shouldThrow<TankerFutureException> { tankerAlice.encrypt("Oh no".toByteArray()).get() }
+            assert((e.cause as TankerException).errorCode == ErrorCode.DEVICE_REVOKED)
+
             tankerAlice.getStatus() shouldBe Status.STOPPED
             revoked shouldBe true
-
-            tankerAlice.stop().get()
         }
 
         "Can revoke another device of the same user" {
