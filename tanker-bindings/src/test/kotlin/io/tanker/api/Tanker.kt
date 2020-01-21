@@ -284,26 +284,26 @@ class TankerTests : TankerSpec() {
 
         "Can self-revoke" {
             val aliceId = tc.createIdentity()
-            var revoked = false
+            val revokedSemaphore = Semaphore(0)
 
             val tankerAlice = Tanker(options)
             tankerAlice.start(aliceId).get()
             tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
             tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
-                revoked = true
+                revokedSemaphore.release()
             })
             tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
             val e = shouldThrow<TankerFutureException> { tankerAlice.encrypt("Oh no".toByteArray()).get() }
             assert((e.cause as TankerException).errorCode == ErrorCode.DEVICE_REVOKED)
 
             tankerAlice.getStatus() shouldBe Status.STOPPED
-            revoked shouldBe true
+            val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
+            ok shouldBe true
         }
 
         "Can revoke another device of the same user" {
             val aliceId = tc.createIdentity()
             val revokedSemaphore = Semaphore(0)
-
 
             val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()))
             tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
@@ -317,6 +317,8 @@ class TankerTests : TankerSpec() {
             tankerAlice2.verifyIdentity(PassphraseVerification("pass")).get()
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
+            val e = shouldThrow<TankerFutureException> { tankerAlice1.encrypt("Oh no".toByteArray()).get() }
+            assert((e.cause as TankerException).errorCode == ErrorCode.DEVICE_REVOKED)
             val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
             ok shouldBe true
             tankerAlice1.getStatus() shouldBe Status.STOPPED
@@ -376,8 +378,6 @@ class TankerTests : TankerSpec() {
             val aliceDeviceId2 = tankerAlice2.getDeviceId()
 
             tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
-            Thread.sleep(500)
-
             val devices = tankerAlice2.getDeviceList().get()
             devices.size shouldBe 2
             var foundDevice1 = false
