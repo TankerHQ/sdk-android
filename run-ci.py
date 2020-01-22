@@ -2,6 +2,7 @@ import argparse
 import sys
 import os
 import contextlib
+import shutil
 
 from path import Path
 import cli_ui as ui
@@ -52,6 +53,7 @@ def build_and_test(args) -> None:
     with android_path:
         build(native_from_sources=native_from_sources)
         test()
+    shutil.copytree(android_path / "tanker-bindings/build/reports/tests", Path.getcwd() / "tests_report")
 
 
 def deploy(*, git_tag: str) -> None:

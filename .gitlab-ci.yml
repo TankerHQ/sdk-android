@@ -10,7 +10,14 @@ stages:
   - check
   - deploy
 
+.testreports:
+  artifacts:
+    paths:
+      - tests_report
+    expire_in: 1 month
+
 check/deployed-native:
+  extends: .testreports
   when: manual
   stage: check
   except:
@@ -21,6 +28,7 @@ check/deployed-native:
     - linux
 
 check/native-from-sources:
+  extends: .testreports
   when: manual
   stage: check
   except:
@@ -40,6 +48,7 @@ nightly:
     - linux
 
 deploy:
+  extends: .testreports
   stage: deploy
   only:
     - tags
