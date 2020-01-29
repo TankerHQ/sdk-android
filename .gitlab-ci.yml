@@ -2,9 +2,9 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 before_script:
-  - dmenv install
-  - export PATH=$(dmenv show:venv_path)/bin:$PATH
-  - dmenv run -- python run-ci.py --isolate-conan-user-home update-conan-config
+  - poetry install
+  - export PATH=$(poetry env info -p)/bin:$PATH
+  - poetry run python run-ci.py --isolate-conan-user-home update-conan-config
 
 stages:
   - check
@@ -23,7 +23,7 @@ check/deployed-native:
   except:
     - tags
   script:
-    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed
+    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed
   tags:
     - linux
 
@@ -34,7 +34,7 @@ check/native-from-sources:
   except:
     - tags
   script:
-    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
   tags:
     - linux
 
@@ -43,7 +43,7 @@ nightly:
   only:
     - schedules
   script:
-    - dmenv run -- python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
   tags:
     - linux
 
@@ -54,7 +54,7 @@ deploy:
     - tags
   when: manual
   script:
-    - dmenv run -- python run-ci.py  --isolate-conan-user-home deploy --git-tag ${CI_COMMIT_TAG}
+    - poetry run python run-ci.py  --isolate-conan-user-home deploy --git-tag ${CI_COMMIT_TAG}
   tags:
     - linux
 
@@ -72,4 +72,4 @@ mirror:
   except:
     - schedules
   script:
-    - dmenv run python run-ci.py mirror
+    - poetry run python run-ci.py mirror
