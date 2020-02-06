@@ -63,27 +63,27 @@ version = "3.0.4"
 
 [[package]]
 category = "main"
-description = ""
+description = "Tanker CI library"
 name = "ci"
 optional = false
-python-versions = "^3.7"
-version = "0.1.0"
+python-versions = ">=3.7,<4.0"
+version = "2020.2.2093"
 
 [package.dependencies]
-appdirs = "^1.4.3"
-cli-ui = "^0.10.0"
+appdirs = ">=1.4.3,<2.0.0"
+cli-ui = ">=0.10.0,<0.11.0"
 conan = "1.19.2"
-path = "^13.1.0"
-psutil = "^5.6.7"
-python-gitlab = "^2.0.0"
+path = ">=13.1.0,<14.0.0"
+psutil = ">=5.6.7,<6.0.0"
+python-gitlab = ">=2.0.0,<3.0.0"
 "ruamel.yaml" = "0.16.5"
-tbump = "^6.0.5"
-tomlkit = "^0.5.8"
+tbump = ">=6.0.5,<7.0.0"
+tomlkit = ">=0.5.8,<0.6.0"
 
 [package.source]
-reference = "86b140355522037a28197ec858eabe28a49ee558"
-type = "git"
-url = "git+ssh://git@tanker.local/Tanker/ci"
+reference = "tanker.local"
+url = "http://tanker.local:8181"
+
 [[package]]
 category = "main"
 description = "Build Nice User Interfaces In The Terminal"
@@ -583,7 +583,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools"]
 
 [metadata]
-content-hash = "5c054b66f578b3103c489c55028ecaaeac47494921d3eb1c25dfa74cd749debb"
+content-hash = "6f546ba45e0bad19b80b3592a690be3f68a113cc2158dde096a0b3633e96d230"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -611,7 +611,10 @@ chardet = [
     {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"},
     {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
 ]
-ci = []
+ci = [
+    {file = "ci-2020.2.2093-py3-none-any.whl", hash = "md5:d26199b5b9ae38cf4c1e13ce519e8438"},
+    {file = "ci-2020.2.2093.tar.gz", hash = "md5:ee633057ebfb8df0db9ea7a4990a86ed"},
+]
 cli-ui = [
     {file = "cli-ui-0.10.1.tar.gz", hash = "sha256:4543c8c6f4436e07f3dd347ad084674eba499ceeeba871ff3cc2152185a0230a"},
     {file = "cli_ui-0.10.1-py3-none-any.whl", hash = "sha256:5ed63907670347ad52f9861eb41ef0b522a3a54fde5361057246eccab0f376c0"},
