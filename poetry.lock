@@ -78,9 +78,10 @@ psutil = "^5.6.7"
 python-gitlab = "^2.0.0"
 "ruamel.yaml" = "0.16.5"
 tbump = "^6.0.5"
+tomlkit = "^0.5.8"
 
 [package.source]
-reference = "4d085b7407c1cc17c81afa550e84416714304440"
+reference = "86b140355522037a28197ec858eabe28a49ee558"
 type = "git"
 url = "git+ssh://git@tanker.local/Tanker/ci"
 [[package]]
@@ -88,16 +89,13 @@ category = "main"
 description = "Build Nice User Interfaces In The Terminal"
 name = "cli-ui"
 optional = false
-python-versions = "*"
-version = "0.10.0"
+python-versions = ">=3.5,<4.0"
+version = "0.10.1"
 
 [package.dependencies]
-colorama = "*"
-tabulate = "*"
-unidecode = "*"
-
-[package.extras]
-dev = ["sphinx", "ghp-import", "black", "mypy (0.740)", "pyflakes", "codecov", "coverage", "pytest", "pytest-cov", "twine", "wheel"]
+colorama = ">=0.4.1,<0.5.0"
+tabulate = ">=0.8.3,<0.9.0"
+unidecode = ">=1.0.23,<2.0.0"
 
 [[package]]
 category = "main"
@@ -407,7 +405,7 @@ description = "Interact with GitLab API"
 name = "python-gitlab"
 optional = false
 python-versions = ">=3.6.0"
-version = "2.0.0"
+version = "2.0.1"
 
 [package.dependencies]
 requests = ">=2.22.0"
@@ -503,27 +501,24 @@ category = "main"
 description = "Bump software releases"
 name = "tbump"
 optional = false
-python-versions = ">=3.5"
-version = "6.0.5"
+python-versions = ">=3.5,<4.0"
+version = "6.0.7"
 
 [package.dependencies]
-attrs = "*"
-cli-ui = ">=0.9.0"
-docopt = "*"
-path = "*"
-schema = "*"
-toml = "*"
-
-[package.extras]
-dev = ["pytest (3.8.1)", "pytest-sugar", "pytest-mock", "pytest-cov", "codecov (2.0.15)", "mypy (0.730)", "flake8 (3.5.0)", "black (19.3b0)"]
+attrs = ">=19.3.0,<20.0.0"
+cli-ui = ">=0.10.0,<0.11.0"
+docopt = ">=0.6.2,<0.7.0"
+path = ">=13.0,<14.0"
+schema = ">=0.7.1,<0.8.0"
+tomlkit = ">=0.5.8,<0.6.0"
 
 [[package]]
 category = "main"
-description = "Python Library for Tom's Obvious, Minimal Language"
-name = "toml"
+description = "Style preserving TOML library"
+name = "tomlkit"
 optional = false
-python-versions = "*"
-version = "0.10.0"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "0.5.8"
 
 [[package]]
 category = "main"
@@ -531,7 +526,7 @@ description = "Fast, Extensible Progress Meter"
 name = "tqdm"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
-version = "4.42.0"
+version = "4.42.1"
 
 [package.extras]
 dev = ["py-make (>=0.1.0)", "twine", "argopt", "pydoc-markdown"]
@@ -618,8 +613,8 @@ chardet = [
 ]
 ci = []
 cli-ui = [
-    {file = "cli-ui-0.10.0.tar.gz", hash = "sha256:9f767e3ffe14e38afc836dee49247128116bc0aafb672b223d87235799a2c20f"},
-    {file = "cli_ui-0.10.0-py3-none-any.whl", hash = "sha256:cfc3b6c1192f625f5a02f8f522df5b748ecc464d15a2cba8853506e486ff87f9"},
+    {file = "cli-ui-0.10.1.tar.gz", hash = "sha256:4543c8c6f4436e07f3dd347ad084674eba499ceeeba871ff3cc2152185a0230a"},
+    {file = "cli_ui-0.10.1-py3-none-any.whl", hash = "sha256:5ed63907670347ad52f9861eb41ef0b522a3a54fde5361057246eccab0f376c0"},
 ]
 colorama = [
     {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
@@ -784,8 +779,8 @@ python-dateutil = [
     {file = "python_dateutil-2.8.1-py2.py3-none-any.whl", hash = "sha256:75bb3f31ea686f1197762692a9ee6a7550b59fc6ca3a1f4b5d7e32fb98e2da2a"},
 ]
 python-gitlab = [
-    {file = "python-gitlab-2.0.0.tar.gz", hash = "sha256:d12ca52a50cc50484a35dd9c6d0235fa0eef62dfd1a8fa3590ea2bbb3918c110"},
-    {file = "python_gitlab-2.0.0-py3-none-any.whl", hash = "sha256:f75350131d9616fe97198ebaf4c8dd2cbaa0792004afbd4ac5fb582b28a8eccc"},
+    {file = "python-gitlab-2.0.1.tar.gz", hash = "sha256:e2d5da00aac651fe3a83963b1d5f04cdf98d993d4306a89e0835d4bc20afb0b5"},
+    {file = "python_gitlab-2.0.1-py3-none-any.whl", hash = "sha256:3b299419d90619a604040c238457154a47ba7abf5d83fb4aedf664fe71c1ac32"},
 ]
 pyyaml = [
     {file = "PyYAML-5.3-cp27-cp27m-win32.whl", hash = "sha256:940532b111b1952befd7db542c370887a8611660d2b9becff75d39355303d82d"},
@@ -841,17 +836,16 @@ tabulate = [
     {file = "tabulate-0.8.6.tar.gz", hash = "sha256:5470cc6687a091c7042cee89b2946d9235fe9f6d49c193a4ae2ac7bf386737c8"},
 ]
 tbump = [
-    {file = "tbump-6.0.5-py3-none-any.whl", hash = "sha256:e6a4f82d9e4b341e3c00a20fcad73b0eb2880b6e53767cad288b143bf3cd8bd4"},
-    {file = "tbump-6.0.5.tar.gz", hash = "sha256:73480f6e14973ec1561d9e0d08f371e0de12de4bef0ac63210c34d239ad852da"},
+    {file = "tbump-6.0.7-py3-none-any.whl", hash = "sha256:ca840d97d52f4ea7add3e24f3511f6ab16042657a9fec30abcc3110851da941e"},
+    {file = "tbump-6.0.7.tar.gz", hash = "sha256:79e01900ead7e5f69f623393e480b468d6660be1702df6b5b3df343099c7805a"},
 ]
-toml = [
-    {file = "toml-0.10.0-py2.7.egg", hash = "sha256:f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"},
-    {file = "toml-0.10.0-py2.py3-none-any.whl", hash = "sha256:235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e"},
-    {file = "toml-0.10.0.tar.gz", hash = "sha256:229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c"},
+tomlkit = [
+    {file = "tomlkit-0.5.8-py2.py3-none-any.whl", hash = "sha256:96e6369288571799a3052c1ef93b9de440e1ab751aa045f435b55e9d3bcd0690"},
+    {file = "tomlkit-0.5.8.tar.gz", hash = "sha256:32c10cc16ded7e4101c79f269910658cc2a0be5913f1252121c3cd603051c269"},
 ]
 tqdm = [
-    {file = "tqdm-4.42.0-py2.py3-none-any.whl", hash = "sha256:01464d5950e9a07a8e463c2767883d9616c099c6502f6c7ef4e2e11d3065bd35"},
-    {file = "tqdm-4.42.0.tar.gz", hash = "sha256:5865f5fef9d739864ff341ddaa69894173ebacedb1aaafcf014de56343d01d5c"},
+    {file = "tqdm-4.42.1-py2.py3-none-any.whl", hash = "sha256:fe231261cfcbc6f4a99165455f8f6b9ef4e1032a6e29bccf168b4bf42012f09c"},
+    {file = "tqdm-4.42.1.tar.gz", hash = "sha256:251ee8440dbda126b8dfa8a7c028eb3f13704898caaef7caa699b35e119301e2"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:73d785a950fc82dd2a25897d525d003f6378d1cb23ab305578394694202a58c3"},
