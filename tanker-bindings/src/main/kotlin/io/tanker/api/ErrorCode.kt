@@ -21,4 +21,6 @@ enum class ErrorCode(val value: Int) {
     EXPIRED_VERIFICATION(10),
     IO_ERROR(11),
     DEVICE_REVOKED(12),
+
+    CONFLICT(13),
 }
