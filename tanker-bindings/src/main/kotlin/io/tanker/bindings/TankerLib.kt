@@ -81,11 +81,6 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_create_group(tanker: SessionPointer, member_uids: StringArray, nbMembers: Long): FuturePointer
     fun tanker_update_group_members(tanker: SessionPointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer
 
-    fun tanker_base64_encoded_size(decoded_size: Long): Long
-    fun tanker_base64_decoded_max_size(encoded_size: Long): Long
-    fun tanker_base64_encode(to: Pointer, from: Pointer, from_size: Long): Void
-    fun tanker_base64_decode(to: Pointer, to_size: LongByReference, from: Pointer, from_size: Long): Void
-
     fun tanker_free_buffer(buffer: Pointer): Void
     fun tanker_free_device_list(list: Pointer): Void
     fun tanker_free_verification_method_list(list: Pointer): Void
