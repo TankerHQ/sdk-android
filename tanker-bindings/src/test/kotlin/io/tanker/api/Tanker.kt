@@ -2,6 +2,7 @@ package io.tanker.api
 
 import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
+import io.tanker.api.Tanker.Companion.hashPassphrase
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -400,6 +401,24 @@ class TankerTests : TankerSpec() {
             foundDevice2 shouldBe true
 
             tankerAlice2.stop().get()
+        }
+
+        "hashPassphrase empty string" {
+            shouldThrow<TankerFutureException> { hashPassphrase("") }
+        }
+
+        "hashPassphrase test vector" {
+            val input = "super secretive password"
+            val expected = "UYNRgDLSClFWKsJ7dl9uPJjhpIoEzadksv/Mf44gSHI="
+
+            hashPassphrase(input) shouldBe expected
+        }
+
+        "hashPassphrase test vector 2" {
+            val input = "test éå 한국어 😃"
+            val expected = "Pkn/pjub2uwkBDpt2HUieWOXP5xLn0Zlen16ID4C7jI="
+
+            hashPassphrase(input) shouldBe expected
         }
     }
 }
