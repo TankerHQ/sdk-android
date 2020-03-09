@@ -85,5 +85,5 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_free_device_list(list: Pointer): Void
     fun tanker_free_verification_method_list(list: Pointer): Void
 
-    fun tanker_hash_passphrase(passphrase: String): ExpectedPointer
+    fun tanker_prehash_password(password: String): ExpectedPointer
 }

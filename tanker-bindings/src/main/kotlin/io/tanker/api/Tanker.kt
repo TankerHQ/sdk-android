@@ -44,8 +44,8 @@ class Tanker(tankerOptions: TankerOptions) {
         }
 
         @JvmStatic
-        fun hashPassphrase(passphrase: String): String {
-            val fut = TankerFuture<Pointer>(lib.tanker_hash_passphrase(passphrase), Pointer::class.java)
+        fun prehashPassword(password: String): String {
+            val fut = TankerFuture<Pointer>(lib.tanker_prehash_password(password), Pointer::class.java)
             val ptr = fut.get()
             val str = ptr.getString(0)
             lib.tanker_free_buffer(ptr)
