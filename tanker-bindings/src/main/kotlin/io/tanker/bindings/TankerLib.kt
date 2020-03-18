@@ -1,7 +1,6 @@
 package io.tanker.bindings
 
 import com.sun.jna.*
-import com.sun.jna.ptr.LongByReference
 import io.tanker.api.*
 
 const val HASH_SIZE = 32
@@ -64,14 +63,14 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_get_resource_id(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
 
     fun tanker_encrypt(session: SessionPointer, encrypted_data: Pointer,
-                       data: Pointer, data_size: Long, encrypt_options: EncryptOptions?): FuturePointer
+                       data: Pointer, data_size: Long, encryption_options: EncryptionOptions?): FuturePointer
     fun tanker_decrypt(session: SessionPointer, decrypted_data: Pointer,
                        data: Pointer, data_size: Long): FuturePointer
     fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
                      recipient_gids: StringArray, nbRecipientGids: Long,
                      resource_ids: StringArray, nbResourceIds: Long): FuturePointer
 
-    fun tanker_stream_encrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?, options: EncryptOptions?): FuturePointer
+    fun tanker_stream_encrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?, options: EncryptionOptions?): FuturePointer
     fun tanker_stream_decrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?): FuturePointer
     fun tanker_stream_read(stream: StreamPointer, buffer: Pointer?, buffer_size: Long): FuturePointer
     fun tanker_stream_read_operation_finish(op: StreamInputSourceReadOperationPointer, nb_read: Long)

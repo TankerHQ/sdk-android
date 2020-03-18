@@ -272,7 +272,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * Encrypts clear {@code data} with options.
      * @return A future that resolves when the data has been encrypted and shared.
      */
-    fun encrypt(data: ByteArray, options: EncryptOptions?): TankerFuture<ByteArray> {
+    fun encrypt(data: ByteArray, options: EncryptionOptions?): TankerFuture<ByteArray> {
         val inBuf = Memory(data.size.toLong())
         inBuf.write(0, data, 0, data.size)
 
@@ -285,7 +285,7 @@ class Tanker(tankerOptions: TankerOptions) {
         })
     }
 
-    fun encrypt(channel: TankerAsynchronousByteChannel, options: EncryptOptions?): TankerFuture<TankerAsynchronousByteChannel> {
+    fun encrypt(channel: TankerAsynchronousByteChannel, options: EncryptionOptions?): TankerFuture<TankerAsynchronousByteChannel> {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = lib.tanker_stream_encrypt(tanker, cb, null, options)
         return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
@@ -355,12 +355,12 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Shares the key for an encrypted resource with another Tanker user.
      * @param resourceIDs The IDs of the encrypted resources to share (base64 encoded each).
-     * @param shareOptions Specifies options like the users and groups to share with.
+     * @param sharingOptions Specifies options like the users and groups to share with.
      * @return A future that resolves when the share is complete.
      */
-    fun share(resourceIDs: Array<String>, shareOptions: ShareOptions): TankerFuture<Unit> {
-        val fut = lib.tanker_share(tanker, StringArray(shareOptions.recipientPublicIdentities), shareOptions.recipientPublicIdentities.size.toLong(),
-                StringArray(shareOptions.recipientGids), shareOptions.recipientGids.size.toLong(),
+    fun share(resourceIDs: Array<String>, sharingOptions: SharingOptions): TankerFuture<Unit> {
+        val fut = lib.tanker_share(tanker, StringArray(sharingOptions.recipientPublicIdentities), sharingOptions.recipientPublicIdentities.size.toLong(),
+                StringArray(sharingOptions.recipientGids), sharingOptions.recipientGids.size.toLong(),
                 StringArray(resourceIDs), resourceIDs.size.toLong())
         return TankerFuture(fut, Unit::class.java)
     }

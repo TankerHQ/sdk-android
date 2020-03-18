@@ -11,7 +11,7 @@ import com.sun.jna.Structure
  * of accessing the fields directly. Those are not part of the public API and
  * are subject to change.
  */
-class EncryptOptions : Structure() {
+open class EncryptionOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField var version: Byte = 2
     @JvmField var recipientPublicIdentities = Pointer(0)
@@ -30,7 +30,7 @@ class EncryptOptions : Structure() {
      * Sets the list of recipients User IDs
      * @param recipientPublicIdentities A list of the recipients user IDs
      */
-    fun shareWithUsers(vararg recipientPublicIdentities: String): EncryptOptions {
+    fun shareWithUsers(vararg recipientPublicIdentities: String): EncryptionOptions {
         this.recipientPublicIdentitiesArray = StringArray(recipientPublicIdentities)
         this.recipientPublicIdentities = recipientPublicIdentitiesArray
         this.nbRecipientPublicIdentities = recipientPublicIdentities.size
@@ -41,7 +41,7 @@ class EncryptOptions : Structure() {
      * Sets the list of recipients Group IDs
      * @param recipientGids A list of the recipients group IDs
      */
-    fun shareWithGroups(vararg recipientGids: String): EncryptOptions {
+    fun shareWithGroups(vararg recipientGids: String): EncryptionOptions {
         this.recipientGidsArray = StringArray(recipientGids)
         this.recipientGids = recipientGidsArray
         this.nbRecipientGids = recipientGids.size
