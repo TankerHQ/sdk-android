@@ -1,6 +1,7 @@
 package io.tanker.api
 
 import io.kotlintest.TestCase
+import io.kotlintest.TestResult
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import java.io.IOException
@@ -18,6 +19,11 @@ class InputStreamTests : TankerSpec() {
         tanker.registerIdentity(PassphraseVerification("")).get()
         array = ByteArray(10)
         buffer = ByteBuffer.allocate(10)
+    }
+
+    override fun afterTest(testCase: TestCase, result: TestResult) {
+        super.afterTest(testCase, result)
+        tanker.stop().get()
     }
 
     init {

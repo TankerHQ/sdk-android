@@ -281,6 +281,9 @@ class TankerTests : TankerSpec() {
 
             val attachResult2 = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
             attachResult2.status shouldBe Status.READY
+
+            tankerBob.stop().get()
+            tankerAlice.stop().get()
         }
 
         "Can self-revoke" {
@@ -363,6 +366,7 @@ class TankerTests : TankerSpec() {
             devices.size shouldBe 1
             devices[0].getDeviceId() shouldBe tankerAlice.getDeviceId()
             devices[0].isRevoked() shouldBe false
+            tankerAlice.stop().get()
         }
 
         "Can get a correct device list after revocation" {
@@ -400,6 +404,7 @@ class TankerTests : TankerSpec() {
             foundDevice1 shouldBe true
             foundDevice2 shouldBe true
 
+            tankerAlice1.stop().get()
             tankerAlice2.stop().get()
         }
 

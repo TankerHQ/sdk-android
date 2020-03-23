@@ -140,6 +140,9 @@ class UnlockTests : TankerSpec() {
             verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
             tanker2.verifyIdentity(EmailVerification(email, verificationCode)).get()
             tanker2.getStatus() shouldBe Status.READY
+
+            tanker1.stop().get()
+            tanker2.stop().get()
         }
 
         "Can use OIDC ID Tokens as verification" {
