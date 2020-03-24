@@ -9,6 +9,21 @@ import java.nio.channels.CompletionHandler
 import java.nio.channels.ReadPendingException
 import java.util.concurrent.FutureTask
 
+class BlockingChannel : TankerAsynchronousByteChannel {
+    private var isClosed = false
+
+    override fun <A> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
+    }
+
+    override fun isOpen(): Boolean {
+        return !isClosed
+    }
+
+    override fun close() {
+        isClosed = true
+    }
+}
+
 class DummyChannel : TankerAsynchronousByteChannel {
     val clearBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
     private var isClosed = false
@@ -42,12 +57,12 @@ class DummyChannel : TankerAsynchronousByteChannel {
 }
 
 @RequiresApi(26)
-class API26StreamChannelTestHelper(tanker: Tanker) {
+class API26StreamChannelTestHelper(tanker: Tanker, chan: TankerAsynchronousByteChannel, decrypt: Boolean) {
     val dummyChannel = DummyChannel()
     val clearChannel = TankerChannels.toAsynchronousByteChannel(dummyChannel)
     var err: Throwable? = null
     var nbRead = 0
-    var decryptor: AsynchronousByteChannel
+    var outputChannel: AsynchronousByteChannel
     val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
     val fut = FutureTask {}
 
@@ -58,7 +73,7 @@ class API26StreamChannelTestHelper(tanker: Tanker) {
                     fut.run()
                 } else {
                     nbRead += result
-                    decryptor.read(decryptedBuffer, Unit, this)
+                    outputChannel.read(decryptedBuffer, Unit, this)
                 }
             }
 
@@ -70,27 +85,30 @@ class API26StreamChannelTestHelper(tanker: Tanker) {
     }
 
     init {
-        val encryptionChannel = tanker.encrypt(TankerChannels.fromAsynchronousByteChannel(clearChannel)).get()
-        decryptor = TankerChannels.toAsynchronousByteChannel(tanker.decrypt(encryptionChannel).get())
+        val encryptChannel = tanker.encrypt(chan).get()
+        outputChannel =
+                if (decrypt)
+                    TankerChannels.toAsynchronousByteChannel(tanker.decrypt(encryptChannel).get())
+                else
+                    TankerChannels.toAsynchronousByteChannel(encryptChannel)
     }
 }
 
 @RequiresApi(26)
 class API26StreamChannelTests : TankerSpec() {
     lateinit var tanker: Tanker
-    lateinit var helper: API26StreamChannelTestHelper
 
     override fun beforeTest(testCase: TestCase) {
         tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
         st shouldBe Status.IDENTITY_REGISTRATION_NEEDED
         tanker.registerIdentity(PassphraseVerification("")).get()
-        helper = API26StreamChannelTestHelper(tanker)
     }
 
     init {
         "Reading asynchronously" {
-            helper.decryptor.read(helper.decryptedBuffer, Unit, helper.callback())
+            val helper = API26StreamChannelTestHelper(tanker, DummyChannel(), true)
+            helper.outputChannel.read(helper.decryptedBuffer, Unit, helper.callback())
             helper.fut.get()
             helper.err shouldBe null
             helper.nbRead shouldBe helper.decryptedBuffer.capacity()
@@ -99,17 +117,19 @@ class API26StreamChannelTests : TankerSpec() {
         }
 
         "Reading a closed channel throws" {
-            helper.decryptor.read(helper.decryptedBuffer, Unit, helper.callback())
-            helper.decryptor.close()
+            val helper = API26StreamChannelTestHelper(tanker, BlockingChannel(), false)
+            helper.outputChannel.read(helper.decryptedBuffer, Unit, helper.callback())
+            helper.outputChannel.close()
             helper.fut.get()
             helper.err shouldNotBe null
             (helper.err is ClosedChannelException) shouldBe true
         }
 
         "Attempting two read operations simultaneously throws" {
+            val helper = API26StreamChannelTestHelper(tanker, BlockingChannel(), false)
             val secondBuffer = ByteBuffer.allocate(helper.decryptedBuffer.capacity())
-            helper.decryptor.read(helper.decryptedBuffer, Unit, helper.callback())
-            shouldThrow<ReadPendingException> { helper.decryptor.read(secondBuffer, Unit, helper.callback()) }
+            helper.outputChannel.read(helper.decryptedBuffer, Unit, helper.callback())
+            shouldThrow<ReadPendingException> { helper.outputChannel.read(secondBuffer, Unit, helper.callback()) }
         }
     }
 }
