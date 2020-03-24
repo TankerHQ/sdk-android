@@ -60,6 +60,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     init {
         lib.tanker_init()
+        lib.tanker_leak_statics()
 
         if (KVMx86Bug.hasBug()) {
             Log.w("io.tanker.sdk", "Warning: The tanker SDK detected that it is running on an x86 emulator with KVM enabled.\n"
