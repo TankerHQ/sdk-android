@@ -12,6 +12,7 @@ typealias ConnectionPointer = Pointer
 typealias AppDescriptorPointer = Pointer
 typealias StreamInputSourceReadOperationPointer = Pointer
 typealias StreamPointer = Pointer
+typealias EncryptionSessionPointer = Pointer
 // JNA messes up functions that return bool on x86
 // so we return Int instead, but we must not forget to take only the first byte of the result
 // https://github.com/java-native-access/jna/issues/1076
@@ -77,6 +78,15 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_stream_read_operation_finish(op: StreamInputSourceReadOperationPointer, nb_read: Long)
     fun tanker_stream_get_resource_id(stream: StreamPointer): ExpectedPointer
     fun tanker_stream_close(stream: StreamPointer): FuturePointer
+
+    fun tanker_encryption_session_open(session: SessionPointer,
+                                       recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
+                                       recipient_gids: StringArray, nbRecipientGids: Long): FuturePointer
+    fun tanker_encryption_session_close(encSess: EncryptionSessionPointer): FuturePointer
+    fun tanker_encryption_session_encrypted_size(clear_size: Long): Long
+    fun tanker_encryption_session_get_resource_id(encSess: EncryptionSessionPointer): ExpectedPointer
+    fun tanker_encryption_session_encrypt(encSess: EncryptionSessionPointer, encrypted_data: Pointer,
+                                          data: Pointer, data_size: Long): FuturePointer
 
     fun tanker_create_group(tanker: SessionPointer, member_uids: StringArray, nbMembers: Long): FuturePointer
     fun tanker_update_group_members(tanker: SessionPointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer
