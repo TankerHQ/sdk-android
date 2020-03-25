@@ -27,6 +27,10 @@ class NativeHelper {
         return "android-$arch-${buildType.toLowerCase()}"
     }
 
+    static def getNativeProfile(buildType) {
+        return "gcc8-${buildType.toLowerCase()}"
+    }
+
     static def conanInstall(tankerConanRef, installPath, profile) {
         installPath.mkdirs()
         runCmd("conan install $tankerConanRef " +
@@ -77,7 +81,7 @@ class Builder extends DefaultTask {
 
     void compileForHost(String tankerConanRef) {
         def installPath = this.conanOutputPath
-        NativeHelper.conanInstall(tankerConanRef, installPath, "gcc8-release")
+        NativeHelper.conanInstall(tankerConanRef, installPath, NativeHelper.getNativeProfile(this.buildType))
         NativeHelper.createNativeLibJar(installPath, ["libctanker.so", "libtanker_admin-c.so"], 'tanker-native.jar')
     }
 }
