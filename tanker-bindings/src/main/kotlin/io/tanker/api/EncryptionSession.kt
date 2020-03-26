@@ -15,7 +15,7 @@ class EncryptionSession(private val csess: Pointer) {
     }
 
     /**
-     * Encrypt data with the session, that can be decrypted with tanker_decrypt
+     * Encrypt data with the session, that can be decrypted with Tanker.decrypt
      */
     fun encrypt(data: ByteArray): TankerFuture<ByteArray> {
         val inBuf = Memory(data.size.toLong())
@@ -31,7 +31,7 @@ class EncryptionSession(private val csess: Pointer) {
     }
 
     /**
-     * Encrypt a data stream with the session, that can be decrypted with tanker_decrypt
+     * Encrypt a data stream with the session, that can be decrypted with Tanker.decrypt
      */
     fun encrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
         val cb = TankerStreamInputSourceCallback(channel)
@@ -42,7 +42,7 @@ class EncryptionSession(private val csess: Pointer) {
     }
 
     /**
-     * Get the session's permanent resource id
+     * Get the session's resource id
      */
     fun getResourceId(): String {
         val fut = lib.tanker_encryption_session_get_resource_id(csess)
