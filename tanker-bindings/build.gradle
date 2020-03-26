@@ -149,8 +149,8 @@ dependencies {
     api 'net.java.dev.jna:jna:5.4.0@aar'
     implementation 'com.android.support:support-compat:28.0.0'
     implementation 'com.android.support:support-annotations:28.0.0'
-    testImplementation 'io.kotlintest:kotlintest-core:3.4.1'
-    testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.4.1'
+    testImplementation 'io.kotlintest:kotlintest-core:3.4.2'
+    testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.4.2'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.10.0.pr3'
@@ -165,7 +165,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.6'
+        classpath 'com.getkeepsafe.dexcount:dexcount-gradle-plugin:1.0.2'
     }
 }
 
