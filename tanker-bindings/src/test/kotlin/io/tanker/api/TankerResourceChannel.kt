@@ -105,6 +105,11 @@ class API26StreamChannelTests : TankerSpec() {
         tanker.registerIdentity(PassphraseVerification("")).get()
     }
 
+    override fun afterTest(testCase: TestCase, result: TestResult) {
+        super.afterTest(testCase, result)
+        tanker.stop().get()
+    }
+
     init {
         "Reading asynchronously" {
             val helper = API26StreamChannelTestHelper(tanker, DummyChannel(), true)
