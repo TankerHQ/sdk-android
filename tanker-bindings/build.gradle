@@ -21,7 +21,6 @@ android {
             moduleName "tanker-bindings-jni"
         }
     }
-    buildToolsVersion '28.0.3'
     buildTypes {
         release {
             debuggable false
