@@ -414,4 +414,19 @@ class Tanker(tankerOptions: TankerOptions) {
     fun disconnectHandler(handler: Any) {
         deviceRevokedHandlers.remove(handler)
     }
+
+    /**
+     * Create an encryption session that will allow doing multiple encryption operations
+     * with a reduced number of keys.
+     */
+    fun createEncryptionSession(shareOptions: ShareOptions): TankerFuture<EncryptionSession> {
+        val fut = lib.tanker_encryption_session_open(tanker,
+                StringArray(shareOptions.recipientPublicIdentities), shareOptions.recipientPublicIdentities.size.toLong(),
+                StringArray(shareOptions.recipientGids), shareOptions.recipientGids.size.toLong())
+        return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
+            it.getError()?.let { throw it }
+            val csession = it.get()
+            EncryptionSession(csession)
+        })
+    }
 }
