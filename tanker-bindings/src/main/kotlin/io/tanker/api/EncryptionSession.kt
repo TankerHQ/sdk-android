@@ -31,6 +31,17 @@ class EncryptionSession(private val csess: Pointer) {
     }
 
     /**
+     * Encrypt a data stream with the session, that can be decrypted with tanker_decrypt
+     */
+    fun encrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
+        val cb = TankerStreamInputSourceCallback(channel)
+        val futurePtr = Tanker.lib.tanker_encryption_session_stream_encrypt(csess, cb, null)
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+            TankerResourceChannel(it, cb)
+        })
+    }
+
+    /**
      * Get the session's permanent resource id
      */
     fun getResourceId(): String {

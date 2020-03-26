@@ -87,6 +87,9 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_encryption_session_get_resource_id(encSess: EncryptionSessionPointer): ExpectedPointer
     fun tanker_encryption_session_encrypt(encSess: EncryptionSessionPointer, encrypted_data: Pointer,
                                           data: Pointer, data_size: Long): FuturePointer
+    fun tanker_encryption_session_stream_encrypt(encSess: EncryptionSessionPointer,
+                                                 cb: StreamInputSourceCallback,
+                                                 user_data: Pointer?): FuturePointer
 
     fun tanker_create_group(tanker: SessionPointer, member_uids: StringArray, nbMembers: Long): FuturePointer
     fun tanker_update_group_members(tanker: SessionPointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer

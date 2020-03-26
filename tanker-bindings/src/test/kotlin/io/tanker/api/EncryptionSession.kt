@@ -39,6 +39,25 @@ class EncryptionSessionTests : TankerSpec() {
             tankerBob.stop().get()
         }
 
+        "Can encrypt a stream in an encryption session" {
+            val aliceId = tc.createIdentity()
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("paßwörd")).get()
+
+            val sess = tankerAlice.createEncryptionSession(ShareOptions()).get()
+            val plaintext = "La Comédie Humaine".toByteArray()
+            val plaintextChannel = TankerChannels.fromInputStream(plaintext.inputStream())
+            val encryptStream = sess.encrypt(plaintextChannel).get()
+
+            val decryptionStream = TankerChannels.toInputStream(tankerAlice.decrypt(encryptStream).get())
+            val decrypted = ByteArray(plaintext.size) { 0 }
+            decryptionStream.read(decrypted) shouldBe plaintext.size
+            decrypted shouldBe plaintext
+
+            tankerAlice.stop().get()
+        }
+
         "Resource IDs of the session and ciphertext match" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
@@ -46,7 +65,7 @@ class EncryptionSessionTests : TankerSpec() {
             tankerAlice.registerIdentity(PassphraseVerification("paßwörd")).get()
 
             val sess = tankerAlice.createEncryptionSession(ShareOptions()).get()
-            val encrypted = sess.encrypt("Bescherelle".toByteArray()).get()
+            val encrypted = sess.encrypt("Les Rougon-Macquart".toByteArray()).get()
             tankerAlice.getResourceID(encrypted) shouldBe sess.getResourceId()
 
             tankerAlice.stop().get()
@@ -60,8 +79,8 @@ class EncryptionSessionTests : TankerSpec() {
 
             val sess1 = tankerAlice.createEncryptionSession(ShareOptions()).get()
             val sess2 = tankerAlice.createEncryptionSession(ShareOptions()).get()
-            val cipher1 = sess1.encrypt("Les Rougon-Macquart".toByteArray()).get()
-            val cipher2 = sess2.encrypt("La Comédie Humaine".toByteArray()).get()
+            val cipher1 = sess1.encrypt("La Fontaine — Fables".toByteArray()).get()
+            val cipher2 = sess2.encrypt("Monmoulin — Lettres".toByteArray()).get()
             tankerAlice.getResourceID(cipher1) shouldNotBe  tankerAlice.getResourceID(cipher2)
 
             tankerAlice.stop().get()
