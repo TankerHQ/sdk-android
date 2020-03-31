@@ -419,10 +419,10 @@ class Tanker(tankerOptions: TankerOptions) {
      * Create an encryption session that will allow doing multiple encryption operations
      * with a reduced number of keys.
      */
-    fun createEncryptionSession(shareOptions: ShareOptions): TankerFuture<EncryptionSession> {
+    fun createEncryptionSession(sharingOptions: SharingOptions): TankerFuture<EncryptionSession> {
         val fut = lib.tanker_encryption_session_open(tanker,
-                StringArray(shareOptions.recipientPublicIdentities), shareOptions.recipientPublicIdentities.size.toLong(),
-                StringArray(shareOptions.recipientGids), shareOptions.recipientGids.size.toLong())
+                StringArray(sharingOptions.recipientPublicIdentities), sharingOptions.recipientPublicIdentities.size.toLong(),
+                StringArray(sharingOptions.recipientGids), sharingOptions.recipientGids.size.toLong())
         return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
             it.getError()?.let { throw it }
             val csession = it.get()
