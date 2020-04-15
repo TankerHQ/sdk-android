@@ -27,7 +27,7 @@ The Tanker SDK consists of the following package, which is distributed on https:
 
 - `io.tanker:tanker-bindings:X.Y.Z`
 
-For setup instructions in an Android Studio project, please refer to the [SDK implementation guide](https://tanker.io/docs/latest/guide/getting-started/?language=android).
+For setup instructions in an Android Studio project, please refer to the [Android implementation guide](https://docs.tanker.io/latest/api/core/android/).
 
 Tanker also provides open-source **[iOS](https://github.com/TankerHQ/sdk-ios)** and **[JavaScript](https://github.com/TankerHQ/sdk-js)** SDKs.
 
