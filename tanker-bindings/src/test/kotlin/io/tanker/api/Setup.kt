@@ -32,22 +32,6 @@ fun safeGetEnv(key: String): String {
 
 }
 
-fun getConfigFromFile(configName: String): ConfigData {
-    val filePath = safeGetEnv("TANKER_CONFIG_FILEPATH")
-    val json = File(filePath).readText(Charsets.UTF_8)
-    val mapper = jacksonObjectMapper()
-    val node = mapper.readTree(json)
-    return mapper.treeToValue(node.get(configName), ConfigData::class.java)
-}
-
-fun getOIDCConfigFromFile(): ConfigOIDC {
-    val filePath = safeGetEnv("TANKER_CONFIG_FILEPATH")
-    val json = File(filePath).readText(Charsets.UTF_8)
-    val mapper = jacksonObjectMapper()
-    val node = mapper.readTree(json)
-    return mapper.treeToValue(node.get("oidc").get("googleAuth"), ConfigOIDC::class.java)
-}
-
 class Config {
     companion object {
         var instance: ConfigData? = null
@@ -75,9 +59,25 @@ class Config {
     }
 
     init {
-        val configName = safeGetEnv("TANKER_CONFIG_NAME")
-        instance = getConfigFromFile(configName)
-        instanceOIDC = getOIDCConfigFromFile()
+        instance = ConfigData(
+                idToken = safeGetEnv("TANKER_ID_TOKEN"),
+                url = safeGetEnv("TANKER_TRUSTCHAIND_URL")
+        )
+        instanceOIDC = ConfigOIDC(
+                clientId = safeGetEnv("TANKER_OIDC_CLIENT_ID"),
+                clientSecret = safeGetEnv("TANKER_OIDC_CLIENT_SECRET"),
+                provider = safeGetEnv("TANKER_OIDC_PROVIDER"),
+                users = mapOf(Pair("martine",
+                        ConfigOIDCUser(
+                                email = safeGetEnv("TANKER_OIDC_MARTINE_EMAIL"),
+                                refreshToken = safeGetEnv("TANKER_OIDC_MARTINE_REFRESH_TOKEN")
+                        )), Pair("kevin",
+                        ConfigOIDCUser(
+                                email = safeGetEnv("TANKER_OIDC_KEVIN_EMAIL"),
+                                refreshToken = safeGetEnv("TANKER_OIDC_KEVIN_REFRESH_TOKEN")
+                        ))
+                )
+        )
     }
 }
 
