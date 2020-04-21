@@ -52,8 +52,6 @@ android {
                 showStandardStreams = true
             }
             systemProperty "jna.library.path", projectDir.absolutePath + "/conan/host"
-            systemProperty "TANKER_CONFIG_NAME", System.getProperty("TANKER_CONFIG_NAME")
-            systemProperty "TANKER_CONFIG_FILEPATH", System.getProperty("TANKER_CONFIG_FILEPATH")
         }
     }
 
