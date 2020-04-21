@@ -25,7 +25,7 @@ data class ConfigOIDCUser(
 
 fun safeGetEnv(key: String): String {
     val path = System.getProperty(key) ?: System.getenv(key)
-    if(path == null || path.isEmpty()) {
+    if (path == null || path.isEmpty()) {
         throw FileNotFoundException("$key not defined or empty")
     }
     return path
@@ -48,7 +48,7 @@ fun getOIDCConfigFromFile(): ConfigOIDC {
     return mapper.treeToValue(node.get("oidc").get("googleAuth"), ConfigOIDC::class.java)
 }
 
-class Config{
+class Config {
     companion object {
         var instance: ConfigData? = null
         var instanceOIDC: ConfigOIDC? = null
