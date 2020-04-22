@@ -29,8 +29,6 @@ def test() -> None:
     ci.run(
         "./gradlew",
         "tanker-bindings:testRelease",
-        f"-DTANKER_CONFIG_FILEPATH={config_path}",
-        "-DTANKER_CONFIG_NAME=dev",
     )
 
 
