@@ -1,7 +1,5 @@
 import argparse
 import sys
-import os
-import contextlib
 import shutil
 
 from path import Path
@@ -25,7 +23,6 @@ def build(*, native_from_sources: bool) -> None:
 
 def test() -> None:
     ui.info_1("Running tests")
-    config_path = ci.tanker_configs.get_path()
     ci.run(
         "./gradlew",
         "tanker-bindings:testRelease",
@@ -34,7 +31,8 @@ def test() -> None:
 
 def build_and_test(args) -> None:
     native_from_sources = False
-    android_path = Path.getcwd()
+    cwd = Path.getcwd()
+    android_path = cwd
     if args.use_tanker == "deployed":
         native_from_sources = False
     elif args.use_tanker == "same-as-branch":
@@ -51,7 +49,7 @@ def build_and_test(args) -> None:
     with android_path:
         build(native_from_sources=native_from_sources)
         test()
-    shutil.copytree(android_path / "tanker-bindings/build/reports/tests", Path.getcwd() / "tests_report")
+    Path(android_path / "tanker-bindings/build/reports/tests").copytree(cwd / "tests_report")
 
 
 def deploy(*, git_tag: str) -> None:
@@ -75,8 +73,6 @@ def main():
     )
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
-    update_conan_config_parser = subparsers.add_parser("update-conan-config")
-
     check_parser = subparsers.add_parser("build-and-test")
     check_parser.add_argument(
         "--use-tanker", choices=["local", "deployed", "same-as-branch"], default="local"
@@ -90,10 +86,9 @@ def main():
     args = parser.parse_args()
     if args.home_isolation:
         ci.conan.set_home_isolation()
+        ci.conan.update_config()
 
-    if args.command == "update-conan-config":
-        ci.cpp.update_conan_config()
-    elif args.command == "build-and-test":
+    if args.command == "build-and-test":
         build_and_test(args)
     elif args.command == "deploy":
         deploy(git_tag=args.git_tag)

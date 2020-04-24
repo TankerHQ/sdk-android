@@ -4,7 +4,6 @@ variables:
 before_script:
   - poetry install
   - export PATH=$(poetry env info -p)/bin:$PATH
-  - poetry run python run-ci.py --isolate-conan-user-home update-conan-config
 
 stages:
   - check
