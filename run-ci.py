@@ -1,7 +1,5 @@
 import argparse
 import sys
-import os
-import contextlib
 import shutil
 
 from path import Path
@@ -75,8 +73,6 @@ def main():
     )
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
-    update_conan_config_parser = subparsers.add_parser("update-conan-config")
-
     check_parser = subparsers.add_parser("build-and-test")
     check_parser.add_argument(
         "--use-tanker", choices=["local", "deployed", "same-as-branch"], default="local"
@@ -90,9 +86,8 @@ def main():
     args = parser.parse_args()
     if args.home_isolation:
         ci.conan.set_home_isolation()
+        ci.conan.update_config()
 
-    if args.command == "update-conan-config":
-        ci.cpp.update_conan_config()
     elif args.command == "build-and-test":
         build_and_test(args)
     elif args.command == "deploy":
