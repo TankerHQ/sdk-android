@@ -9,7 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-data class ConfigData(val idToken: String, val url: String)
+data class ConfigData(val idToken: String, val url: String, val adminUrl: String)
 
 data class ConfigOIDC(
         val clientId: String,
@@ -43,6 +43,12 @@ class Config {
             return instance!!.url
         }
 
+        fun getAdminUrl(): String {
+            if (instance == null)
+                Config()
+            return instance!!.adminUrl
+        }
+
         fun getIdToken(): String {
             if (instance == null)
                 Config()
@@ -61,7 +67,8 @@ class Config {
     init {
         instance = ConfigData(
                 idToken = safeGetEnv("TANKER_ID_TOKEN"),
-                url = safeGetEnv("TANKER_TRUSTCHAIND_URL")
+                url = safeGetEnv("TANKER_TRUSTCHAIND_URL"),
+                adminUrl = safeGetEnv("TANKER_ADMIND_URL")
         )
         instanceOIDC = ConfigOIDC(
                 clientId = safeGetEnv("TANKER_OIDC_CLIENT_ID"),
@@ -82,7 +89,7 @@ class Config {
 }
 
 class App {
-    val admin = Admin(Config.getUrl(), Config.getIdToken())
+    val admin = Admin(Config.getAdminUrl(), Config.getIdToken())
     val url: String = Config.getUrl()
     private val descriptor: TankerAppDescriptor
 
@@ -101,6 +108,10 @@ class App {
 
     fun id(): String {
         return descriptor.id!!
+    }
+
+    fun getVerificationCode(email: String): String {
+        return descriptor.getVerificationCode(url, email).get()
     }
 
     fun delete() {

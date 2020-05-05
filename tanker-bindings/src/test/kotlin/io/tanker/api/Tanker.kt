@@ -196,7 +196,7 @@ class TankerTests : TankerSpec() {
 
             val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
             attachResult.status shouldBe Status.IDENTITY_VERIFICATION_NEEDED
-            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            val bobVerificationCode = tc.getVerificationCode(bobEmail)
             tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
             val decrypted = tankerBob.decrypt(encrypted).get()
@@ -224,7 +224,7 @@ class TankerTests : TankerSpec() {
             val tankerBob = Tanker(options)
             val bobPrivateIdentity = tc.createIdentity()
             tankerBob.start(bobPrivateIdentity).get()
-            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            val bobVerificationCode = tc.getVerificationCode(bobEmail)
             tankerBob.registerIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
             val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
@@ -248,7 +248,7 @@ class TankerTests : TankerSpec() {
             tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
             tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
-            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            val bobVerificationCode = tc.getVerificationCode(bobEmail)
             tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
             tankerBob.stop().get()
@@ -276,7 +276,7 @@ class TankerTests : TankerSpec() {
 
             val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
             attachResult.status shouldBe Status.IDENTITY_VERIFICATION_NEEDED
-            val bobVerificationCode = tc.admin.getVerificationCode(tc.id(), bobEmail).get()
+            val bobVerificationCode = tc.getVerificationCode(bobEmail)
             tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
             val attachResult2 = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()

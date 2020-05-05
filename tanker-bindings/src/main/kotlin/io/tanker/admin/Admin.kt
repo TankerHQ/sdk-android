@@ -4,14 +4,12 @@ import com.sun.jna.Pointer
 import io.tanker.api.TankerCallback
 import io.tanker.api.TankerFuture
 import io.tanker.api.TankerVoidCallback
-import io.tanker.bindings.TankerLib
 import io.tanker.bindings.TankerAppDescriptor
 
 class Admin(private val url: String, private val idToken: String) {
     private var cadmin: Pointer? = null
 
     companion object {
-        private val tankerlib = TankerLib.create()
         private val lib = AdminLib.create()
     }
 
@@ -45,17 +43,6 @@ class Admin(private val url: String, private val idToken: String) {
     fun deleteApp(appId: String): TankerFuture<Unit> {
         requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         return TankerFuture(lib.tanker_admin_delete_app(cadmin!!, appId), Unit::class.java, lib)
-    }
-
-    fun getVerificationCode(appId: String, email: String): TankerFuture<String> {
-        requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
-        val fut = TankerFuture<Pointer>(lib.tanker_admin_get_verification_code(cadmin!!, appId, email), Pointer::class.java, lib)
-        return fut.then(TankerCallback {
-            val ptr = it.get()
-            val str = ptr.getString(0)
-            tankerlib.tanker_free_buffer(ptr)
-            str
-        })
     }
 
     /**
