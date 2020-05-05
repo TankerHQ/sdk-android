@@ -89,7 +89,7 @@ class UnlockTests : TankerSpec() {
             val email = "bob@wonderland.io"
 
             tanker1.start(identity).get()
-            val verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
+            val verificationCode = tc.getVerificationCode(email)
             tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
             val methods = tanker1.getVerificationMethods().get()
             methods shouldBe arrayOf(EmailVerificationMethod(email))
@@ -103,7 +103,7 @@ class UnlockTests : TankerSpec() {
             tanker1.start(identity).get()
             tanker1.registerIdentity(PassphraseVerification(pass)).get()
             tanker1.getVerificationMethods().get().size shouldBe 1
-            val verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
+            val verificationCode = tc.getVerificationCode(email)
             tanker1.setVerificationMethod(EmailVerification(email, verificationCode)).get()
             val methods = tanker1.getVerificationMethods().get()
             methods.size shouldBe 2
@@ -116,7 +116,7 @@ class UnlockTests : TankerSpec() {
             val newpass = "this is a new password"
 
             tanker1.start(identity).get()
-            val verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
+            val verificationCode = tc.getVerificationCode(email)
             tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
             tanker1.getVerificationMethods().get().size shouldBe 1
             tanker1.setVerificationMethod(PassphraseVerification(oldpass)).get()
@@ -133,11 +133,11 @@ class UnlockTests : TankerSpec() {
             val email = "bob@wonderland.io"
 
             tanker1.start(identity).get()
-            var verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
+            var verificationCode = tc.getVerificationCode(email)
             tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
 
             tanker2.start(identity).get()
-            verificationCode = tc.admin.getVerificationCode(tc.id(), email).get()
+            verificationCode = tc.getVerificationCode(email)
             tanker2.verifyIdentity(EmailVerification(email, verificationCode)).get()
             tanker2.getStatus() shouldBe Status.READY
 
