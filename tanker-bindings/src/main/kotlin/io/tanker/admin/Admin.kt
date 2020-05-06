@@ -6,7 +6,7 @@ import io.tanker.api.TankerFuture
 import io.tanker.api.TankerVoidCallback
 import io.tanker.bindings.TankerAppDescriptor
 
-class Admin(private val url: String, private val idToken: String) {
+class Admin(private val adminUrl: String, private val idToken: String, private val apiUrl: String) {
     private var cadmin: Pointer? = null
 
     companion object {
@@ -27,16 +27,17 @@ class Admin(private val url: String, private val idToken: String) {
      * This must be called before doing any other operation
      */
     fun connect(): TankerFuture<Unit> {
-        return TankerFuture<Pointer>(lib.tanker_admin_connect(url, idToken), Pointer::class.java, lib).andThen(TankerVoidCallback {
+        return TankerFuture<Pointer>(lib.tanker_admin_connect(adminUrl, idToken), Pointer::class.java, lib).andThen(TankerVoidCallback {
             cadmin = it
         })
     }
 
-    fun createApp(name: String): TankerFuture<TankerAppDescriptor> {
+    fun createApp(name: String): TankerFuture<TankerApp> {
         requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         val cfut = lib.tanker_admin_create_app(cadmin!!, name)
         return TankerFuture<Pointer>(cfut, Pointer::class.java, lib).andThen(TankerCallback {
-            TankerAppDescriptor(it)
+            val descriptor = TankerAppDescriptor(it)
+            TankerApp(apiUrl, descriptor.id!!, descriptor.authToken!!, descriptor.privateKey!!)
         })
     }
 

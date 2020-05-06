@@ -1,9 +1,7 @@
 package io.tanker.api
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.tanker.admin.Admin
-import io.tanker.bindings.TankerAppDescriptor
-import java.io.File
+import io.tanker.admin.TankerApp
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -89,29 +87,29 @@ class Config {
 }
 
 class App {
-    val admin = Admin(Config.getAdminUrl(), Config.getIdToken())
+    val admin = Admin(Config.getAdminUrl(), Config.getIdToken(), Config.getUrl())
     val url: String = Config.getUrl()
-    private val descriptor: TankerAppDescriptor
+    private val app: TankerApp
 
     init {
         admin.connect().get()
-        descriptor = admin.createApp("android-test").get()
+        app = admin.createApp("android-test").get()
     }
 
     fun createIdentity(userId: String = UUID.randomUUID().toString()): String {
         return Identity.createIdentity(
-                descriptor.id!!,
-                descriptor.privateKey!!,
+                app.id,
+                app.privateKey,
                 userId
         )
     }
 
     fun id(): String {
-        return descriptor.id!!
+        return app.id
     }
 
     fun getVerificationCode(email: String): String {
-        return descriptor.getVerificationCode(url, email).get()
+        return app.getVerificationCode(email).get()
     }
 
     fun delete() {
