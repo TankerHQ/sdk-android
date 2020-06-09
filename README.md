@@ -27,7 +27,7 @@ The Tanker SDK consists of the following package, which is distributed on https:
 
 - `io.tanker:tanker-bindings:X.Y.Z`
 
-For setup instructions in an Android Studio project, please refer to the [Android implementation guide](https://docs.tanker.io/latest/api/core/android/).
+For setup instructions in an Android Studio project, please refer to the [Android API reference](https://docs.tanker.io/latest/api/core/android/).
 
 Tanker also provides open-source **[iOS](https://github.com/TankerHQ/sdk-ios)** and **[JavaScript](https://github.com/TankerHQ/sdk-js)** SDKs.
 
@@ -35,9 +35,9 @@ Tanker also provides open-source **[iOS](https://github.com/TankerHQ/sdk-ios)** 
 
 For more details and code examples, please refer to:
 
-* [SDK implementation guide](https://tanker.io/docs/latest/guide/getting-started/?language=android)
-* [API reference](https://tanker.io/docs/latest/api/tanker/?language=android)
-* [Product overview](https://tanker.io/product)
+* [SDK implementation guides](https://docs.tanker.io/latest/#how_to_guides)
+* [API reference](https://docs.tanker.io/latest/api/core/android/)
+* [Product overview](https://tanker.io/)
 
 Or fiddle with the [quickstart examples](https://github.com/TankerHQ/quickstart-examples) to see the Tanker SDKs integrated in a collection of demo apps.
 
