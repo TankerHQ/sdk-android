@@ -23,7 +23,7 @@ It leverages powerful **client-side encryption** of any type of data, textual or
 
 ## Getting started
 
-The Tanker SDK consists of the following package, which is distributed on https://maven.tanker.io:
+The Tanker SDK consists of the following package, which is distributed on https://storage.googleapis.com/maven.tanker.io:
 
 - `io.tanker:tanker-bindings:X.Y.Z`
 
