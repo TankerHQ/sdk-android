@@ -58,7 +58,7 @@ def deploy(*, git_tag: str) -> None:
     build(native_from_sources=False)
     test()
 
-    ui.info_1("Deploying SDK to maven.tanker.io")
+    ui.info_1("Deploying SDK to https://storage.googleapis.com/maven.tanker.io")
     ci.gcp.GcpProject("tanker-prod").auth()
     ci.run("./gradlew", "tanker-bindings:publish")
 
