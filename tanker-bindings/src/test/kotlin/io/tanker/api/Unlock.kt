@@ -86,7 +86,7 @@ class UnlockTests : TankerSpec() {
         }
 
         "Can check that the email unlock method is set-up" {
-            val email = "bob@wonderland.io"
+            val email = "bob@tanker.io"
 
             tanker1.start(identity).get()
             val verificationCode = tc.getVerificationCode(email)
@@ -98,7 +98,7 @@ class UnlockTests : TankerSpec() {
 
         "Can get the list of unlock methods that have been set-up" {
             val pass = "this is a password"
-            val email = "bob@wonderland.io"
+            val email = "bob@tanker.io"
 
             tanker1.start(identity).get()
             tanker1.registerIdentity(PassphraseVerification(pass)).get()
@@ -111,7 +111,7 @@ class UnlockTests : TankerSpec() {
         }
 
         "Can use setVerificationMethod to setup and update an unlock method" {
-            val email = "bob@wonderland.io"
+            val email = "bob@tanker.io"
             val oldpass = "this is an old password"
             val newpass = "this is a new password"
 
@@ -130,7 +130,7 @@ class UnlockTests : TankerSpec() {
         }
 
         "Can unlock with a verification code" {
-            val email = "bob@wonderland.io"
+            val email = "bob@tanker.io"
 
             tanker1.start(identity).get()
             var verificationCode = tc.getVerificationCode(email)
