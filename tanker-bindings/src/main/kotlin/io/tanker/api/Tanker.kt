@@ -17,6 +17,7 @@ class Tanker(tankerOptions: TankerOptions) {
         private const val TANKER_ANDROID_VERSION = "dev"
 
         internal val lib = TankerLib.create()
+
         @ProguardKeep
         private var logCallbackLifeSupport: LogHandlerCallback? = null
 
@@ -55,6 +56,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     private val tanker: Pointer
     private var deviceRevokedHandlers = mutableListOf<TankerDeviceRevokedHandler>()
+
     @ProguardKeep
     private var callbacksLifeSupport = mutableListOf<Any>()
 
@@ -238,6 +240,7 @@ class Tanker(tankerOptions: TankerOptions) {
                 listOf()
             } else {
                 val firstMethod = TankerVerificationMethod(methodListPtr.getPointer(0))
+
                 @Suppress("UNCHECKED_CAST")
                 val out = (firstMethod.toArray(count) as Array<TankerVerificationMethod>).map(::verificationMethodFromCVerification).toList()
                 lib.tanker_free_verification_method_list(methodListPtr)
@@ -360,9 +363,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A future that resolves when the share is complete.
      */
     fun share(resourceIDs: Array<String>, sharingOptions: SharingOptions): TankerFuture<Unit> {
-        val fut = lib.tanker_share(tanker, StringArray(sharingOptions.recipientPublicIdentities), sharingOptions.recipientPublicIdentities.size.toLong(),
-                StringArray(sharingOptions.recipientGids), sharingOptions.recipientGids.size.toLong(),
-                StringArray(resourceIDs), resourceIDs.size.toLong())
+        val fut = lib.tanker_share(tanker, StringArray(resourceIDs), resourceIDs.size.toLong(), sharingOptions)
         return TankerFuture(fut, Unit::class.java)
     }
 
@@ -420,9 +421,12 @@ class Tanker(tankerOptions: TankerOptions) {
      * with a reduced number of keys.
      */
     fun createEncryptionSession(sharingOptions: SharingOptions): TankerFuture<EncryptionSession> {
-        val fut = lib.tanker_encryption_session_open(tanker,
-                StringArray(sharingOptions.recipientPublicIdentities), sharingOptions.recipientPublicIdentities.size.toLong(),
-                StringArray(sharingOptions.recipientGids), sharingOptions.recipientGids.size.toLong())
+        val opts = EncryptionOptions()
+        opts.recipientPublicIdentities = sharingOptions.recipientPublicIdentities
+        opts.nbRecipientPublicIdentities = sharingOptions.nbRecipientPublicIdentities
+        opts.recipientGids = sharingOptions.recipientGids
+        opts.nbRecipientGids = sharingOptions.nbRecipientGids
+        val fut = lib.tanker_encryption_session_open(tanker, opts)
         return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
             it.getError()?.let { throw it }
             val csession = it.get()

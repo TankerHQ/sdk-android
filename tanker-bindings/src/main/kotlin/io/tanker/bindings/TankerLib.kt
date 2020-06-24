@@ -65,11 +65,13 @@ interface TankerLib : AsyncLib, Library {
 
     fun tanker_encrypt(session: SessionPointer, encrypted_data: Pointer,
                        data: Pointer, data_size: Long, encryption_options: EncryptionOptions?): FuturePointer
+
     fun tanker_decrypt(session: SessionPointer, decrypted_data: Pointer,
                        data: Pointer, data_size: Long): FuturePointer
-    fun tanker_share(session: SessionPointer, recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
-                     recipient_gids: StringArray, nbRecipientGids: Long,
-                     resource_ids: StringArray, nbResourceIds: Long): FuturePointer
+
+    fun tanker_share(session: SessionPointer,
+                     resource_ids: StringArray, nbResourceIds: Long,
+                     sharingOptions: SharingOptions): FuturePointer
 
     fun tanker_stream_encrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?, options: EncryptionOptions?): FuturePointer
     fun tanker_stream_decrypt(session: SessionPointer, cb: StreamInputSourceCallback, user_data: Pointer?): FuturePointer
@@ -78,14 +80,13 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_stream_get_resource_id(stream: StreamPointer): ExpectedPointer
     fun tanker_stream_close(stream: StreamPointer): FuturePointer
 
-    fun tanker_encryption_session_open(session: SessionPointer,
-                                       recipient_uids: StringArray, nbrecipientPublicIdentities: Long,
-                                       recipient_gids: StringArray, nbRecipientGids: Long): FuturePointer
+    fun tanker_encryption_session_open(session: SessionPointer, options: EncryptionOptions): FuturePointer
     fun tanker_encryption_session_close(encSess: EncryptionSessionPointer): FuturePointer
     fun tanker_encryption_session_encrypted_size(clear_size: Long): Long
     fun tanker_encryption_session_get_resource_id(encSess: EncryptionSessionPointer): ExpectedPointer
     fun tanker_encryption_session_encrypt(encSess: EncryptionSessionPointer, encrypted_data: Pointer,
                                           data: Pointer, data_size: Long): FuturePointer
+
     fun tanker_encryption_session_stream_encrypt(encSess: EncryptionSessionPointer,
                                                  cb: StreamInputSourceCallback,
                                                  user_data: Pointer?): FuturePointer

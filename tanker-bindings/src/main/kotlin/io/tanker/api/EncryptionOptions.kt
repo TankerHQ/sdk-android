@@ -13,11 +13,12 @@ import com.sun.jna.Structure
  */
 open class EncryptionOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
-    @JvmField var version: Byte = 2
+    @JvmField var version: Byte = 3
     @JvmField var recipientPublicIdentities = Pointer(0)
     @JvmField var nbRecipientPublicIdentities = 0
     @JvmField var recipientGids = Pointer(0)
     @JvmField var nbRecipientGids = 0
+    @JvmField var shareWithSelf = 1.toByte()
 
     /**
      * JNA does not support having a StringArray directly in a struct,
@@ -49,6 +50,6 @@ open class EncryptionOptions : Structure() {
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "recipientPublicIdentities", "nbRecipientPublicIdentities", "recipientGids", "nbRecipientGids")
+        return listOf("version", "recipientPublicIdentities", "nbRecipientPublicIdentities", "recipientGids", "nbRecipientGids", "shareWithSelf")
     }
 }
