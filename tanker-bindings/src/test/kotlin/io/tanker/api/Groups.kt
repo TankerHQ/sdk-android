@@ -39,7 +39,7 @@ class GroupTests : TankerSpec() {
             tankerBob.stop().get()
         }
 
-        "Can share to group" {
+        "Can share with group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.start(aliceId).get()
@@ -60,7 +60,7 @@ class GroupTests : TankerSpec() {
             tankerBob.stop().get()
         }
 
-        "Can encrypt-and-share to group" {
+        "Can encrypt-and-share with group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.start(aliceId).get()
@@ -81,7 +81,7 @@ class GroupTests : TankerSpec() {
             tankerBob.stop().get()
         }
 
-        "Can share to an external group" {
+        "Can share with an external group" {
             val aliceId = tc.createIdentity()
             val tankerAlice = Tanker(options)
             tankerAlice.start(aliceId).get()
