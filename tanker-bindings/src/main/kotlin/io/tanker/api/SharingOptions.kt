@@ -10,41 +10,41 @@ import com.sun.jna.Structure
 open class SharingOptions: Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField var version: Byte = 1
-    @JvmField var recipientPublicIdentities = Pointer(0)
-    @JvmField var nbRecipientPublicIdentities = 0
-    @JvmField var recipientGids = Pointer(0)
-    @JvmField var nbRecipientGids = 0
+    @JvmField var shareWithUsers = Pointer(0)
+    @JvmField var nbUsers = 0
+    @JvmField var shareWithGroups = Pointer(0)
+    @JvmField var nbGroups = 0
 
     /**
      * JNA does not support having a StringArray directly in a struct,
      * so we hide it in a private var and put a Pointer to it in the actual struct...
      */
-    private var recipientPublicIdentitiesArray: StringArray = StringArray(arrayOf<String>())
-    private var recipientGidsArray: StringArray = StringArray(arrayOf<String>())
+    private var shareWithUsersArray: StringArray = StringArray(arrayOf<String>())
+    private var shareWithGroupsArray: StringArray = StringArray(arrayOf<String>())
 
     /**
     * Sets the list of recipients User IDs
-    * @param recipientPublicIdentities A list of the recipients user IDs
+    * @param shareWithUsers A list of the recipients user IDs
     */
-    fun shareWithUsers(vararg recipientPublicIdentities: String): SharingOptions {
-        this.recipientPublicIdentitiesArray = StringArray(recipientPublicIdentities)
-        this.recipientPublicIdentities = recipientPublicIdentitiesArray
-        this.nbRecipientPublicIdentities = recipientPublicIdentities.size
+    fun shareWithUsers(vararg shareWithUsers: String): SharingOptions {
+        this.shareWithUsersArray = StringArray(shareWithUsers)
+        this.shareWithUsers = this.shareWithUsersArray
+        this.nbUsers = shareWithUsers.size
         return this
     }
 
     /**
      * Sets the list of recipients Group IDs
-     * @param recipientGids A list of the recipients group IDs
+     * @param shareWithGroups A list of the recipients group IDs
      */
-    fun shareWithGroups(vararg recipientGids: String): SharingOptions {
-        this.recipientGidsArray = StringArray(recipientGids)
-        this.recipientGids = recipientGidsArray
-        this.nbRecipientGids = recipientGids.size
+    fun shareWithGroups(vararg shareWithGroups: String): SharingOptions {
+        this.shareWithGroupsArray = StringArray(shareWithGroups)
+        this.shareWithGroups = this.shareWithGroupsArray
+        this.nbGroups = shareWithGroups.size
         return this
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "recipientPublicIdentities", "nbRecipientPublicIdentities", "recipientGids", "nbRecipientGids")
+        return listOf("version", "shareWithUsers", "nbUsers", "shareWithGroups", "nbGroups")
     }
 }

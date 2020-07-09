@@ -422,10 +422,10 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun createEncryptionSession(sharingOptions: SharingOptions): TankerFuture<EncryptionSession> {
         val opts = EncryptionOptions()
-        opts.recipientPublicIdentities = sharingOptions.recipientPublicIdentities
-        opts.nbRecipientPublicIdentities = sharingOptions.nbRecipientPublicIdentities
-        opts.recipientGids = sharingOptions.recipientGids
-        opts.nbRecipientGids = sharingOptions.nbRecipientGids
+        opts.shareWithUsers = sharingOptions.shareWithUsers
+        opts.nbUsers = sharingOptions.nbUsers
+        opts.shareWithGroups = sharingOptions.shareWithGroups
+        opts.nbGroups = sharingOptions.nbGroups
         val fut = lib.tanker_encryption_session_open(tanker, opts)
         return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
             it.getError()?.let { throw it }
