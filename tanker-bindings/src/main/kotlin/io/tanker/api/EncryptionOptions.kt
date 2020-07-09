@@ -49,6 +49,15 @@ open class EncryptionOptions : Structure() {
         return this
     }
 
+    /**
+     * Sets whether the user should be able to decrypt the data
+     * @param shareWithSelf false to discard the key after encryption
+     */
+    fun shareWithSelf(shareWithSelf: Boolean): EncryptionOptions {
+        this.shareWithSelf = if (shareWithSelf) 1 else 0
+        return this
+    }
+
     override fun getFieldOrder(): List<String> {
         return listOf("version", "shareWithUsers", "nbUsers", "shareWithGroups", "nbGroups", "shareWithSelf")
     }
