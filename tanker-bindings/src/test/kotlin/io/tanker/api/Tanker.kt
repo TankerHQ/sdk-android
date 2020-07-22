@@ -3,6 +3,7 @@ package io.tanker.api
 import io.kotlintest.*
 import io.kotlintest.matchers.haveLength
 import io.tanker.api.Tanker.Companion.prehashPassword
+import io.tanker.bindings.TankerError
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -85,6 +86,33 @@ class TankerTests : TankerSpec() {
             val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
             val shareOptions = SharingOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), shareOptions).get()
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+
+            tankerAlice.stop().get()
+            tankerBob.stop().get()
+        }
+
+        "can encrypt without sharing with self" {
+            val aliceId = tc.createIdentity()
+            val bobId = tc.createIdentity()
+
+            val tankerAlice = Tanker(options)
+            tankerAlice.start(aliceId).get()
+            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+            val tankerBob = Tanker(options)
+            tankerBob.start(bobId).get()
+            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+            val plaintext = "plain text"
+            val encryptionOptions = EncryptionOptions()
+                    .shareWithUsers(Identity.getPublicIdentity(bobId))
+                    .shareWithSelf(false)
+            val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptionOptions).get()
+
+            val ex = shouldThrow<TankerFutureException> { tankerAlice.decrypt(encrypted).get() }
+            (ex.cause as TankerException).errorCode shouldBe ErrorCode.INVALID_ARGUMENT
+
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
 
             tankerAlice.stop().get()

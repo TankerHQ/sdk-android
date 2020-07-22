@@ -416,17 +416,23 @@ class Tanker(tankerOptions: TankerOptions) {
         deviceRevokedHandlers.remove(handler)
     }
 
+    @Deprecated("Use createEncryptionSession(EncryptionOptions) instead")
+    fun createEncryptionSession(sharingOptions: SharingOptions): TankerFuture<EncryptionSession> {
+        val encryptionOptions = EncryptionOptions()
+        encryptionOptions.shareWithUsers = sharingOptions.shareWithUsers
+        encryptionOptions.nbUsers = sharingOptions.nbUsers
+        encryptionOptions.shareWithGroups = sharingOptions.shareWithGroups
+        encryptionOptions.nbGroups = sharingOptions.nbGroups
+
+        return createEncryptionSession(encryptionOptions)
+    }
+
     /**
      * Create an encryption session that will allow doing multiple encryption operations
      * with a reduced number of keys.
      */
-    fun createEncryptionSession(sharingOptions: SharingOptions): TankerFuture<EncryptionSession> {
-        val opts = EncryptionOptions()
-        opts.recipientPublicIdentities = sharingOptions.recipientPublicIdentities
-        opts.nbRecipientPublicIdentities = sharingOptions.nbRecipientPublicIdentities
-        opts.recipientGids = sharingOptions.recipientGids
-        opts.nbRecipientGids = sharingOptions.nbRecipientGids
-        val fut = lib.tanker_encryption_session_open(tanker, opts)
+    fun createEncryptionSession(encryptionOptions: EncryptionOptions): TankerFuture<EncryptionSession> {
+        val fut = lib.tanker_encryption_session_open(tanker, encryptionOptions)
         return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
             it.getError()?.let { throw it }
             val csession = it.get()
