@@ -5,27 +5,26 @@ import shutil
 from path import Path
 import cli_ui as ui
 
-import ci
-import ci.conan
-import ci.cpp
-import ci.git
-import ci.gcp
+import tankerci
+import tankerci.conan
+import tankerci.cpp
+import tankerci.git
+import tankerci.gcp
 
 
 def build(*, native_from_sources: bool) -> None:
     ui.info_1("build everything")
     if native_from_sources:
-        ci.run("./gradlew", "tanker-bindings:buildNativeRelease")
+        tankerci.run("./gradlew", "tanker-bindings:buildNativeRelease")
     else:
-        ci.run("./gradlew", "tanker-bindings:useDeployedNativeRelease")
-    ci.run("./gradlew", "tanker-bindings:assembleRelease")
+        tankerci.run("./gradlew", "tanker-bindings:useDeployedNativeRelease")
+    tankerci.run("./gradlew", "tanker-bindings:assembleRelease")
 
 
 def test() -> None:
     ui.info_1("Running tests")
-    ci.run(
-        "./gradlew",
-        "tanker-bindings:testRelease",
+    tankerci.run(
+        "./gradlew", "tanker-bindings:testRelease",
     )
 
 
@@ -36,31 +35,35 @@ def build_and_test(args) -> None:
     if args.use_tanker == "deployed":
         native_from_sources = False
     elif args.use_tanker == "same-as-branch":
-        workspace = ci.git.prepare_sources(repos=["sdk-native", "sdk-android"])
+        workspace = tankerci.git.prepare_sources(repos=["sdk-native", "sdk-android"])
         android_path = workspace / "sdk-android"
-        ci.conan.export(src_path=workspace / "sdk-native", ref_or_channel="tanker/dev")
+        tankerci.conan.export(
+            src_path=workspace / "sdk-native", ref_or_channel="tanker/dev"
+        )
         native_from_sources = True
     elif args.use_tanker == "local":
         native_from_sources = True
-        ci.conan.export(
+        tankerci.conan.export(
             src_path=Path.getcwd().parent / "sdk-native", ref_or_channel="tanker/dev"
         )
 
     with android_path:
         build(native_from_sources=native_from_sources)
         test()
-    Path(android_path / "tanker-bindings/build/reports/tests").copytree(cwd / "tests_report")
+    Path(android_path / "tanker-bindings/build/reports/tests").copytree(
+        cwd / "tests_report"
+    )
 
 
 def deploy(*, git_tag: str) -> None:
-    version = ci.version_from_git_tag(git_tag)
-    ci.bump_files(version)
+    version = tankerci.version_from_git_tag(git_tag)
+    tankerci.bump_files(version)
     build(native_from_sources=False)
     test()
 
     ui.info_1("Deploying SDK to https://storage.googleapis.com/maven.tanker.io")
-    ci.gcp.GcpProject("tanker-prod").auth()
-    ci.run("./gradlew", "tanker-bindings:publish")
+    tankerci.gcp.GcpProject("tanker-prod").auth()
+    tankerci.run("./gradlew", "tanker-bindings:publish")
 
 
 def main():
@@ -85,15 +88,15 @@ def main():
 
     args = parser.parse_args()
     if args.home_isolation:
-        ci.conan.set_home_isolation()
-        ci.conan.update_config()
+        tankerci.conan.set_home_isolation()
+        tankerci.conan.update_config()
 
     if args.command == "build-and-test":
         build_and_test(args)
     elif args.command == "deploy":
         deploy(git_tag=args.git_tag)
     elif args.command == "mirror":
-        ci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
+        tankerci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
     else:
         parser.print_help()
         sys.exit(1)
