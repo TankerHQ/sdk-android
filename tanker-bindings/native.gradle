@@ -34,6 +34,7 @@ class NativeHelper {
     static def conanInstall(tankerConanRef, installPath, profile) {
         installPath.mkdirs()
         runCmd("conan install $tankerConanRef " +
+                "--update " +
                 "--profile $profile " +
                 "--options tanker:tankerlib_shared=True " +
                 "--install-folder=$installPath ", installPath)
@@ -96,7 +97,7 @@ class BuildNative extends Builder {
     @TaskAction
     void compile() {
         def tankerConanRef = new File(this.conanPath, "conanfile-local.txt")
-        def tankerConanRefWithFlags = tankerConanRef.toString() + " --update --build=tanker"
+        def tankerConanRefWithFlags = tankerConanRef.toString() + " --build=tanker"
         if (buildFor == 'android' || buildFor == 'all')
             this.compileForAndroid(tankerConanRefWithFlags)
         if (buildFor == 'host' || buildFor == 'all')
