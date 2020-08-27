@@ -17,10 +17,15 @@ stages:
 
 check/deployed-native:
   extends: .testreports
-  when: manual
+  rules:
+    - if: $CI_COMMIT_TAG
+    # We can tag an alpha/beta version on a commit that is part of a MR
+    # This will trigger two pipelines, one linked to the MR, the job will be manual
+    # The other pipeline will run check/deployed-native automatically, and will also create the deploy job
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
   stage: check
-  except:
-    - tags
   script:
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed
   tags:
@@ -28,10 +33,12 @@ check/deployed-native:
 
 check/native-from-sources:
   extends: .testreports
-  when: manual
+  rules:
+    - if: $CI_COMMIT_TAG == null && $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+      allow_failure: true
+    - if: $CI_MERGE_REQUEST_ID == null && $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/)
   stage: check
-  except:
-    - tags
   script:
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
   tags:
@@ -39,8 +46,8 @@ check/native-from-sources:
 
 nightly:
   stage: check
-  only:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
   tags:
@@ -49,9 +56,9 @@ nightly:
 deploy:
   extends: .testreports
   stage: deploy
-  only:
-    - tags
-  when: manual
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_TAG
+      when: manual
   script:
     - poetry run python run-ci.py  --isolate-conan-user-home deploy --git-tag ${CI_COMMIT_TAG}
   tags:
@@ -61,14 +68,12 @@ mirror:
   tags:
     - linux
   stage: deploy
-  only:
-    # mirror public tags, releases branches
-    # feature branches, and master
-    - /\Av[0-9.]+\z/
-    - master
-    - /\Arelease/.*\z/
-    - /\Afeat\/.+\z/   # feat/ branches
-  except:
-    - schedules
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "push"
+      when: never
+    - if: $CI_COMMIT_REF_NAME =~ /\Av[0-9.]+\z/
+    - if: $CI_COMMIT_REF_NAME =~ /\Arelease\/.*\z/
+    - if: $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/
+    - if: $CI_COMMIT_REF_NAME == "master"
   script:
     - poetry run python run-ci.py mirror
