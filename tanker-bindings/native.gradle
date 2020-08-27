@@ -119,6 +119,20 @@ class UseDeployedNative extends Builder {
     }
 }
 
+class UseUpstreamNative extends Builder {
+
+    @Inject UseUpstreamNative(String buildType) {
+        super(buildType)
+    }
+
+    @TaskAction
+    void compile() {
+        def tankerConanRef = new File(this.conanPath, "conanfile-local.txt")
+        this.compileForAndroid(tankerConanRef.toString())
+        this.compileForHost(tankerConanRef.toString())
+    }
+}
+
 // If we didn't already fetch or build Native libs, we need to build them now
 class RequireNativeLibs extends DefaultTask {
     @Inject RequireNativeLibs(String buildType, String buildFor) {
@@ -151,6 +165,7 @@ task buildNativeHostDebug(type: BuildNative, constructorArgs: ['Debug', 'host'])
 task buildNativeRelease(type: BuildNative, constructorArgs: ['Release', 'all'])
 task useDeployedNativeDebug(type: UseDeployedNative, constructorArgs: ['Debug'])
 task useDeployedNativeRelease(type: UseDeployedNative, constructorArgs: ['Release'])
+task useUpstreamNativeRelease(type: UseUpstreamNative, constructorArgs: ['Release'])
 
 // Setup regular tasks to depend on Native
 tasks.whenTaskAdded { task ->
