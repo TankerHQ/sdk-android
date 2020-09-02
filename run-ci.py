@@ -1,6 +1,5 @@
 import argparse
 import sys
-import shutil
 
 from path import Path
 import cli_ui as ui
@@ -68,7 +67,7 @@ def build_and_test(args) -> None:
 def deploy(*, git_tag: str) -> None:
     version = tankerci.version_from_git_tag(git_tag)
     tankerci.bump_files(version)
-    build(native_from_sources=False)
+    build(use_tanker="deployed")
     test()
 
     ui.info_1("Deploying SDK to https://storage.googleapis.com/maven.tanker.io")
@@ -96,7 +95,9 @@ def main():
 
     check_parser = subparsers.add_parser("build-and-test")
     check_parser.add_argument(
-        "--use-tanker", choices=["local", "deployed", "same-as-branch", "upstream"], default="local"
+        "--use-tanker",
+        choices=["local", "deployed", "same-as-branch", "upstream"],
+        default="local",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
