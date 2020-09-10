@@ -1,7 +1,8 @@
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-before_script:
+default:
+  before_script: &global_before_script
   - poetry install
   - export PATH=$(poetry env info -p)/bin:$PATH
 
@@ -9,85 +10,186 @@ stages:
   - check
   - deploy
 
+##########
+# Stages #
+##########
+
+.check:
+  stage: check
+  tags:
+    - linux
+
+.deploy:
+  stage: deploy
+  tags:
+    - linux
+
+#############################
+# Default settings override #
+#############################
+
+.before-script/download-artifacts:
+  before_script:
+    - *global_before_script
+    - poetry run python run-ci.py reset-branch $UPSTREAM_BRANCH_NAME
+    - poetry run python run-ci.py download-artifacts --project-id=$UPSTREAM_PROJECT_ID --pipeline-id=$UPSTREAM_PIPELINE_ID --job-name=$UPSTREAM_JOB_NAME
+
+##############
+# Conditions #
+##############
+
+.if-valid-android-release-version: &if-valid-android-release-version
+    if: $SDK_ANDROID_RELEASE_VERSION =~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
+
+.if-invalid-android-release-version: &if-invalid-android-release-version
+    if: $SDK_ANDROID_RELEASE_VERSION !~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
+
+.if-invalid-native-conan-reference: &if-invalid-native-conan-reference
+    if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/[0-9.]+(-[a-z]+[0-9]+)?@([a-z]+\/[a-z]+)?\z/
+
+.if-upstream-release-deploy-stage: &if-upstream-release-deploy-stage
+    if: $CI_PIPELINE_SOURCE == "pipeline" && $UPSTREAM_BRIDGE_STAGE == "deploy"
+
+.if-invalid-web-release: &if-invalid-web-release
+    if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
+
+.if-merge-result: &if-merge-result
+    if: $CI_MERGE_REQUEST_ID == null && $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/)
+
+.if-upstream-ci-pipeline: &if-upstream-ci-pipeline
+    if: $CI_PIPELINE_SOURCE == "pipeline" && $UPSTREAM_BRIDGE_STAGE != "deploy"
+
+.if-web-pipeline: &if-web-pipeline
+    if: $CI_PIPELINE_SOURCE == "web"
+
+.if-mr-pipeline: &if-mr-pipeline
+    if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+.if-schedule-pipeline: &if-schedule-pipeline
+    if: $CI_PIPELINE_SOURCE == "schedule"
+
+.if-not-push-pipeline: &if-not-push-pipeline
+    if: $CI_PIPELINE_SOURCE != "push"
+
+.if-ref-master: &if-ref-master
+    if: $CI_COMMIT_REF_NAME == "master"
+
+.if-release-tag: &if-release-tag
+    if: $CI_COMMIT_REF_NAME =~ /\Av[0-9.]+\z/
+
+.if-release-branch: &if-release-branch
+    if: $CI_COMMIT_REF_NAME =~ /\Arelease\/.*\z/
+
+.if-feature-branch: &if-feature-branch
+    if: $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/
+
+##################
+# Workflow rules #
+##################
+
+workflow:
+  rules:
+    # web pipelines for releases only
+    - <<: *if-invalid-web-release
+      when: never
+    - <<: *if-invalid-native-conan-reference
+      when: never
+    # allow everything else
+    - when: always
+
+#########
+# Rules #
+#########
+
+.rules/deployed-native:
+  rules:
+    - <<: *if-web-pipeline
+    - <<: *if-mr-pipeline
+      when: manual
+      allow_failure: true
+
+.rules/native-from-sources:
+  rules:
+    - <<: *if-mr-pipeline
+      when: manual
+      allow_failure: true
+    - <<: *if-merge-result
+    - <<: *if-schedule-pipeline
+
+.rules/check/downstream:
+  rules:
+    - <<: *if-upstream-ci-pipeline
+
+.rules/deploy:
+  rules:
+    - <<: *if-invalid-native-conan-reference
+      when: never
+    - <<: *if-invalid-android-release-version
+      when: never
+    - <<: *if-web-pipeline
+      when: manual
+    - <<: *if-upstream-release-deploy-stage
+
+.rules/mirror:
+  rules:
+    - <<: *if-not-push-pipeline
+      when: never
+    - <<: *if-ref-master
+    - <<: *if-release-tag
+    - <<: *if-release-branch
+    - <<: *if-feature-branch
+
 .testreports:
   artifacts:
     paths:
       - tests_report
     expire_in: 1 month
 
+###############
+# check stage #
+###############
+
 check/deployed-native:
-  extends: .testreports
-  rules:
-    - if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/[0-9.]+(-[a-z]+[0-9]+)?@([a-z]+\/[a-z]+)?\z/
-      when: never
-    - if: $CI_COMMIT_TAG
-    # We can tag an alpha/beta version on a commit that is part of a MR
-    # This will trigger two pipelines, one linked to the MR, the job will be manual
-    # The other pipeline will run check/deployed-native automatically, and will also create the deploy job
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
-      allow_failure: true
-  stage: check
+  extends:
+    - .check
+    - .testreports
+    - .rules/deployed-native
   script:
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed
-  tags:
-    - linux
 
 check/native-from-sources:
-  extends: .testreports
-  rules:
-    - if: $CI_COMMIT_TAG == null && $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
-      allow_failure: true
-    - if: $CI_MERGE_REQUEST_ID == null && $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/)
-  stage: check
+  extends:
+    - .check
+    - .testreports
+    - .rules/native-from-sources
   script:
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
-  tags:
-    - linux
 
 check/downstream:
-  stage: check
-  tags:
-    - linux
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "pipeline"
+  extends:
+    - .check
+    - .before-script/download-artifacts
+    - .rules/check/downstream
   script:
-    - poetry run python run-ci.py reset-branch $UPSTREAM_BRANCH_NAME
-    - poetry run python run-ci.py download-artifacts --project-id=$UPSTREAM_PROJECT_ID --pipeline-id=$UPSTREAM_PIPELINE_ID --job-name=$UPSTREAM_JOB_NAME
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
 
-
-nightly:
-  stage: check
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  script:
-    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
-  tags:
-    - linux
+################
+# deploy stage #
+################
 
 deploy:
-  extends: .testreports
-  stage: deploy
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_TAG
-      when: manual
+  extends:
+    - .deploy
+    - .rules/deploy
   script:
-    - poetry run python run-ci.py  --isolate-conan-user-home deploy --git-tag ${CI_COMMIT_TAG}
-  tags:
-    - linux
+    - poetry run python run-ci.py --isolate-conan-user-home deploy --version $SDK_ANDROID_RELEASE_VERSION
+  release:
+    description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
+    tag_name: v$SDK_ANDROID_RELEASE_VERSION
 
 mirror:
-  tags:
-    - linux
-  stage: deploy
-  rules:
-    - if: $CI_PIPELINE_SOURCE != "push"
-      when: never
-    - if: $CI_COMMIT_REF_NAME =~ /\Av[0-9.]+\z/
-    - if: $CI_COMMIT_REF_NAME =~ /\Arelease\/.*\z/
-    - if: $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/
-    - if: $CI_COMMIT_REF_NAME == "master"
+  extends:
+    - .deploy
+    - .rules/mirror
   script:
     - poetry run python run-ci.py mirror
