@@ -86,8 +86,7 @@ def build_and_test(args) -> None:
     )
 
 
-def deploy(*, git_tag: str) -> None:
-    version = tankerci.version_from_git_tag(git_tag)
+def deploy(*, version: str) -> None:
     tankerci.bump_files(version)
     conan_reference = os.environ["SDK_NATIVE_LATEST_CONAN_REFERENCE"]
     generate_conanfile(Path.getcwd(), conan_reference)
@@ -125,7 +124,7 @@ def main():
     )
 
     deploy_parser = subparsers.add_parser("deploy")
-    deploy_parser.add_argument("--git-tag", required=True)
+    deploy_parser.add_argument("--version", required=True)
 
     subparsers.add_parser("mirror")
 
@@ -137,7 +136,7 @@ def main():
     if args.command == "build-and-test":
         build_and_test(args)
     elif args.command == "deploy":
-        deploy(git_tag=args.git_tag)
+        deploy(version=args.version)
     elif args.command == "reset-branch":
         fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
