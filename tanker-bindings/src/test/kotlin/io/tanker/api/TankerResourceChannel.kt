@@ -102,7 +102,7 @@ class API26StreamChannelTests : TankerSpec() {
         tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
         st shouldBe Status.IDENTITY_REGISTRATION_NEEDED
-        tanker.registerIdentity(PassphraseVerification("")).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
     }
 
     override fun afterTest(testCase: TestCase, result: TestResult) {

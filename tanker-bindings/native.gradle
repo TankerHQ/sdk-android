@@ -161,6 +161,7 @@ class RequireNativeLibs extends DefaultTask {
 
 task buildNativeDebug(type: BuildNative, constructorArgs: ['Debug', 'all'])
 task buildNativeHostDebug(type: BuildNative, constructorArgs: ['Debug', 'host'])
+task buildNativeHostRelease(type: BuildNative, constructorArgs: ['Release', 'host'])
 task buildNativeRelease(type: BuildNative, constructorArgs: ['Release', 'all'])
 task useDeployedNativeDebug(type: UseDeployedNative, constructorArgs: ['Debug'])
 task useDeployedNativeRelease(type: UseDeployedNative, constructorArgs: ['Release'])
