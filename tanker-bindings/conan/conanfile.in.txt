@@ -1,5 +1,5 @@
 [requires]
-tanker/2.6.1@tanker/stable
+@SDK_NATIVE_REFERENCE@
 
 [imports]
 lib, *tanker*.so -> .

@@ -18,6 +18,8 @@ stages:
 check/deployed-native:
   extends: .testreports
   rules:
+    - if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/[0-9.]+(-[a-z]+[0-9]+)?@([a-z]+\/[a-z]+)?\z/
+      when: never
     - if: $CI_COMMIT_TAG
     # We can tag an alpha/beta version on a commit that is part of a MR
     # This will trigger two pipelines, one linked to the MR, the job will be manual
