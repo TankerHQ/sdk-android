@@ -1,5 +1,5 @@
 [requires]
-tanker/2.5.1@tanker/stable
+tanker/2.6.0-beta1@tanker/stable
 
 [imports]
 lib, *tanker*.so -> .
