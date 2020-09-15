@@ -139,8 +139,10 @@ def main():
     elif args.command == "deploy":
         deploy(git_tag=args.git_tag)
     elif args.command == "reset-branch":
+        fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
-            Path.getcwd(), [f"origin/{args.branch}", "origin/master"]
+            Path.getcwd(),
+            [f"origin/{args.branch}", f"origin/{fallback}"]
         )
         tankerci.git.reset(Path.getcwd(), ref)
     elif args.command == "download-artifacts":
