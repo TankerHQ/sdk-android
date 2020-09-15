@@ -1,5 +1,0 @@
-[requires]
-@SDK_NATIVE_REFERENCE@
-
-[imports]
-lib, *tanker*.so -> .
