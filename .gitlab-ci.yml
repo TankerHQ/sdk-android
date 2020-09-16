@@ -47,14 +47,8 @@ stages:
 .if-invalid-native-conan-reference: &if-invalid-native-conan-reference
     if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/[0-9.]+(-[a-z]+[0-9]+)?@([a-z]+\/[a-z]+)?\z/
 
-.if-upstream-release-check-stage: &if-upstream-release-check-stage
-    # UPSTREAM_BRIDGE_STAGE is needed to avoid triggering this job twice when releasing sdk-native
-    # it should be run only before deploying sdk-native
-    # i.e. after manual deploy job is launched
-    if: $CI_PIPELINE_SOURCE == "pipeline" && $SDK_ANDROID_RELEASE_VERSION =~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/ && $UPSTREAM_BRIDGE_STAGE != "deploy"
-
 .if-upstream-release-deploy-stage: &if-upstream-release-deploy-stage
-    if: $CI_PIPELINE_SOURCE == "pipeline" && $SDK_ANDROID_RELEASE_VERSION =~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/ && $UPSTREAM_BRIDGE_STAGE == "deploy"
+    if: $CI_PIPELINE_SOURCE == "pipeline" && $UPSTREAM_BRIDGE_STAGE == "deploy"
 
 .if-invalid-web-release: &if-invalid-web-release
     if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
@@ -63,7 +57,7 @@ stages:
     if: $CI_MERGE_REQUEST_ID == null && $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/)
 
 .if-upstream-ci-pipeline: &if-upstream-ci-pipeline
-    if: $CI_PIPELINE_SOURCE == "pipeline" && $SDK_ANDROID_RELEASE_VERSION == null
+    if: $CI_PIPELINE_SOURCE == "pipeline" && $UPSTREAM_BRIDGE_STAGE != "deploy"
 
 .if-web-pipeline: &if-web-pipeline
     if: $CI_PIPELINE_SOURCE == "web"
@@ -98,6 +92,8 @@ workflow:
     # web pipelines for releases only
     - <<: *if-invalid-web-release
       when: never
+    - <<: *if-invalid-native-conan-reference
+      when: never
     # allow everything else
     - when: always
 
@@ -107,8 +103,6 @@ workflow:
 
 .rules/deployed-native:
   rules:
-    - <<: *if-invalid-native-conan-reference
-      when: never
     - <<: *if-web-pipeline
     - <<: *if-mr-pipeline
       when: manual
@@ -124,10 +118,6 @@ workflow:
 .rules/check/downstream:
   rules:
     - <<: *if-upstream-ci-pipeline
-
-.rules/check/downstream/release:
-  rules:
-    - <<: *if-upstream-release-check-stage
 
 .rules/nightly:
   rules:
@@ -186,14 +176,6 @@ check/downstream:
   script:
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
 
-check/downstream/release:
-  extends:
-    - .check
-    - .before-script/download-artifacts
-    - .rules/check/downstream/release
-  script:
-    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
-
 nightly:
   extends:
     - .check
@@ -215,7 +197,7 @@ deploy:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
     tag_name: v$SDK_ANDROID_RELEASE_VERSION
 
-Nirror:
+mirror:
   extends:
     - .deploy
     - .rules/mirror
