@@ -39,19 +39,19 @@ stages:
 ##############
 
 .if-valid-android-release-version: &if-valid-android-release-version
-    if: $SDK_ANDROID_RELEASE_VERSION =~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
+    if: $SDK_ANDROID_RELEASE_VERSION =~ /\A([0-9]+)\.([0-9]+)\.([0-9]+)(-(alpha|beta)[0-9]+)?\z/
 
 .if-invalid-android-release-version: &if-invalid-android-release-version
-    if: $SDK_ANDROID_RELEASE_VERSION !~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
+    if: $SDK_ANDROID_RELEASE_VERSION !~ /\A([0-9]+)\.([0-9]+)\.([0-9]+)(-(alpha|beta)[0-9]+)?\z/
 
 .if-invalid-native-conan-reference: &if-invalid-native-conan-reference
-    if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/[0-9.]+(-[a-z]+[0-9]+)?@([a-z]+\/[a-z]+)?\z/
+    if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/([0-9]+)\.([0-9]+)\.([0-9]+)+(-(alpha|beta)+[0-9]+)?@([a-z]+\/[a-z]+)?\z/
 
 .if-upstream-release-deploy-stage: &if-upstream-release-deploy-stage
     if: $CI_PIPELINE_SOURCE == "pipeline" && $UPSTREAM_BRIDGE_STAGE == "deploy"
 
 .if-invalid-web-release: &if-invalid-web-release
-    if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A[0-9.]+(-[a-z]+[0-9]+)?\z/
+    if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A([0-9]+)\.([0-9]+)\.([0-9]+)(-(alpha|beta)[0-9]+)?\z/
 
 .if-merge-result: &if-merge-result
     if: $CI_MERGE_REQUEST_ID == null && $CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_REF_NAME =~ /\Afeat\/.+\z/)
