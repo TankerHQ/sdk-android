@@ -293,7 +293,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = lib.tanker_stream_encrypt(tanker, cb, null, options)
         return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
-            TankerStream(it, cb)
+            TankerResourceChannel(it, cb)
         })
     }
 
@@ -305,7 +305,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = lib.tanker_stream_decrypt(tanker, cb, null)
         return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
-            TankerStream(it, cb)
+            TankerResourceChannel(it, cb)
         })
     }
 
@@ -353,7 +353,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return The resource ID of the encrypted data (base64 encoded).
      */
     fun getResourceID(channel: TankerAsynchronousByteChannel): String {
-        return (channel as TankerStream).resourceID
+        return (channel as TankerResourceChannel).resourceID
     }
 
     /**
