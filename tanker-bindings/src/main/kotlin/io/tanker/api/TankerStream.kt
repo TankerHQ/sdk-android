@@ -30,6 +30,7 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
     override fun close() {
         if (cStream == null)
             return
+        underlyingStream.close()
         TankerFuture<Unit>(Tanker.lib.tanker_stream_close(cStream!!), Unit::class.java).get()
         pendingReadOperation = false
         cStream = null
@@ -46,7 +47,7 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
             handler.failed(ClosedChannelException(), attachment)
             return
         }
-        
+
         val offset = buffer.position()
         val size = buffer.remaining()
         var inBuf: Pointer? = null
@@ -59,14 +60,12 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
             pendingReadOperation = false
             val err = it.getError()
             if (err != null) {
-                if (underlyingStream.streamError != null) {
+                if ((err as TankerException).errorCode == ErrorCode.OPERATION_CANCELED) {
+                    handler.failed(ClosedChannelException(), attachment)
+                } else if (underlyingStream.streamError != null) {
                     handler.failed(underlyingStream.streamError!!, attachment)
                 } else {
-                    if ((err as TankerException).errorCode == ErrorCode.OPERATION_CANCELED) {
-                        handler.failed(ClosedChannelException(), attachment)
-                    } else {
-                        handler.failed(err, attachment)
-                    }
+                    handler.failed(err, attachment)
                 }
             } else {
                 var nbRead = it.get()
