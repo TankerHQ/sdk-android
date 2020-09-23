@@ -7,7 +7,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
 
-internal class TankerStream constructor(private var cStream: StreamPointer?, private val cb: TankerStreamInputSourceCallback) : TankerAsynchronousByteChannel {
+internal class TankerStream constructor(private var cStream: StreamPointer?, private val underlyingStream: TankerStreamInputSourceCallback) : TankerAsynchronousByteChannel {
 
     val resourceID = initResourceID()
     private var pendingReadOperation = false
@@ -57,8 +57,8 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
                 pendingReadOperation = false
                 val err = it.getError()
                 if (err != null) {
-                    if (cb.streamError != null) {
-                        handler.failed(cb.streamError!!, attachment)
+                    if (underlyingStream.streamError != null) {
+                        handler.failed(underlyingStream.streamError!!, attachment)
                     } else {
                         if ((err as TankerException).errorCode == ErrorCode.OPERATION_CANCELED) {
                             handler.failed(ClosedChannelException(), attachment)
