@@ -37,7 +37,7 @@ class EncryptionSession(private val csess: Pointer) {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = Tanker.lib.tanker_encryption_session_stream_encrypt(csess, cb, null)
         return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
-            TankerResourceChannel(it, cb)
+            TankerStream(it, cb)
         })
     }
 
