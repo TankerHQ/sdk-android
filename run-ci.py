@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 from path import Path
@@ -10,6 +11,22 @@ import tankerci.cpp
 import tankerci.git
 import tankerci.gcp
 import tankerci.gitlab
+
+
+def generate_conanfile(android_path: Path, conan_reference: str) -> None:
+    in_path = android_path / "tanker-bindings" / "conan" / "conanfile.in.txt"
+    out_path = in_path.parent / "conanfile.txt"
+    contents = in_path.text()
+    contents = contents.replace("@SDK_NATIVE_REFERENCE@", conan_reference)
+    out_path.write_text(contents)
+    ui.info_2("Generated", out_path)
+
+
+def retrieve_conan_reference(*, recipe_dir: Path) -> str:
+    recipe_info = tankerci.conan.inspect(recipe_dir)
+    name = recipe_info["name"]
+    version = recipe_info["version"]
+    return f"{name}/{version}@"
 
 
 def build(*, use_tanker: str) -> None:
@@ -36,11 +53,15 @@ def build_and_test(args) -> None:
     if args.use_tanker == "same-as-branch":
         workspace = tankerci.git.prepare_sources(repos=["sdk-native", "sdk-android"])
         android_path = workspace / "sdk-android"
-        tankerci.conan.export(
-            src_path=workspace / "sdk-native", ref_or_channel="tanker/dev@"
-        )
+        recipe_dir = workspace / "sdk-native"
+        tankerci.conan.export(src_path=recipe_dir)
+        conan_reference = retrieve_conan_reference(recipe_dir=recipe_dir)
+    elif args.use_tanker == "deployed":
+        conan_reference = os.environ["SDK_NATIVE_LATEST_CONAN_REFERENCE"]
     elif args.use_tanker == "upstream":
-        artifacts_path = Path.getcwd() / "package"
+        artifacts_path = cwd / "package"
+        recipe_dir = artifacts_path
+        conan_reference = retrieve_conan_reference(recipe_dir=recipe_dir)
         profiles = [d.basename() for d in artifacts_path.dirs()]
         for profile in profiles:
             package_folder = artifacts_path / profile
@@ -52,10 +73,11 @@ def build_and_test(args) -> None:
                 package_folder=package_folder,
             )
     elif args.use_tanker == "local":
-        tankerci.conan.export(
-            src_path=Path.getcwd().parent / "sdk-native", ref_or_channel="tanker/dev@"
-        )
+        recipe_dir = cwd.parent / "sdk-native"
+        conan_reference = retrieve_conan_reference(recipe_dir=recipe_dir)
+        tankerci.conan.export(src_path=recipe_dir)
 
+    generate_conanfile(android_path, conan_reference)
     with android_path:
         build(use_tanker=args.use_tanker)
         test()
@@ -64,9 +86,10 @@ def build_and_test(args) -> None:
     )
 
 
-def deploy(*, git_tag: str) -> None:
-    version = tankerci.version_from_git_tag(git_tag)
+def deploy(*, version: str) -> None:
     tankerci.bump_files(version)
+    conan_reference = os.environ["SDK_NATIVE_LATEST_CONAN_REFERENCE"]
+    generate_conanfile(Path.getcwd(), conan_reference)
     build(use_tanker="deployed")
     test()
 
@@ -101,7 +124,7 @@ def main():
     )
 
     deploy_parser = subparsers.add_parser("deploy")
-    deploy_parser.add_argument("--git-tag", required=True)
+    deploy_parser.add_argument("--version", required=True)
 
     subparsers.add_parser("mirror")
 
@@ -113,10 +136,12 @@ def main():
     if args.command == "build-and-test":
         build_and_test(args)
     elif args.command == "deploy":
-        deploy(git_tag=args.git_tag)
+        deploy(version=args.version)
     elif args.command == "reset-branch":
+        fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
-            Path.getcwd(), [f"origin/{args.branch}", "origin/master"]
+            Path.getcwd(),
+            [f"origin/{args.branch}", f"origin/{fallback}"]
         )
         tankerci.git.reset(Path.getcwd(), ref)
     elif args.command == "download-artifacts":

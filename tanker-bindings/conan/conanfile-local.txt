@@ -1,5 +1,0 @@
-[requires]
-tanker/dev
-
-[imports]
-lib, *tanker*.so -> .

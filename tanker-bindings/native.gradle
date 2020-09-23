@@ -95,7 +95,7 @@ class BuildNative extends Builder {
 
     @TaskAction
     void compile() {
-        def tankerConanRef = new File(this.conanPath, "conanfile-local.txt")
+        def tankerConanRef = new File(this.conanPath, "conanfile.txt")
         def tankerConanRefWithFlags = tankerConanRef.toString() + " --build=tanker"
         if (buildFor == 'android' || buildFor == 'all')
             this.compileForAndroid(tankerConanRefWithFlags)
@@ -105,14 +105,13 @@ class BuildNative extends Builder {
 }
 
 class UseDeployedNative extends Builder {
-
     @Inject UseDeployedNative(String buildType) {
         super(buildType)
     }
 
     @TaskAction
     void compile() {
-        def tankerConanRef = new File(this.conanPath, "conanfile-deployed.txt")
+        def tankerConanRef = new File(this.conanPath, "conanfile.txt")
         this.compileForAndroid(tankerConanRef.toString())
         this.compileForHost(tankerConanRef.toString())
     }
@@ -126,7 +125,7 @@ class UseUpstreamNative extends Builder {
 
     @TaskAction
     void compile() {
-        def tankerConanRef = new File(this.conanPath, "conanfile-local.txt")
+        def tankerConanRef = new File(this.conanPath, "conanfile.txt")
         this.compileForAndroid(tankerConanRef.toString())
         this.compileForHost(tankerConanRef.toString())
     }
