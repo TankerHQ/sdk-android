@@ -42,48 +42,49 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
     }
 
     private fun <A : Any?> readTankerInput(buffer: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
+        if (cStream == null) {
+            handler.failed(ClosedChannelException(), attachment)
+            return
+        }
+        
         val offset = buffer.position()
         val size = buffer.remaining()
-        if (cStream == null)
-            handler.failed(ClosedChannelException(), attachment)
-        else {
-            var inBuf: Pointer? = null
-            // handle special 0 case, which will trigger a buffering operation
-            if (size != 0)
-                inBuf = Memory(size.toLong())
+        var inBuf: Pointer? = null
+        // handle special 0 case, which will trigger a buffering operation
+        if (size != 0)
+            inBuf = Memory(size.toLong())
 
-            pendingReadOperation = true
-            TankerFuture<Int>(Tanker.lib.tanker_stream_read(cStream!!, inBuf, size.toLong()), Int::class.java).then(TankerVoidCallback {
-                pendingReadOperation = false
-                val err = it.getError()
-                if (err != null) {
-                    if (underlyingStream.streamError != null) {
-                        handler.failed(underlyingStream.streamError!!, attachment)
-                    } else {
-                        if ((err as TankerException).errorCode == ErrorCode.OPERATION_CANCELED) {
-                            handler.failed(ClosedChannelException(), attachment)
-                        } else {
-                            handler.failed(err, attachment)
-                        }
-                    }
+        pendingReadOperation = true
+        TankerFuture<Int>(Tanker.lib.tanker_stream_read(cStream!!, inBuf, size.toLong()), Int::class.java).then(TankerVoidCallback {
+            pendingReadOperation = false
+            val err = it.getError()
+            if (err != null) {
+                if (underlyingStream.streamError != null) {
+                    handler.failed(underlyingStream.streamError!!, attachment)
                 } else {
-                    var nbRead = it.get()
-                    if (inBuf == null) {
-                        handler.completed(nbRead, attachment)
+                    if ((err as TankerException).errorCode == ErrorCode.OPERATION_CANCELED) {
+                        handler.failed(ClosedChannelException(), attachment)
                     } else {
-                        if (buffer.hasArray()) {
-                            inBuf.read(0, buffer.array(), offset, nbRead)
-                        } else {
-                            val b = inBuf.getByteBuffer(0, nbRead.toLong())
-                            buffer.put(b)
-                        }
-                        if (nbRead == 0) {
-                            nbRead = -1
-                        }
-                        handler.completed(nbRead, attachment)
+                        handler.failed(err, attachment)
                     }
                 }
-            })
-        }
+            } else {
+                var nbRead = it.get()
+                if (inBuf == null) {
+                    handler.completed(nbRead, attachment)
+                } else {
+                    if (buffer.hasArray()) {
+                        inBuf.read(0, buffer.array(), offset, nbRead)
+                    } else {
+                        val b = inBuf.getByteBuffer(0, nbRead.toLong())
+                        buffer.put(b)
+                    }
+                    if (nbRead == 0) {
+                        nbRead = -1
+                    }
+                    handler.completed(nbRead, attachment)
+                }
+            }
+        })
     }
 }
