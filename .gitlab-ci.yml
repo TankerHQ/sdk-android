@@ -32,6 +32,7 @@ stages:
   before_script:
     - *global_before_script
     - poetry run python run-ci.py reset-branch $UPSTREAM_BRANCH_NAME
+    - poetry install
     - poetry run python run-ci.py download-artifacts --project-id=$UPSTREAM_PROJECT_ID --pipeline-id=$UPSTREAM_PIPELINE_ID --job-name=$UPSTREAM_JOB_NAME
 
 ##############
