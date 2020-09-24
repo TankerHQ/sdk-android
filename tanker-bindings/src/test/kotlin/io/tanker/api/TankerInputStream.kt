@@ -55,19 +55,49 @@ class InputStreamTests : TankerSpec() {
             shouldThrow<IOException> { encryptionStream.read(array, 0, 0) shouldBe 0 }
         }
 
-        "Reading a byte" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
-            decryptionStream.read() shouldBe 0
-        }
-
-        "Reading into a whole ByteArray" {
+        "Encrypting/Decrypting a small buffer" {
             val channel = TankerChannels.fromInputStream(array.inputStream())
             val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
             val b = ByteArray(10) { 1 }
             decryptionStream.read(b) shouldBe 10
-            b shouldBe array
             decryptionStream.read() shouldBe -1
+            b shouldBe array
+        }
+
+        "Encrypting/Decrypting a big buffer" {
+            // a chunk is 1MB, make multiple chunks
+            val totalLength = 4 * 1024 * 1024
+            array = ByteArray(totalLength) { it.toByte() }
+
+            val channel = TankerChannels.fromInputStream(array.inputStream())
+            val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+            val b = ByteArray(totalLength)
+            var pos = 0
+            while (pos < totalLength) {
+                val read = decryptionStream.read(b, pos, totalLength - pos)
+                pos += read
+            }
+            // we should be at the end of the buffer
+            decryptionStream.read() shouldBe -1
+
+            b shouldBe array
+        }
+
+        "Canceling a read should not crash" {
+            // a chunk is 1MB, make multiple chunks
+            val totalLength = 4 * 1024 * 1024
+            array = ByteArray(totalLength) { it.toByte() }
+
+            val channel = TankerChannels.fromInputStream(array.inputStream())
+            val encryptionStream = tanker.encrypt(channel).get()
+            val b = ByteBuffer.allocate(totalLength)
+            encryptionStream.read(b, Unit, object : TankerCompletionHandler<Int, Unit> {
+                override fun completed(result: Int, attachment: Unit) {
+                }
+                override fun failed(exc: Throwable, attachment: Unit) {
+                }
+            })
+            encryptionStream.close()
         }
 
         "Reading 0 bytes should do nothing" {

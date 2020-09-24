@@ -24,10 +24,8 @@ internal class TankerAsynchronousByteChannelWrapper(internal val streamChannel: 
                     handler.failed(exc, attachment)
                 }
             })
-        } catch (exc: Throwable) {
-            if (exc is TankerPendingReadException)
-                throw ReadPendingException()
-            throw exc
+        } catch (_: TankerPendingReadException) {
+            throw ReadPendingException()
         }
     }
 
