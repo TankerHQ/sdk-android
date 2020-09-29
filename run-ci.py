@@ -1,10 +1,9 @@
+from typing import List, Optional  # noqa
+
 import argparse
 import os
 import sys
 
-from typing import List  # noqa
-
-from enum import Enum
 from path import Path
 import cli_ui as ui
 
@@ -16,7 +15,6 @@ import tankerci.git
 import tankerci.gcp
 import tankerci.gitlab
 
-LOCAL_TANKER = "tanker/dev@"
 
 PROFILES = [
     "gcc8-release-shared",
@@ -27,7 +25,9 @@ PROFILES = [
 ]
 
 
-def prepare(tanker_source: TankerSource, update: bool) -> None:
+def prepare(
+    tanker_source: TankerSource, update: bool, tanker_ref: Optional[str]
+) -> None:
     artifact_path = Path.getcwd() / "package"
     if tanker_source == TankerSource.UPSTREAM:
         profiles = [d.basename() for d in artifact_path.dirs()]
@@ -38,6 +38,7 @@ def prepare(tanker_source: TankerSource, update: bool) -> None:
         output_path=Path("tanker-bindings/conan"),
         profiles=profiles,
         update=update,
+        tanker_deployed_ref=tanker_ref,
     )
 
 
@@ -53,15 +54,17 @@ def test() -> None:
     )
 
 
-def build_and_test(args) -> None:
-    prepare(args.tanker_source, False)
+def build_and_test(
+    tanker_source: TankerSource, tanker_ref: Optional[str] = None
+) -> None:
+    prepare(tanker_source, False, tanker_ref)
     build()
     test()
 
 
 def deploy(*, version: str) -> None:
     tankerci.bump_files(version)
-    prepare(TankerSource.DEPLOYED, False)
+    prepare(TankerSource.DEPLOYED, False, None)
     build()
     test()
 
@@ -78,6 +81,7 @@ def main():
         dest="home_isolation",
         default=False,
     )
+
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
     reset_branch_parser = subparsers.add_parser("reset-branch")
@@ -88,28 +92,29 @@ def main():
     download_artifacts_parser.add_argument("--pipeline-id", required=True)
     download_artifacts_parser.add_argument("--job-name", required=True)
 
-    check_parser = subparsers.add_parser("build-and-test")
-    check_parser.add_argument(
+    build_and_test_parser = subparsers.add_parser("build-and-test")
+    build_and_test_parser.add_argument(
         "--use-tanker",
-        type=TankerSource,
-        default=TankerSource.EDITABLE,
+        type=tankerci.conan.TankerSource,
+        default=tankerci.conan.TankerSource.EDITABLE,
         dest="tanker_source",
     )
+    build_and_test_parser.add_argument("--tanker-ref")
 
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
         "--use-tanker",
-        type=TankerSource,
-        default=TankerSource.EDITABLE,
+        type=tankerci.conan.TankerSource,
+        default=tankerci.conan.TankerSource.EDITABLE,
         dest="tanker_source",
     )
+    prepare_parser.add_argument("--tanker-ref")
     prepare_parser.add_argument(
         "--update", action="store_true", default=False, dest="update",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
     deploy_parser.add_argument("--version", required=True)
-
     subparsers.add_parser("mirror")
 
     args = parser.parse_args()
@@ -118,13 +123,15 @@ def main():
         tankerci.conan.update_config()
 
     if args.command == "build-and-test":
-        build_and_test(args)
-    elif args.command == "prepare":
-        prepare(
-            args.tanker_source, args.update,
+        build_and_test(
+            tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
         )
+    elif args.command == "prepare":
+        prepare(args.tanker_source, args.update, args.tanker_ref)
     elif args.command == "deploy":
         deploy(version=args.version)
+    elif args.command == "mirror":
+        tankerci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
     elif args.command == "reset-branch":
         fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
@@ -137,11 +144,9 @@ def main():
             pipeline_id=args.pipeline_id,
             job_name=args.job_name,
         )
-    elif args.command == "mirror":
-        tankerci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
     else:
         parser.print_help()
-        sys.exit(1)
+        sys.exit()
 
 
 if __name__ == "__main__":
