@@ -13,7 +13,7 @@ check/deployed-native:
     - .testreports
     - .rules/deployed-native
   script:
-    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed
+    - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
 
 check/native-from-sources:
   extends:
@@ -40,7 +40,7 @@ deploy:
     - .deploy
     - .rules/deploy/android
   script:
-    - poetry run python run-ci.py --isolate-conan-user-home deploy --version $SDK_ANDROID_RELEASE_VERSION
+    - poetry run python run-ci.py --isolate-conan-user-home deploy --version $SDK_ANDROID_RELEASE_VERSION --tanker-ref $SDK_NATIVE_LATEST_CONAN_REFERENCE
   release:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
     tag_name: v$SDK_ANDROID_RELEASE_VERSION
