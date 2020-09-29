@@ -640,7 +640,7 @@ tbump = "^6.0.5"
 tomlkit = "^0.5.8"
 
 [package.source]
-reference = "cab19c925ce69f5ddb677792b887e862bf24eb2b"
+reference = "3b6dd70e8ba6ecd172a0de4508b552606bdf312a"
 type = "git"
 url = "git@gitlab.com:TankerHQ/ci"
 [[package]]
