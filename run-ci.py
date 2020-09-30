@@ -22,7 +22,7 @@ PROFILES = [
 
 
 def prepare(
-    tanker_source: TankerSource, update: bool, tanker_deployed_ref: Optional[str]
+    tanker_source: TankerSource, update: bool, tanker_ref: Optional[str]
 ) -> None:
     artifact_path = Path.getcwd() / "package"
     if tanker_source == TankerSource.UPSTREAM:
@@ -34,7 +34,7 @@ def prepare(
         output_path=Path("tanker-bindings/conan"),
         profiles=profiles,
         update=update,
-        tanker_deployed_ref=tanker_deployed_ref,
+        tanker_ref=tanker_ref,
     )
 
 
@@ -51,9 +51,9 @@ def test() -> None:
 
 
 def build_and_test(
-    tanker_source: TankerSource, tanker_deployed_ref: Optional[str] = None
+    tanker_source: TankerSource, tanker_ref: Optional[str] = None
 ) -> None:
-    prepare(tanker_source, False, tanker_deployed_ref)
+    prepare(tanker_source, False, tanker_ref)
     build()
     test()
 
@@ -79,10 +79,10 @@ def main():
     if args.command == "build-and-test":
         build_and_test(
             tanker_source=args.tanker_source,
-            tanker_deployed_ref=args.tanker_deployed_ref,
+            tanker_ref=args.tanker_ref,
         )
     elif args.command == "prepare":
-        prepare(args.tanker_source, args.update, args.tanker_deployed_ref)
+        prepare(args.tanker_source, args.update, args.tanker_ref)
     elif args.command == "deploy":
         deploy(version=args.version)
     elif args.command == "mirror":
