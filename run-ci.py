@@ -124,27 +124,35 @@ def main():
     subparsers.add_parser("mirror")
 
     args = parser.parse_args()
+    command = args.command
+
     if args.home_isolation:
         tankerci.conan.set_home_isolation()
         tankerci.conan.update_config()
+        if command in ("build-and-test", "deploy"):
+            # Because of GitLab issue https://gitlab.com/gitlab-org/gitlab/-/issues/254323
+            # the downstream deploy jobs will be triggered even if upstream has failed
+            # By removing the cache we ensure that we do not use a
+            # previously built (and potentially broken) release candidate to deploy a binding
+            tankerci.conan.run("remove", "*", "--force")
 
-    if args.command == "build-and-test":
+    if command == "build-and-test":
         build_and_test(
             tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
         )
-    elif args.command == "prepare":
+    elif command == "prepare":
         prepare(args.tanker_source, args.update, args.tanker_ref)
-    elif args.command == "deploy":
+    elif command == "deploy":
         deploy(version=args.version, tanker_ref=args.tanker_ref)
-    elif args.command == "mirror":
+    elif command == "mirror":
         tankerci.git.mirror(github_url="git@github.com:TankerHQ/sdk-android")
-    elif args.command == "reset-branch":
+    elif command == "reset-branch":
         fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
             Path.getcwd(), [f"origin/{args.branch}", f"origin/{fallback}"]
         )
         tankerci.git.reset(Path.getcwd(), ref)
-    elif args.command == "download-artifacts":
+    elif command == "download-artifacts":
         tankerci.gitlab.download_artifacts(
             project_id=args.project_id,
             pipeline_id=args.pipeline_id,
