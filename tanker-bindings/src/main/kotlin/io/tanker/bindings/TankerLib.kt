@@ -36,6 +36,7 @@ interface TankerLib : AsyncLib, Library {
     }
 
     fun tanker_init(): Void
+    fun tanker_shutdown(): Void
     fun tanker_version_string(): String
     fun tanker_create(options: TankerOptions): FuturePointer
     fun tanker_destroy(tanker: SessionPointer): FuturePointer
@@ -97,8 +98,6 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_free_buffer(buffer: Pointer): Void
     fun tanker_free_device_list(list: Pointer): Void
     fun tanker_free_verification_method_list(list: Pointer): Void
-
-    fun tanker_leak_statics(): Void
 
     fun tanker_prehash_password(password: String): ExpectedPointer
 }
