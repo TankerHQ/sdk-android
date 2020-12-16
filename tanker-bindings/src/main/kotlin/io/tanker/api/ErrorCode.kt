@@ -23,4 +23,5 @@ enum class ErrorCode(val value: Int) {
     DEVICE_REVOKED(12),
 
     CONFLICT(13),
+    UPGRADE_REQUIRED(14),
 }
