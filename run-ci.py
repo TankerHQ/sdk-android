@@ -2,9 +2,9 @@ from typing import List, Optional  # noqa
 
 import argparse
 import os
+from pathlib import Path
 import sys
 
-from path import Path
 import cli_ui as ui
 
 import tankerci
@@ -26,14 +26,15 @@ PROFILES = [
 
 LATEST_STABLE_REF = "tanker/latest-stable@"
 
+
 def prepare(
     tanker_source: TankerSource, update: bool, tanker_ref: Optional[str]
 ) -> None:
-    artifact_path = Path.getcwd() / "package"
+    artifact_path = Path.cwd() / "package"
     tanker_deployed_ref = tanker_ref
 
     if tanker_source == TankerSource.UPSTREAM:
-        profiles = [d.basename() for d in artifact_path.dirs()]
+        profiles = [d.name for d in artifact_path.iterdir() if d.is_dir()]
     else:
         profiles = PROFILES
     if tanker_source == TankerSource.DEPLOYED and not tanker_deployed_ref:
@@ -149,9 +150,9 @@ def main():
     elif command == "reset-branch":
         fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
-            Path.getcwd(), [f"origin/{args.branch}", f"origin/{fallback}"]
+            Path.cwd(), [f"origin/{args.branch}", f"origin/{fallback}"]
         )
-        tankerci.git.reset(Path.getcwd(), ref)
+        tankerci.git.reset(Path.cwd(), ref)
     elif command == "download-artifacts":
         tankerci.gitlab.download_artifacts(
             project_id=args.project_id,
