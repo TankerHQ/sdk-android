@@ -62,8 +62,7 @@ class GroupTests : TankerSpec() {
     }
 
     @Test
-    fun can_encrypt_and_share_with_group()
-    {
+    fun can_encrypt_and_share_with_group() {
         val aliceId = tc.createIdentity()
         val tankerAlice = Tanker(options)
         tankerAlice.start(aliceId).get()
@@ -129,6 +128,52 @@ class GroupTests : TankerSpec() {
 
         tankerAlice.stop().get()
         tankerBob.stop().get()
+    }
+
+    @Test
+    fun can_remove_a_member_from_a_group() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = "Two's company, three's a crowd"
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
+
+        tankerAlice.updateGroupMembers(groupId, usersToAdd = arrayOf(), usersToRemove = arrayOf(Identity.getPublicIdentity(bobId))).get()
+
+        val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
+        val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
+
+        val e = shouldThrow<TankerFutureException> {
+            tankerBob.decrypt(encrypted).get()
+        }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
+
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+    }
+
+    @Test
+    fun cant_update_a_group_without_modification() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = "Two's company, three's a crowd"
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
+
+        val e = shouldThrow<TankerFutureException> {
+            tankerAlice.updateGroupMembers(groupId, usersToAdd = arrayOf(), usersToRemove = arrayOf()).get()
+        }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
+
+        tankerAlice.stop().get()
     }
 
     @Test
