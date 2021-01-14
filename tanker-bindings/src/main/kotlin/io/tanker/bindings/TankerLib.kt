@@ -102,7 +102,9 @@ interface TankerLib : AsyncLib, Library {
                                                  user_data: Pointer?): FuturePointer
 
     fun tanker_create_group(tanker: SessionPointer, member_uids: StringArray, nbMembers: Long): FuturePointer
-    fun tanker_update_group_members(tanker: SessionPointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer
+    fun tanker_update_group_members(tanker: SessionPointer, group_id: String,
+                                    users_to_add: StringArray, nb_users_to_add: Long,
+                                    users_to_remove: StringArray, nb_users_to_remove: Long): FuturePointer
 
     fun tanker_http_handle_response(request: TankerHttpRequestPointer, response: TankerHttpResponse)
 
