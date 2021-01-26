@@ -207,6 +207,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Revoke a device by device id.
      */
+    @Deprecated("The deviceRevoked method is deprecated, it will be removed in the future")
     fun revokeDevice(deviceId: String): TankerFuture<Unit> {
         return TankerFuture(lib.tanker_revoke_device(tanker, deviceId), Unit::class.java)
     }
@@ -395,6 +396,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @param eventCallback The function to call when the event happens.
      * @return A connection, which can be passed to disconnectEvent.
      */
+    @Deprecated("The deviceRevoked event is deprecated, it will be removed in the future")
     fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler) {
         deviceRevokedHandlers.add(eventCallback)
     }
