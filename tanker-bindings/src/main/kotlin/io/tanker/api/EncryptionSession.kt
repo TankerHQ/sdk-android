@@ -18,7 +18,7 @@ class EncryptionSession(private val csess: Pointer) {
      * Encrypt data with the session, that can be decrypted with Tanker.decrypt
      */
     fun encrypt(data: ByteArray): TankerFuture<ByteArray> {
-        val inBuf = Memory(data.size.toLong())
+        val inBuf = Memory(data.size.toLong().coerceAtLeast(1))
         inBuf.write(0, data, 0, data.size)
 
         val encryptedSize = lib.tanker_encryption_session_encrypted_size(data.size.toLong())
