@@ -32,6 +32,14 @@ class EncryptionSessionTests : TankerSpec() {
             System.gc() // Try to have HotSpot close the session before the test ends
         }
 
+        "Can encrypt an empty string with an encryption session" {
+            val plaintext = ""
+            val shareOpt = EncryptionOptions()
+            val sess = tankerAlice.createEncryptionSession(shareOpt).get()
+            val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+            String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
+        }
+
         "Can share with Bob using an encryption session" {
             val plaintext = "La Pléiade"
             val shareOpt = SharingOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
