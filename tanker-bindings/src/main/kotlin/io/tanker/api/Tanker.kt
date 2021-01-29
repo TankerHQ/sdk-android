@@ -276,7 +276,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A future that resolves when the data has been encrypted and shared.
      */
     fun encrypt(data: ByteArray, options: EncryptionOptions?): TankerFuture<ByteArray> {
-        val inBuf = Memory(data.size.toLong())
+        val inBuf = Memory(data.size.toLong().coerceAtLeast(1))
         inBuf.write(0, data, 0, data.size)
 
         val encryptedSize = lib.tanker_encrypted_size(data.size.toLong())
@@ -313,7 +313,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A future that resolves when the data has been decrypted.
      */
     fun decrypt(data: ByteArray): TankerFuture<ByteArray> {
-        val inBuf = Memory(data.size.toLong())
+        val inBuf = Memory(data.size.toLong().coerceAtLeast(1))
         inBuf.write(0, data, 0, data.size)
 
         val plainSizeFut = TankerFuture<Pointer>(lib.tanker_decrypted_size(inBuf, data.size.toLong()), Pointer::class.java)
@@ -323,7 +323,7 @@ class Tanker(tankerOptions: TankerOptions) {
             return plainSizeFut.transmute(ByteArray::class.java)
         }
 
-        val outBuf = Memory(plainSize)
+        val outBuf = Memory(plainSize.coerceAtLeast(1))
         val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong())
         return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
             outBuf.getByteArray(0, plainSize.toInt())
