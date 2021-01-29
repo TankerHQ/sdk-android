@@ -40,6 +40,19 @@ class TankerTests : TankerSpec() {
             tanker.stop().get()
         }
 
+        "Can encrypt an empty buffer" {
+            val tanker = Tanker(options)
+            val identity = tc.createIdentity()
+            tanker.start(identity).get()
+            tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+            val plaintext = ""
+            val decrypted = tanker.decrypt(tanker.encrypt(plaintext.toByteArray()).get()).get()
+            String(decrypted) shouldBe plaintext
+
+            tanker.stop().get()
+        }
+
         "Can encrypt and decrypt back" {
             val tanker = Tanker(options)
             val identity = tc.createIdentity()
