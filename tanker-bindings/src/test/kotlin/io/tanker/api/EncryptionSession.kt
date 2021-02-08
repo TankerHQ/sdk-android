@@ -34,8 +34,7 @@ class EncryptionSessionTests : TankerSpec() {
 
         "Can encrypt an empty string with an encryption session" {
             val plaintext = ""
-            val shareOpt = EncryptionOptions()
-            val sess = tankerAlice.createEncryptionSession(shareOpt).get()
+            val sess = tankerAlice.createEncryptionSession(null).get()
             val encrypted = sess.encrypt(plaintext.toByteArray()).get()
             String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
         }
@@ -44,6 +43,14 @@ class EncryptionSessionTests : TankerSpec() {
             val plaintext = "La Pléiade"
             val shareOpt = SharingOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
             val sess = tankerAlice.createEncryptionSession(shareOpt).get()
+            val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+        }
+
+        "Can share with Bob using an encryption session (non-deprecated API)" {
+            val plaintext = "La Pléiade"
+            val encOpt = EncryptionOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+            val sess = tankerAlice.createEncryptionSession(encOpt).get()
             val encrypted = sess.encrypt(plaintext.toByteArray()).get()
             String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
         }
