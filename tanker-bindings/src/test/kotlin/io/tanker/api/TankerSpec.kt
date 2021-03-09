@@ -1,26 +1,36 @@
 package io.tanker.api
 
-import io.kotlintest.Spec
-import io.kotlintest.TestCaseConfig
-import io.kotlintest.seconds
-import io.kotlintest.specs.StringSpec
+import org.junit.AfterClass
+import org.junit.BeforeClass
+import org.junit.Rule
+import org.junit.rules.Timeout
 
-abstract class TankerSpec : StringSpec() {
-    protected val options = TankerOptions()
-    override val defaultTestCaseConfig = TestCaseConfig(timeout = 30.seconds)
-    lateinit var tc: App
+abstract class TankerSpec {
+    companion object {
+        @JvmStatic
+        protected val options = TankerOptions()
+        @JvmStatic
+        lateinit var tc: App
 
+        @BeforeClass
+        @JvmStatic
+        fun beforeSpec() {
+            tc = App()
+            options.setTrustchainId(tc.id())
+                    .setUrl(tc.url)
+                    .setWritablePath(createTmpDir().toString())
+                    .setSdkType("test")
+            setupTestEnv()
+        }
 
-    override fun beforeSpec(spec: Spec) {
-        tc = App()
-        options.setTrustchainId(tc.id())
-                .setUrl(tc.url)
-                .setWritablePath(createTmpDir().toString())
-                .setSdkType("test")
-        setupTestEnv()
+        @AfterClass
+        @JvmStatic
+        fun afterSpec() {
+            tc.delete()
+        }
     }
 
-    override fun afterSpec(spec: Spec) {
-        tc.delete()
-    }
+    @Rule
+    @JvmField
+    val timeout: Timeout = Timeout.seconds(10)
 }

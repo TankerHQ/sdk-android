@@ -7,7 +7,7 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -22,6 +22,6 @@ public class TankerTest {
         Context appContext = InstrumentationRegistry.getTargetContext();
 
         String tankerVersion = Tanker.getVersionString();
-        assertTrue(tankerVersion.contains("."));
+        assertThat(tankerVersion.length()).isGreaterThan(0);
     }
 }

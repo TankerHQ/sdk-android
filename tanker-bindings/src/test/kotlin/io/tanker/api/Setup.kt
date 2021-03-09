@@ -1,5 +1,7 @@
 package io.tanker.api
 
+import android.system.Os.setenv
+import androidx.test.platform.app.InstrumentationRegistry
 import io.tanker.admin.Admin
 import io.tanker.admin.TankerApp
 import java.io.FileNotFoundException
@@ -63,6 +65,16 @@ class Config {
     }
 
     init {
+        try {
+            val arguments = InstrumentationRegistry.getArguments()
+            for (key in arguments.keySet())
+                if (key.startsWith("TANKER_"))
+                    System.setProperty(key, arguments.getString(key))
+            // ignore these error, we're probably not running on android
+        } catch (_: NoClassDefFoundError) {
+        } catch (_: IllegalStateException) {
+        }
+
         instance = ConfigData(
                 idToken = safeGetEnv("TANKER_ID_TOKEN"),
                 url = safeGetEnv("TANKER_TRUSTCHAIND_URL"),

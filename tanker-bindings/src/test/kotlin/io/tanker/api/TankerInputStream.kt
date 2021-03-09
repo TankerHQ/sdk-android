@@ -1,9 +1,9 @@
 package io.tanker.api
 
-import io.kotlintest.TestCase
-import io.kotlintest.TestResult
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldThrow
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 import java.io.IOException
 import java.nio.ByteBuffer
 
@@ -12,126 +12,140 @@ class InputStreamTests : TankerSpec() {
     lateinit var array: ByteArray
     lateinit var buffer: ByteBuffer
 
-    override fun beforeTest(testCase: TestCase) {
+    @Before
+    fun beforeTest() {
         tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
-        st shouldBe Status.IDENTITY_REGISTRATION_NEEDED
+        assertThat(st).isEqualTo(Status.IDENTITY_REGISTRATION_NEEDED)
         tanker.registerIdentity(PassphraseVerification("pass")).get()
         array = ByteArray(10)
         buffer = ByteBuffer.allocate(10)
     }
 
-    override fun afterTest(testCase: TestCase, result: TestResult) {
-        super.afterTest(testCase, result)
+    @After
+    fun afterTest() {
         tanker.stop().get()
     }
 
-    init {
-        "Attempting to decrypt a non encrypted stream throws" {
-            val clear = "clear"
-            val clearChannel = TankerChannels.fromInputStream(clear.byteInputStream())
-            shouldThrow<TankerFutureException> { tanker.decrypt(clearChannel).get() }
+    @Test
+    fun attempting_to_decrypt_a_non_encrypted_stream_throws() {
+        val clear = "clear"
+        val clearChannel = TankerChannels.fromInputStream(clear.byteInputStream())
+        shouldThrow<TankerFutureException> { tanker.decrypt(clearChannel).get() }
+    }
+
+    @Test
+    fun attempting_to_encrypt_a_closed_stream_throws() {
+        val file = createTempFile()
+        val channel = TankerChannels.fromInputStream(file.inputStream())
+        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
+        channel.close()
+        shouldThrow<IOException> { encryptionStream.read() }
+    }
+
+    @Test
+    fun attempting_to_decrypt_a_closed_stream_throws() {
+        val channel = InputStreamWrapper(array.inputStream())
+        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
+        encryptionStream.close()
+        shouldThrow<TankerFutureException> { tanker.decrypt(TankerChannels.fromInputStream(encryptionStream)).get() }
+    }
+
+    @Test
+    fun reading_0_bytes_from_a_closed_stream_throws() {
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
+        encryptionStream.close()
+        shouldThrow<IOException> { encryptionStream.read(array, 0, 0) }
+    }
+
+    @Test
+    fun encrypting_decrypting_a_small_buffer()
+    {
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+        val b = ByteArray(10) { 1 }
+        assertThat(decryptionStream.read(b)).isEqualTo(10)
+        assertThat(decryptionStream.read()).isEqualTo(-1)
+        assertThat(b).isEqualTo(array)
+    }
+
+    @Test
+    fun encrypting_decrypting_a_big_buffer()
+    {
+        // a chunk is 1MB, make multiple chunks
+        val totalLength = 4 * 1024 * 1024
+        array = ByteArray(totalLength) { it.toByte() }
+
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+        val b = ByteArray(totalLength)
+        var pos = 0
+        while (pos < totalLength) {
+            val read = decryptionStream.read(b, pos, totalLength - pos)
+            pos += read
         }
+        // we should be at the end of the buffer
+        assertThat(decryptionStream.read()).isEqualTo(-1)
 
-        "Attempting to encrypt a closed stream throws" {
-            val file = createTempFile()
-            val channel = TankerChannels.fromInputStream(file.inputStream())
-            val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-            channel.close()
-            shouldThrow<IOException> { encryptionStream.read() }
-        }
+        assertThat(b).isEqualTo(array)
+    }
 
-        "Attempting to decrypt a closed stream throws" {
-            val channel = InputStreamWrapper(array.inputStream())
-            val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-            encryptionStream.close()
-            shouldThrow<TankerFutureException> { tanker.decrypt(TankerChannels.fromInputStream(encryptionStream)).get() }
-        }
+    @Test
+    fun canceling_a_read_should_not_crash() {
+        // a chunk is 1MB, make multiple chunks
+        val totalLength = 4 * 1024 * 1024
+        array = ByteArray(totalLength) { it.toByte() }
 
-        "Reading 0 bytes from a closed stream throws" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-            encryptionStream.close()
-            shouldThrow<IOException> { encryptionStream.read(array, 0, 0) shouldBe 0 }
-        }
-
-        "Encrypting/Decrypting a small buffer" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
-            val b = ByteArray(10) { 1 }
-            decryptionStream.read(b) shouldBe 10
-            decryptionStream.read() shouldBe -1
-            b shouldBe array
-        }
-
-        "Encrypting/Decrypting a big buffer" {
-            // a chunk is 1MB, make multiple chunks
-            val totalLength = 4 * 1024 * 1024
-            array = ByteArray(totalLength) { it.toByte() }
-
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
-            val b = ByteArray(totalLength)
-            var pos = 0
-            while (pos < totalLength) {
-                val read = decryptionStream.read(b, pos, totalLength - pos)
-                pos += read
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val encryptionStream = tanker.encrypt(channel).get()
+        val b = ByteBuffer.allocate(totalLength)
+        encryptionStream.read(b, Unit, object : TankerCompletionHandler<Int, Unit> {
+            override fun completed(result: Int, attachment: Unit) {
             }
-            // we should be at the end of the buffer
-            decryptionStream.read() shouldBe -1
 
-            b shouldBe array
-        }
+            override fun failed(exc: Throwable, attachment: Unit) {
+            }
+        })
+        encryptionStream.close()
+    }
 
-        "Canceling a read should not crash" {
-            // a chunk is 1MB, make multiple chunks
-            val totalLength = 4 * 1024 * 1024
-            array = ByteArray(totalLength) { it.toByte() }
+    @Test
+    fun reading_0_bytes_should_do_nothing() {
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
+        val b = ByteArray(10) { 1 }
+        assertThat(encryptionStream.read(b, 0, 0)).isEqualTo(0)
+        assertThat(b.all { it == 1.toByte() }).isEqualTo(true)
 
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val encryptionStream = tanker.encrypt(channel).get()
-            val b = ByteBuffer.allocate(totalLength)
-            encryptionStream.read(b, Unit, object : TankerCompletionHandler<Int, Unit> {
-                override fun completed(result: Int, attachment: Unit) {
-                }
-                override fun failed(exc: Throwable, attachment: Unit) {
-                }
-            })
-            encryptionStream.close()
-        }
+        val empty = ByteArray(0)
+        assertThat(encryptionStream.read(empty)).isEqualTo(0)
+        assertThat(empty.size).isEqualTo(0)
+    }
 
-        "Reading 0 bytes should do nothing" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-            val b = ByteArray(10) { 1 }
-            encryptionStream.read(b, 0, 0) shouldBe 0
-            b.all { it == 1.toByte() } shouldBe true
+    @Test
+    fun giving_negative_values_to_read_throws() {
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
+        shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, -1, 1) }
+        shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, 0, -1) }
+    }
 
-            val empty = ByteArray(0)
-            encryptionStream.read(empty) shouldBe 0
-            empty.size shouldBe 0
-        }
+    @Test
+    fun giving_a_length_larger_than_buffer_size_minus_offset_throws()
+    {
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
+        shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, 9, 10) }
+    }
 
-        "Giving negative values to read throws" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-            shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, -1, 1) }
-            shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, 0, -1) }
-        }
-
-        "Giving a length larger than buffer size - offset throws" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-            shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, 9, 10) }
-        }
-
-        "Reading into a ByteArray twice" {
-            val channel = TankerChannels.fromInputStream(array.inputStream())
-            val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
-            val b = ByteArray(10) { 1 }
-            decryptionStream.read(b, 0, 5) shouldBe 5
-            decryptionStream.read(b, 5, 5) shouldBe 5
-            b shouldBe array
-        }
+    @Test
+    fun reading_into_a_ByteArray_twice() {
+        val channel = TankerChannels.fromInputStream(array.inputStream())
+        val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+        val b = ByteArray(10) { 1 }
+        assertThat(decryptionStream.read(b, 0, 5)).isEqualTo(5)
+        assertThat(decryptionStream.read(b, 5, 5)).isEqualTo(5)
+        assertThat(b).isEqualTo(array)
     }
 }

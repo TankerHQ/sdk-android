@@ -146,10 +146,15 @@ dependencies {
     api 'net.java.dev.jna:jna:5.4.0@aar'
     implementation 'com.android.support:support-compat:28.0.0'
     implementation 'com.android.support:support-annotations:28.0.0'
-    testImplementation 'io.kotlintest:kotlintest-core:3.4.2'
-    testImplementation 'io.kotlintest:kotlintest-runner-junit5:3.4.2'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.7.1")
+    testImplementation "androidx.test:runner:1.3.0"
+    testImplementation "androidx.test:core:1.3.0"
+    testImplementation "androidx.test.ext:junit:1.1.2"
+    testImplementation "androidx.test:rules:1.3.0"
+    // assertj 3.0 is not compatible with API level < 26
+    testImplementation "org.assertj:assertj-core:2.9.1"
+    
     testImplementation 'com.fasterxml.jackson.module:jackson-module-kotlin:2.10.0.pr3'
     testImplementation 'com.squareup.okhttp3:okhttp:3.11.0'
     testImplementation 'org.slf4j:slf4j-nop:1.7.28'
