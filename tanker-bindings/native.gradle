@@ -72,7 +72,7 @@ class Builder extends DefaultTask {
     }
 
     void compileForHost() {
-        def conanOutputPath = new File(this.conanPath, "gcc8-${this.buildType}-shared")
+        def conanOutputPath = new File(this.conanPath, "linux-${this.buildType}-shared")
         def conanHostPath = new File(this.conanPath, 'host')
         conanHostPath.mkdirs()
         def tankerDepInfos = NativeHelper.getTankerDepInfos(conanOutputPath)

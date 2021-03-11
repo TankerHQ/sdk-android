@@ -17,7 +17,7 @@ import tankerci.gitlab
 
 
 PROFILES = [
-    "gcc8-release-shared",
+    "linux-release-shared",
     "android-x86-release",
     "android-x86_64-release",
     "android-armv7-release",
