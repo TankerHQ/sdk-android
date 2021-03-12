@@ -1,6 +1,6 @@
 package io.tanker.api
 
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import java.io.InputStream
 import java.nio.channels.AsynchronousByteChannel
 
