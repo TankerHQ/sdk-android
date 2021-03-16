@@ -14,6 +14,7 @@ import tankerci.cpp
 import tankerci.git
 import tankerci.gcp
 import tankerci.gitlab
+import tankerci.android
 
 
 PROFILES = [
@@ -53,11 +54,27 @@ def build() -> None:
     tankerci.run("./gradlew", "tanker-bindings:assembleRelease")
 
 
+def dump_logcat_for_failed_tests():
+    try:
+        dump_path = "tanker-bindings/build/reports/androidTests/connected/flavors/releaseAndroidTest/logcat.txt"
+        android.dump_logcat(dump_path)
+        ui.info("Tests have failed, logcat dumped to", dump_path)
+    except Exception as e:
+        ui.error("Failed to dump logcat:", e)
+
+
 def test() -> None:
     ui.info_1("Running tests")
     tankerci.run(
-        "./gradlew", "tanker-bindings:testRelease",
+        "./gradlew",
+        "tanker-bindings:testRelease",
     )
+    with tankerci.android.emulator():
+        try:
+            tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
+        except:
+            dump_logcat_for_failed_tests()
+            raise
 
 
 def build_and_test(
@@ -105,7 +122,9 @@ def main():
         default=tankerci.conan.TankerSource.EDITABLE,
         dest="tanker_source",
     )
-    build_and_test_parser.add_argument("--tanker-ref",)
+    build_and_test_parser.add_argument(
+        "--tanker-ref",
+    )
 
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
@@ -116,7 +135,10 @@ def main():
     )
     prepare_parser.add_argument("--tanker-ref")
     prepare_parser.add_argument(
-        "--update", action="store_true", default=False, dest="update",
+        "--update",
+        action="store_true",
+        default=False,
+        dest="update",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
@@ -139,7 +161,8 @@ def main():
 
     if command == "build-and-test":
         build_and_test(
-            tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
+            tanker_source=args.tanker_source,
+            tanker_ref=args.tanker_ref,
         )
     elif command == "prepare":
         prepare(args.tanker_source, args.update, args.tanker_ref)
