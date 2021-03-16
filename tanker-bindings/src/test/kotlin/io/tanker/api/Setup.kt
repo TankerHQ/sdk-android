@@ -9,7 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-data class ConfigData(val idToken: String, val url: String, val adminUrl: String)
+data class ConfigData(val idToken: String, val url: String, val trustchaindUrl: String, val adminUrl: String)
 
 data class ConfigOIDC(
         val clientId: String,
@@ -41,6 +41,12 @@ class Config {
             if (instance == null)
                 Config()
             return instance!!.url
+        }
+
+        fun getTrustchaindUrl(): String {
+            if (instance == null)
+                Config()
+            return instance!!.trustchaindUrl
         }
 
         fun getAdminUrl(): String {
@@ -77,7 +83,8 @@ class Config {
 
         instance = ConfigData(
                 idToken = safeGetEnv("TANKER_ID_TOKEN"),
-                url = safeGetEnv("TANKER_TRUSTCHAIND_URL"),
+                url = safeGetEnv("TANKER_APPD_URL"),
+                trustchaindUrl = safeGetEnv("TANKER_TRUSTCHAIND_URL"),
                 adminUrl = safeGetEnv("TANKER_ADMIND_URL")
         )
         instanceOIDC = ConfigOIDC(
@@ -99,7 +106,7 @@ class Config {
 }
 
 class App {
-    val admin = Admin(Config.getAdminUrl(), Config.getIdToken(), Config.getUrl())
+    val admin = Admin(Config.getAdminUrl(), Config.getIdToken(), Config.getTrustchaindUrl())
     val url: String = Config.getUrl()
     private val app: TankerApp
 
