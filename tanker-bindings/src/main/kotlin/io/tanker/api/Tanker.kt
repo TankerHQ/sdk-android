@@ -113,7 +113,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     /**
      * Registers a new identity and finishes opening a Tanker session.
-     * @param verification A verification option to set up how the user's identity will be verified later
+     * @param verification A verification method to set up how the user's identity will be verified later
      * @return A future that resolves when the session is open
      */
     fun registerIdentity(verification: Verification): TankerFuture<String?> {
@@ -122,7 +122,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     /**
      * Registers a new identity and finishes opening a Tanker session.
-     * @param verification A verification option to set up how the user's identity will be verified later
+     * @param verification A verification method to set up how the user's identity will be verified later
      * @return A future that resolves when the session is open
      */
     fun registerIdentity(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
@@ -142,7 +142,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     /**
      * Verifies an identity and finishes opening a Tanker session.
-     * @param verification A verification option that verifies the user's identity
+     * @param verification A verification method that verifies the user's identity
      * @return A future that resolves when the session is open
      */
     fun verifyIdentity(verification: Verification): TankerFuture<String?> {
@@ -151,7 +151,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
     /**
      * Verifies an identity and finishes opening a Tanker session.
-     * @param verification A verification option that verifies the user's identity
+     * @param verification A verification method that verifies the user's identity
      * @return A future that resolves when the session is open
      */
     fun verifyIdentity(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
