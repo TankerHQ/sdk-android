@@ -201,4 +201,51 @@ class UnlockTests : TankerSpec() {
 
         tanker2.stop().get()
     }
+
+    @Test
+    fun can_get_a_session_token_with_registerIdentity() {
+        val passphrase = "Offline Last Seen Mar 3rd, 2018"
+
+        val appOptions = TankerAppUpdateOptions().setSessionCertificates(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val options = VerificationOptions().withSessionToken(true)
+        val token = tanker1.registerIdentity(PassphraseVerification(passphrase), options).get()
+        assertThat(token).isNotBlank()
+        tanker1.stop().get()
+    }
+
+    @Test
+    fun can_get_a_session_token_with_verifyIdentity() {
+        val passphrase = "Offline Last Seen Mar 3rd, 2018"
+
+        val appOptions = TankerAppUpdateOptions().setSessionCertificates(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val options = VerificationOptions().withSessionToken(true)
+        val notToken = tanker1.registerIdentity(PassphraseVerification(passphrase)).get()
+        assertThat(notToken).isNull()
+        val token = tanker1.verifyIdentity(PassphraseVerification(passphrase), options).get()
+        assertThat(token).isNotBlank()
+        tanker1.stop().get()
+    }
+
+    @Test
+    fun can_get_a_session_token_with_setVerificationMethod() {
+        val pass1 = "PassOne"
+        val pass2 = "PassTwo"
+
+        val appOptions = TankerAppUpdateOptions().setSessionCertificates(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val options = VerificationOptions().withSessionToken(true)
+        val notToken = tanker1.registerIdentity(PassphraseVerification(pass1)).get()
+        assertThat(notToken).isNull()
+        val token = tanker1.setVerificationMethod(PassphraseVerification(pass2), options).get()
+        assertThat(token).isNotBlank()
+        tanker1.stop().get()
+    }
 }
