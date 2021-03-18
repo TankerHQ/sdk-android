@@ -1,6 +1,7 @@
 package io.tanker.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tanker.admin.TankerAppUpdateOptions
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -161,7 +162,10 @@ class UnlockTests : TankerSpec() {
         val martineConfig = oidcConfig.users.getValue("martine")
         val martineIdentity = tc.createIdentity(martineConfig.email)
 
-        tc.admin.appUpdate(tc.id(), oidcConfig.clientId, oidcConfig.provider).get()
+        val appOptions = TankerAppUpdateOptions()
+                .setOidcClientId(oidcConfig.clientId)
+                .setOidcClientProvider(oidcConfig.provider)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
 
         // Get a fresh OIDC ID token from GOOG
         val jsonMapper = ObjectMapper()
