@@ -123,12 +123,12 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Registers a new identity and finishes opening a Tanker session.
      * @param verification A verification method to set up how the user's identity will be verified later
+     * @param options Optional behavior when verifying an identity
      * @return A future that resolves when the session is open
      */
     fun registerIdentity(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
         val futurePtr = lib.tanker_register_identity(tanker, verification.toCVerification(), options)
         return TankerFuture<Pointer>(futurePtr, Pointer::class.java).then<String?>(TankerCallback {
-            it.get()
             val ptr = it.get()
             if (Pointer.nativeValue(ptr) == 0L) {
                 null
@@ -152,6 +152,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Verifies an identity and finishes opening a Tanker session.
      * @param verification A verification method that verifies the user's identity
+     * @param options Optional behavior when verifying an identity
      * @return A future that resolves when the session is open
      */
     fun verifyIdentity(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
@@ -298,6 +299,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Sets-up or updates verification methods for the user.
      * Must be called on an already opened Session.
+     * @param options Optional behavior when verifying an identity
      * @return A future that resolves if the operation succeeds
      */
     fun setVerificationMethod(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
