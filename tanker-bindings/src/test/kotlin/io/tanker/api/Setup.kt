@@ -127,6 +127,14 @@ class App {
         return app.id
     }
 
+    fun authToken(): String {
+        return app.authToken
+    }
+
+    fun trustchaindUrl(): String {
+        return Config.getTrustchaindUrl()
+    }
+
     fun getVerificationCode(email: String): String {
         return app.getVerificationCode(email).get()
     }

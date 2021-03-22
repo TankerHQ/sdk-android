@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tanker.admin.TankerAppUpdateOptions
 import okhttp3.MediaType
@@ -21,6 +22,32 @@ class UnlockTests : TankerSpec() {
         identity = tc.createIdentity()
         tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
         tanker2 = Tanker(options.setWritablePath(createTmpDir().toString()))
+    }
+
+    private fun checkSessionToken(publicIdentity: String, token: String, allowedMethod: String): String {
+        val jsonMapper = ObjectMapper()
+        val jsonAllowedMethod = jsonMapper.createObjectNode()
+        jsonAllowedMethod.put("type", allowedMethod)
+        val jsonAllowedMethods = jsonMapper.createArrayNode()
+        jsonAllowedMethods.add(jsonAllowedMethod)
+        val jsonObj = jsonMapper.createObjectNode()
+        jsonObj.put("app_id", tc.id())
+        jsonObj.put("auth_token", tc.authToken())
+        jsonObj.put("public_identity", publicIdentity)
+        jsonObj.put("session_token", token)
+        jsonObj.set<JsonNode>("allowed_methods", jsonAllowedMethods)
+        val jsonBody = jsonMapper.writeValueAsString(jsonObj)
+
+        val url = tc.trustchaindUrl()
+        val request = Request.Builder()
+                .url("$url/verification/session-token")
+                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonBody))
+                .build()
+        val response = OkHttpClient().newCall(request).execute()
+        if (!response.isSuccessful)
+            throw RuntimeException("Check session token request failed: "+response.body()?.string())
+        val jsonResponse = jsonMapper.readTree(response.body()?.string())
+        return jsonResponse.get("verification_method").asText()
     }
 
     @Test
@@ -213,6 +240,12 @@ class UnlockTests : TankerSpec() {
         val options = VerificationOptions().withSessionToken(true)
         val token = tanker1.registerIdentity(PassphraseVerification(passphrase), options).get()
         assertThat(token).isNotBlank()
+
+        val publicIdentity = Identity.getPublicIdentity(identity)
+        val expectedMethod = "passphrase"
+        val usedMethod = checkSessionToken(publicIdentity, token!!, expectedMethod)
+        assertThat(usedMethod).isEqualTo(expectedMethod)
+
         tanker1.stop().get()
     }
 
@@ -229,6 +262,12 @@ class UnlockTests : TankerSpec() {
         assertThat(notToken).isNull()
         val token = tanker1.verifyIdentity(PassphraseVerification(passphrase), options).get()
         assertThat(token).isNotBlank()
+
+        val publicIdentity = Identity.getPublicIdentity(identity)
+        val expectedMethod = "passphrase"
+        val usedMethod = checkSessionToken(publicIdentity, token!!, expectedMethod)
+        assertThat(usedMethod).isEqualTo(expectedMethod)
+
         tanker1.stop().get()
     }
 
@@ -246,6 +285,12 @@ class UnlockTests : TankerSpec() {
         assertThat(notToken).isNull()
         val token = tanker1.setVerificationMethod(PassphraseVerification(pass2), options).get()
         assertThat(token).isNotBlank()
+
+        val publicIdentity = Identity.getPublicIdentity(identity)
+        val expectedMethod = "passphrase"
+        val usedMethod = checkSessionToken(publicIdentity, token!!, expectedMethod)
+        assertThat(usedMethod).isEqualTo(expectedMethod)
+
         tanker1.stop().get()
     }
 }

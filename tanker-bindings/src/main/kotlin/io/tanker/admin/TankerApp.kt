@@ -5,7 +5,7 @@ import io.tanker.api.TankerFuture
 import io.tanker.bindings.TankerLib
 import io.tanker.api.TankerCallback
 
-class TankerApp(private val url: String, public val id: String, private val authToken: String, public val privateKey: String) {
+class TankerApp(private val url: String, val id: String, val authToken: String, val privateKey: String) {
     companion object {
         private val lib = AdminLib.create()
         private val tankerlib = TankerLib.create()
