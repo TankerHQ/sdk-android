@@ -1,13 +1,14 @@
 package io.tanker.api;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -19,9 +20,9 @@ public class TankerTest {
     @Test
     public void tankerVersion() throws Exception {
         // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
+        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         String tankerVersion = Tanker.getVersionString();
-        assertTrue(tankerVersion.contains("."));
+        assertThat(tankerVersion.length()).isGreaterThan(0);
     }
 }

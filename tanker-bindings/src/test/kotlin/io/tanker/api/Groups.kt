@@ -1,157 +1,162 @@
 package io.tanker.api
 
-import io.kotlintest.shouldBe
-import io.kotlintest.shouldThrow
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.Test
 
 class GroupTests : TankerSpec() {
+    @Test
+    fun cannot_create_an_empty_group() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
-    init {
-        "Cannot create an empty group" {
-            val aliceId = tc.createIdentity()
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-
-            val e = shouldThrow<TankerFutureException> {
-                tankerAlice.createGroup().get()
-            }
-            (e.cause is TankerException) shouldBe true
-            (e.cause as TankerException).errorCode shouldBe ErrorCode.INVALID_ARGUMENT
-
-            tankerAlice.stop().get()
+        val e = shouldThrow<TankerFutureException> {
+            tankerAlice.createGroup().get()
         }
+        assertThat((e.cause is TankerException)).isEqualTo(true)
+        assertThat((e.cause as TankerException).errorCode).isEqualTo(ErrorCode.INVALID_ARGUMENT)
 
-        "Can create a valid group" {
-            val aliceId = tc.createIdentity()
-            val bobId = tc.createIdentity()
+        tankerAlice.stop().get()
+    }
 
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+    @Test
+    fun can_create_a_valid_group() {
+        val aliceId = tc.createIdentity()
+        val bobId = tc.createIdentity()
 
-            val tankerBob = Tanker(options)
-            tankerBob.start(bobId).get()
-            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
-            tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
-            tankerAlice.stop().get()
-            tankerBob.stop().get()
-        }
+        tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
 
-        "Can share with group" {
-            val aliceId = tc.createIdentity()
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-            val bobId = tc.createIdentity()
-            val tankerBob = Tanker(options)
-            tankerBob.start(bobId).get()
-            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+    }
 
-            val plaintext = "Two's company, three's a crowd"
-            val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
-            val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
-            tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), SharingOptions().shareWithGroups(groupId)).get()
+    @Test
+    fun can_share_with_group() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
-            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+        val plaintext = "Two's company, three's a crowd"
+        val encrypted = tankerAlice.encrypt(plaintext.toByteArray()).get()
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
+        tankerAlice.share(arrayOf(tankerAlice.getResourceID(encrypted)), SharingOptions().shareWithGroups(groupId)).get()
 
-            tankerAlice.stop().get()
-            tankerBob.stop().get()
-        }
+        assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
 
-        "Can encrypt-and-share with group" {
-            val aliceId = tc.createIdentity()
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-            val bobId = tc.createIdentity()
-            val tankerBob = Tanker(options)
-            tankerBob.start(bobId).get()
-            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+    }
 
-            val plaintext = "Two's company, three's a crowd"
-            val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
-            val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
-            val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
+    @Test
+    fun can_encrypt_and_share_with_group()
+    {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
-            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+        val plaintext = "Two's company, three's a crowd"
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId), Identity.getPublicIdentity(bobId)).get()
+        val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
+        val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
-            tankerAlice.stop().get()
-            tankerBob.stop().get()
-        }
+        assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
 
-        "Can share with an external group" {
-            val aliceId = tc.createIdentity()
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-            val bobId = tc.createIdentity()
-            val tankerBob = Tanker(options)
-            tankerBob.start(bobId).get()
-            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+    }
 
-            val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
+    @Test
+    fun can_share_with_an_external_group() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
-            val plaintext = "Two's company, three's a crowd"
-            val encrypted = tankerBob.encrypt(plaintext.toByteArray()).get()
-            tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), SharingOptions().shareWithGroups(groupId)).get()
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
 
-            String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
+        val plaintext = "Two's company, three's a crowd"
+        val encrypted = tankerBob.encrypt(plaintext.toByteArray()).get()
+        tankerBob.share(arrayOf(tankerBob.getResourceID(encrypted)), SharingOptions().shareWithGroups(groupId)).get()
 
-            tankerAlice.stop().get()
-            tankerBob.stop().get()
-        }
+        assertThat(String(tankerAlice.decrypt(encrypted).get())).isEqualTo(plaintext)
 
-        "Can add a member to a group" {
-            val aliceId = tc.createIdentity()
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-            val bobId = tc.createIdentity()
-            val tankerBob = Tanker(options)
-            tankerBob.start(bobId).get()
-            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+    }
 
-            val plaintext = "Two's company, three's a crowd"
-            val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
-            val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
-            val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
+    @Test
+    fun can_add_a_member_to_a_group() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
-            tankerAlice.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(bobId))).get()
+        val plaintext = "Two's company, three's a crowd"
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
+        val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
+        val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptOptions).get()
 
-            String(tankerBob.decrypt(encrypted).get()) shouldBe plaintext
+        tankerAlice.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(bobId))).get()
 
-            tankerAlice.stop().get()
-            tankerBob.stop().get()
-        }
+        assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
 
-        "Can transitively add members to a group" {
-            val aliceId = tc.createIdentity()
-            val tankerAlice = Tanker(options)
-            tankerAlice.start(aliceId).get()
-            tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-            val bobId = tc.createIdentity()
-            val tankerBob = Tanker(options)
-            tankerBob.start(bobId).get()
-            tankerBob.registerIdentity(PassphraseVerification("pass")).get()
-            val charlieId = tc.createIdentity()
-            val tankerCharlie = Tanker(options)
-            tankerCharlie.start(charlieId).get()
-            tankerCharlie.registerIdentity(PassphraseVerification("pass")).get()
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+    }
 
-            val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(bobId)).get()
-            tankerBob.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(charlieId))).get()
-            tankerCharlie.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(aliceId))).get()
+    @Test
+    fun can_transitively_add_members_to_a_group() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+        val charlieId = tc.createIdentity()
+        val tankerCharlie = Tanker(options)
+        tankerCharlie.start(charlieId).get()
+        tankerCharlie.registerIdentity(PassphraseVerification("pass")).get()
 
-            val plaintext = "plain text"
-            val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
-            val encrypted = tankerCharlie.encrypt(plaintext.toByteArray(), encryptOptions).get()
-            String(tankerAlice.decrypt(encrypted).get()) shouldBe plaintext
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(bobId)).get()
+        tankerBob.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(charlieId))).get()
+        tankerCharlie.updateGroupMembers(groupId, usersToAdd = arrayOf(Identity.getPublicIdentity(aliceId))).get()
 
-            tankerAlice.stop().get()
-            tankerBob.stop().get()
-            tankerCharlie.stop().get()
-        }
+        val plaintext = "plain text"
+        val encryptOptions = EncryptionOptions().shareWithGroups(groupId)
+        val encrypted = tankerCharlie.encrypt(plaintext.toByteArray(), encryptOptions).get()
+        assertThat(String(tankerAlice.decrypt(encrypted).get())).isEqualTo(plaintext)
+
+        tankerAlice.stop().get()
+        tankerBob.stop().get()
+        tankerCharlie.stop().get()
     }
 }

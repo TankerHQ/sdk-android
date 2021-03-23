@@ -12,12 +12,4 @@ open class TankerException : Exception {
     internal constructor(error: TankerError) : super(error.getErrorMessage()) {
         errorCode = error.getErrorCode()
     }
-
-    constructor(message: String, other: TankerException) : super(message, other){
-        errorCode = other.errorCode
-    }
-
-    constructor(message: String, errorCode: ErrorCode, other: Throwable) : super(message, other){
-        this.errorCode = errorCode
-    }
 }
