@@ -1,6 +1,8 @@
 package io.tanker.api
 
 import com.sun.jna.Pointer
+import io.tanker.api.errors.DeviceRevoked
+import io.tanker.api.errors.InvalidArgument
 import io.tanker.bindings.FuturePointer
 import io.tanker.bindings.PromisePointer
 import io.tanker.bindings.TankerLib
@@ -71,9 +73,11 @@ class FutureTests {
     @Test
     fun then_can_return_an_error() {
         val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
-        val newFut = future.then<ByteArray>(TankerCallback { throw RuntimeException("Error") })
+        val exception = RuntimeException("Error")
+        val newFut = future.then<ByteArray>(TankerCallback { throw exception })
         System.gc() // Make sure we got our lifetimes right
-        shouldThrow<TankerFutureException> { newFut.get() }
+        val e = shouldThrow<TankerFutureException> { newFut.get() }
+        assertThat(e).hasCause(exception)
     }
 
     @Test
@@ -128,9 +132,11 @@ class FutureTests {
 
     @Test
     fun thenUnwrap_catches_errors_correctly() {
-        val failing = TankerFuture<Unit>().then<Unit>(TankerCallback { throw RuntimeException("Error") })
+        val exception = RuntimeException("Error")
+        val failing = TankerFuture<Unit>().then<Unit>(TankerCallback { throw exception })
         val fut = TankerFuture<Unit>().thenUnwrap<Unit>(TankerUnwrapCallback { failing })
-        shouldThrow<TankerFutureException> { fut.get() }
+        val e = shouldThrow<TankerFutureException> { fut.get() }
+        assertThat(e.cause!!.cause!!).isSameAs(exception)
     }
 
     @Test
@@ -186,9 +192,11 @@ class FutureTests {
     @Test
     fun andThen_can_return_an_error() {
         val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
-        val newFut = future.andThen<ByteArray>(TankerCallback { throw RuntimeException("Error") })
+        val exception = RuntimeException("Error")
+        val newFut = future.andThen<ByteArray>(TankerCallback { throw exception })
         System.gc() // Make sure we got our lifetimes right
-        shouldThrow<TankerFutureException> { newFut.get() }
+        val e = shouldThrow<TankerFutureException> { newFut.get() }
+        assertThat(e).hasCause(exception)
     }
 
     @Test
@@ -285,18 +293,22 @@ class FutureTests {
 
     @Test
     fun allOf_returns_an_error_if_the_first_future_errors_out() {
-        val fut1 = TankerFuture<Unit>().then<Int>(TankerCallback { throw RuntimeException("Error") })
+        val exception = RuntimeException("Error")
+        val fut1 = TankerFuture<Unit>().then<Int>(TankerCallback { throw exception })
         val fut2 = TankerFuture<Unit>().then<Int>(TankerCallback { Thread.sleep(100); 2 })
-        shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
+        val e = shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
+        assertThat(e.cause!!.cause!!).isSameAs(exception)
         assertThat(fut1.isReady()).isEqualTo(true)
         assertThat(fut2.isReady()).isEqualTo(true)
     }
 
     @Test
     fun allOf_returns_an_error_if_the_second_future_errors_out() {
+        val exception = RuntimeException("Error")
         val fut1 = TankerFuture<Unit>().then<Int>(TankerCallback { Thread.sleep(100); 1 })
-        val fut2 = TankerFuture<Unit>().then<Int>(TankerCallback { throw RuntimeException("Error") })
-        shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
+        val fut2 = TankerFuture<Unit>().then<Int>(TankerCallback { throw exception })
+        val e = shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
+        assertThat(e.cause!!.cause!!).isSameAs(exception)
         assertThat(fut1.isReady()).isEqualTo(true)
         assertThat(fut2.isReady()).isEqualTo(true)
     }

@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import io.tanker.api.errors.InvalidArgument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 
@@ -14,8 +15,7 @@ class GroupTests : TankerSpec() {
         val e = shouldThrow<TankerFutureException> {
             tankerAlice.createGroup().get()
         }
-        assertThat((e.cause is TankerException)).isEqualTo(true)
-        assertThat((e.cause as TankerException).errorCode).isEqualTo(ErrorCode.INVALID_ARGUMENT)
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
 
         tankerAlice.stop().get()
     }

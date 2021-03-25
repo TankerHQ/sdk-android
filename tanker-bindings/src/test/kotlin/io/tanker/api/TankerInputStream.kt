@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import io.tanker.api.errors.InvalidArgument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -48,7 +49,8 @@ class InputStreamTests : TankerSpec() {
         val channel = InputStreamWrapper(array.inputStream())
         val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
         encryptionStream.close()
-        shouldThrow<TankerFutureException> { tanker.decrypt(TankerChannels.fromInputStream(encryptionStream)).get() }
+        val e = shouldThrow<TankerFutureException> { tanker.decrypt(TankerChannels.fromInputStream(encryptionStream)).get() }
+        assertThat(e).hasCauseInstanceOf(IOException::class.java)
     }
 
     @Test
