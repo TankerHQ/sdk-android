@@ -32,7 +32,9 @@ class TankerOptions : Structure() {
         return this
     }
 
-    /** @hide */
+    /**
+     * Optional. Sets the dedicated environment to use.
+     */
     fun setUrl(url: String): TankerOptions {
         this.url = url
         return this
