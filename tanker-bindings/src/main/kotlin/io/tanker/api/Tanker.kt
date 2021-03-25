@@ -304,8 +304,13 @@ class Tanker(tankerOptions: TankerOptions) {
     fun decrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = lib.tanker_stream_decrypt(tanker, cb, null)
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
-            TankerStream(it, cb)
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).then(TankerCallback {
+            val e = it.getError()
+            if (e != null) {
+                val previousError = cb.streamError
+                throw previousError ?: e
+            }
+            TankerStream(it.get(), cb)
         })
     }
 
