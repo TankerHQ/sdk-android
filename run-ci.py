@@ -54,10 +54,10 @@ def build() -> None:
     tankerci.run("./gradlew", "tanker-bindings:assembleRelease")
 
 
-def dump_logcat_for_failed_tests():
+def dump_logcat_for_failed_tests() -> None:
     try:
         dump_path = "tanker-bindings/build/reports/androidTests/connected/flavors/releaseAndroidTest/logcat.txt"
-        android.dump_logcat(dump_path)
+        tankerci.android.dump_logcat(dump_path)
         ui.info("Tests have failed, logcat dumped to", dump_path)
     except Exception as e:
         ui.error("Failed to dump logcat:", e)

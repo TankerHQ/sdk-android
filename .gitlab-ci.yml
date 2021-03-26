@@ -12,7 +12,6 @@ include:
     when: always
     paths:
       - tanker-bindings/build/reports
-      - logcat.txt
     expire_in: 30 days
 
 check/deployed-native:
