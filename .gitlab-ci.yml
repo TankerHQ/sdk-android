@@ -24,10 +24,6 @@ check/deployed-native:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
-  tags:
-    # FIXME: LinuxSlave-3 does not have a SSD which makes the tests timeout.
-    # Because of that, let's pin it to our fastest runner.
-    - LinuxSlave-2
 
 check/native-from-sources:
   extends:
@@ -38,10 +34,6 @@ check/native-from-sources:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
-  tags:
-    # FIXME: LinuxSlave-3 does not have a SSD which makes the tests timeout.
-    # Because of that, let's pin it to our fastest runner.
-    - LinuxSlave-2
 
 check/downstream:
   extends:
@@ -52,10 +44,6 @@ check/downstream:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
-  tags:
-    # FIXME: LinuxSlave-3 does not have a SSD which makes the tests timeout.
-    # Because of that, let's pin it to our fastest runner.
-    - LinuxSlave-2
 
 ################
 # deploy stage #
