@@ -9,7 +9,7 @@ import io.tanker.bindings.TankerError
 open class TankerException : Exception {
     val errorCode: ErrorCode
 
-    internal constructor(error: TankerError) : super(error.getErrorMessage()) {
-        errorCode = error.getErrorCode()
+    internal constructor(error: ErrorCode, message: String) : super(message) {
+        errorCode = error
     }
 }

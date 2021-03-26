@@ -1,6 +1,8 @@
 package io.tanker.api
 
 import io.tanker.api.Tanker.Companion.prehashPassword
+import io.tanker.api.errors.DeviceRevoked
+import io.tanker.api.errors.InvalidArgument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -16,7 +18,8 @@ class TankerTests : TankerSpec() {
     @Test
     fun tanker_create_fails_if_the_options_passed_are_wrong() {
         options.setTrustchainId("Invalid base64!")
-        shouldThrow<TankerFutureException> { Tanker(options) }
+        val e = shouldThrow<TankerFutureException> { Tanker(options) }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
     }
 
     @Test
@@ -132,7 +135,7 @@ class TankerTests : TankerSpec() {
         val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptionOptions).get()
 
         val ex = shouldThrow<TankerFutureException> { tankerAlice.decrypt(encrypted).get() }
-        assertThat((ex.cause as TankerException).errorCode).isEqualTo(ErrorCode.INVALID_ARGUMENT)
+        assertThat(ex).hasCauseInstanceOf(InvalidArgument::class.java)
 
         assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
 
@@ -356,7 +359,7 @@ class TankerTests : TankerSpec() {
         })
         tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
         val e = shouldThrow<TankerFutureException> { tankerAlice.encrypt("Oh no".toByteArray()).get() }
-        assert((e.cause as TankerException).errorCode == ErrorCode.DEVICE_REVOKED)
+        assertThat(e).hasCauseInstanceOf(DeviceRevoked::class.java)
 
         assertThat(tankerAlice.getStatus()).isEqualTo(Status.STOPPED)
         val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
@@ -381,7 +384,7 @@ class TankerTests : TankerSpec() {
 
         tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
         val e = shouldThrow<TankerFutureException> { tankerAlice1.encrypt("Oh no".toByteArray()).get() }
-        assert((e.cause as TankerException).errorCode == ErrorCode.DEVICE_REVOKED)
+        assertThat(e).hasCauseInstanceOf(DeviceRevoked::class.java)
         val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
         assertThat(ok).isEqualTo(true)
         assertThat(tankerAlice1.getStatus()).isEqualTo(Status.STOPPED)
@@ -410,8 +413,7 @@ class TankerTests : TankerSpec() {
         val e = shouldThrow<TankerFutureException> {
             tankerBob.revokeDevice(aliceDevId).get()
         }
-        assert(e.cause is TankerException)
-        assert((e.cause as TankerException).errorCode == ErrorCode.INVALID_ARGUMENT)
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
 
         tankerAlice.stop().get()
         tankerBob.stop().get()
@@ -472,7 +474,8 @@ class TankerTests : TankerSpec() {
 
     @Test
     fun prehashPassword_empty_string() {
-        shouldThrow<TankerFutureException> { prehashPassword("") }
+        val e = shouldThrow<TankerFutureException> { prehashPassword("") }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
     }
 
     @Test

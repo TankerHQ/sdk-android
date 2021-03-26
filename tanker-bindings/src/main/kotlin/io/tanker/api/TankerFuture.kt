@@ -4,6 +4,7 @@ import android.os.Looper
 import android.os.NetworkOnMainThreadException
 import androidx.annotation.WorkerThread
 import com.sun.jna.Pointer
+import io.tanker.api.errors.toError
 import io.tanker.bindings.TankerLib
 import java.lang.reflect.Type
 import java.util.concurrent.Executors
@@ -85,7 +86,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
         if ((lib.tanker_future_has_error(cfuture) and 0xff) == 0)
             return null
         val tankerError = lib.tanker_future_get_error(cfuture)
-        return TankerException(tankerError)
+        return toError(tankerError)
     }
 
     /**

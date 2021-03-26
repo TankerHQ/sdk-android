@@ -33,8 +33,8 @@ internal class TankerStreamInputSourceCallback(val channel: TankerAsynchronousBy
                 if (closing)
                     return
 
-                Tanker.lib.tanker_stream_read_operation_finish(op, -1)
                 streamError = exc
+                Tanker.lib.tanker_stream_read_operation_finish(op, -1)
             }
         })
     }

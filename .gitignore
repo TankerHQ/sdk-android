@@ -35,9 +35,7 @@ tanker-bindings/.kotlintest
 obj/
 
 # Conan build products
-tanker-bindings/conan/android-*
-tanker-bindings/conan/gcc8-*
-tanker-bindings/conan/host
+tanker-bindings/conan
 tanker-bindings/src/release/
 tanker-bindings/src/debug/
 tanker-bindings/src/main/jniLibs
