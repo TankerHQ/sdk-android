@@ -41,8 +41,8 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_create(options: TankerOptions): FuturePointer
     fun tanker_destroy(tanker: SessionPointer): FuturePointer
     fun tanker_start(tanker: SessionPointer, identity: String): FuturePointer
-    fun tanker_register_identity(tanker: SessionPointer, tankerVerification: TankerVerification?): FuturePointer
-    fun tanker_verify_identity(tanker: SessionPointer, tankerVerification: TankerVerification?): FuturePointer
+    fun tanker_register_identity(tanker: SessionPointer, tankerVerification: TankerVerification?, verification_options: VerificationOptions?): FuturePointer
+    fun tanker_verify_identity(tanker: SessionPointer, tankerVerification: TankerVerification?, verification_options: VerificationOptions?): FuturePointer
     fun tanker_stop(tanker: SessionPointer): FuturePointer
     fun tanker_status(tanker: SessionPointer): Status
     fun tanker_generate_verification_key(tanker: SessionPointer): FuturePointer
@@ -54,7 +54,7 @@ interface TankerLib : AsyncLib, Library {
     fun tanker_verify_provisional_identity(tanker: SessionPointer, verification: TankerVerification): FuturePointer
 
     fun tanker_get_verification_methods(tanker: SessionPointer): FuturePointer
-    fun tanker_set_verification_method(tanker: SessionPointer, verification: TankerVerification): FuturePointer
+    fun tanker_set_verification_method(tanker: SessionPointer, verification: TankerVerification, verification_options: VerificationOptions?): FuturePointer
 
     fun tanker_set_log_handler(handler: LogHandlerCallback): Void
     fun tanker_event_connect(tanker: SessionPointer, event: TankerEvent, callback: EventCallback, user_data: Pointer): ExpectedPointer

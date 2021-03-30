@@ -49,8 +49,8 @@ class Admin(private val adminUrl: String, private val idToken: String, private v
     /**
      * Updates the app properties
      */
-    fun appUpdate(appId: String, oidcClientID: String, oidcClientProvider: String): TankerFuture<Unit> {
+    fun appUpdate(appId: String, options: TankerAppUpdateOptions): TankerFuture<Unit> {
         requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
-        return TankerFuture(lib.tanker_admin_app_update(cadmin!!, appId, oidcClientID, oidcClientProvider), Unit::class.java, lib)
+        return TankerFuture(lib.tanker_admin_app_update(cadmin!!, appId, options), Unit::class.java, lib)
     }
 }
