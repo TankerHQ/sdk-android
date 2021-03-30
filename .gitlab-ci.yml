@@ -53,6 +53,7 @@ deploy:
     - .deploy
     - .rules/deploy/android
   script:
+    - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home deploy --version $SDK_ANDROID_RELEASE_VERSION --tanker-ref $SDK_NATIVE_LATEST_CONAN_REFERENCE
   release:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
