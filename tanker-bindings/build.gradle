@@ -11,10 +11,10 @@ version 'dev'
 
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 28
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 30
+        targetSdkVersion 28
 
         consumerProguardFiles 'proguard-rules.pro'
         ndk {
@@ -35,8 +35,6 @@ android {
             packagingOptions {
                 doNotStrip "**/*.so"
             }
-            // Tests produce more than 64K methods...
-            multiDexEnabled true
         }
     }
     // This is the only way to build instrumented tests in release mode
@@ -168,8 +166,8 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.1'
     api 'net.java.dev.jna:jna:5.4.0@aar'
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.android.support:support-compat:28.0.0'
+    implementation 'com.android.support:support-annotations:28.0.0'
 
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.7.1")
     testImplementation "androidx.test:runner:1.3.0"
