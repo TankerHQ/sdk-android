@@ -455,7 +455,6 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Subscribes to the "Device Revoked" Tanker event.
      * @param eventCallback The function to call when the event happens.
-     * @return A connection, which can be passed to disconnectEvent.
      */
     @Deprecated("The deviceRevoked event is deprecated, it will be removed in the future")
     fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler) {
