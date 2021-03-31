@@ -89,7 +89,6 @@ def deploy(*, version: str, tanker_ref: str) -> None:
     tankerci.bump_files(version)
     prepare(TankerSource.DEPLOYED, False, tanker_ref)
     build()
-    test()
 
     ui.info_1("Deploying SDK to https://storage.googleapis.com/maven.tanker.io")
     tankerci.gcp.GcpProject("tanker-prod").auth()
