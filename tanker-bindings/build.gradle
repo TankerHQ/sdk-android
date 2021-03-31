@@ -137,22 +137,27 @@ dokka {
     }
 }
 
+// We use afterEvaluate to give the Android Gradle plugin time to inject the Adhoc Component 'release'
+afterEvaluate {
+    publishing {
+        publications {
+            tankerBindings(MavenPublication) {
+                // Instead of components.android, we want only the release aar, otherwise publish
+                // fails with "multiple artifacts with the identical extension and classifier",
+                // because the debug and release .aar have no "classifier" to distinguish them
+                from components.release
 
-publishing {
-
-    publications {
-        tankerBindings(MavenPublication) {
-            from components.android
-
-            artifact javaDocJar
-            artifact sourcesJar
+                // These have different classifiers (doc and source) so no conflict here
+                artifact javaDocJar
+                artifact sourcesJar
+            }
         }
-    }
 
-    repositories {
-        maven {
-          name = 'maven.tanker.io'
-          url = 'gcs://maven.tanker.io'
+        repositories {
+            maven {
+                name = 'maven.tanker.io'
+                url = 'gcs://maven.tanker.io'
+            }
         }
     }
 }
