@@ -69,6 +69,12 @@ def test() -> None:
         "./gradlew",
         "tanker-bindings:testRelease",
     )
+    with tankerci.android.emulator():
+        try:
+            tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
+        except:
+            dump_logcat_for_failed_tests()
+            raise
 
 
 def build_and_test(
