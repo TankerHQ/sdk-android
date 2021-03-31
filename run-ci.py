@@ -69,12 +69,6 @@ def test() -> None:
         "./gradlew",
         "tanker-bindings:testRelease",
     )
-    with tankerci.android.emulator():
-        try:
-            tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
-        except:
-            dump_logcat_for_failed_tests()
-            raise
 
 
 def build_and_test(
@@ -89,7 +83,6 @@ def deploy(*, version: str, tanker_ref: str) -> None:
     tankerci.bump_files(version)
     prepare(TankerSource.DEPLOYED, False, tanker_ref)
     build()
-    test()
 
     ui.info_1("Deploying SDK to https://storage.googleapis.com/maven.tanker.io")
     tankerci.gcp.GcpProject("tanker-prod").auth()
