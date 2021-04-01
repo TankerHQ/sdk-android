@@ -55,6 +55,16 @@ class EncryptionSessionTests : TankerSpec() {
     }
 
     @Test
+    fun can_share_with_group_using_an_encryption_session() {
+        val plaintext = "La Pléiade"
+        val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(bobId)).get()
+        val shareOpt = SharingOptions().shareWithGroups(groupId)
+        val sess = tankerAlice.createEncryptionSession(shareOpt).get()
+        val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+        assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
+    }
+
+    @Test
     fun can_share_with_Bob_using_an_encryption_session_non_deprecated_API() {
         val plaintext = "La Pléiade"
         val encOpt = EncryptionOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
