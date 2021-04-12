@@ -3,6 +3,7 @@ from typing import List, Optional  # noqa
 import argparse
 import os
 from pathlib import Path
+import shutil
 import sys
 
 import cli_ui as ui
@@ -52,6 +53,11 @@ def prepare(
 def build() -> None:
     tankerci.run("./gradlew", "tanker-bindings:buildNativeRelease")
     tankerci.run("./gradlew", "tanker-bindings:assembleRelease")
+
+    dest_path = Path.cwd() / "artifacts"
+    shutil.rmtree(dest_path, ignore_errors=True)
+    dest_path.mkdir(parents=True)
+    shutil.copy(Path.cwd() / "tanker-bindings/build/outputs/aar/tanker-bindings-release.aar", dest_path / "tanker-bindings.aar")
 
 
 def dump_logcat_for_failed_tests() -> None:

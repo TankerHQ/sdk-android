@@ -23,6 +23,9 @@ check/deployed-native:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
+  artifacts:
+    paths:
+      - artifacts
 
 check/native-from-sources:
   extends:
@@ -33,6 +36,9 @@ check/native-from-sources:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+  artifacts:
+    paths:
+      - artifacts
 
 check/downstream:
   extends:
@@ -43,6 +49,9 @@ check/downstream:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
+  artifacts:
+    paths:
+      - artifacts
 
 ################
 # deploy stage #
