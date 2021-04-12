@@ -1,10 +1,10 @@
 package io.tanker.api
 
-import io.tanker.api.errors.InvalidArgument
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 
@@ -37,7 +37,7 @@ class InputStreamTests : TankerSpec() {
 
     @Test
     fun attempting_to_encrypt_a_closed_stream_throws() {
-        val file = createTempFile()
+        val file = File.createTempFile("sdk-android-stream-test", null)
         val channel = TankerChannels.fromInputStream(file.inputStream())
         val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
         channel.close()
