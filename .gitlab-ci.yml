@@ -80,7 +80,7 @@ bridge/downstream:
     - .rules/check/downstream
     - .variables/bridge-common
   needs:
-    - check/deployed-native
+    - check/downstream
   variables:
     UPSTREAM_JOB_NAME: check/downstream
     UPSTREAM_JOB_TARGET: android
