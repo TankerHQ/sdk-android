@@ -66,7 +66,7 @@ bridge/native-from-sources:
     - .rules/native-from-sources
     - .variables/bridge-common
   needs:
-    - check/deployed-native
+    - check/native-from-sources
   variables:
     UPSTREAM_JOB_NAME: check/native-from-sources
     UPSTREAM_JOB_TARGET: android
