@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tanker.admin.TankerAppUpdateOptions
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -41,12 +43,12 @@ class UnlockTests : TankerSpec() {
         val url = tc.trustchaindUrl()
         val request = Request.Builder()
                 .url("$url/verification/session-token")
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonBody))
+                .post(jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()!!))
                 .build()
         val response = OkHttpClient().newCall(request).execute()
         if (!response.isSuccessful)
-            throw RuntimeException("Check session token request failed: "+response.body()?.string())
-        val jsonResponse = jsonMapper.readTree(response.body()?.string())
+            throw RuntimeException("Check session token request failed: "+response.body?.string())
+        val jsonResponse = jsonMapper.readTree(response.body?.string())
         return jsonResponse.get("verification_method").asText()
     }
 
@@ -205,12 +207,12 @@ class UnlockTests : TankerSpec() {
 
         val request = Request.Builder()
                 .url("https://www.googleapis.com/oauth2/v4/token")
-                .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), jsonBody))
+                .post(jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()!!))
                 .build()
         val response = OkHttpClient().newCall(request).execute()
         if (!response.isSuccessful)
             throw java.lang.RuntimeException("Google OAuth test request failed!")
-        val jsonResponse = jsonMapper.readTree(response.body()?.string())
+        val jsonResponse = jsonMapper.readTree(response.body?.string())
         val oidcIdToken = jsonResponse.get("id_token").asText()
 
         // Check that we can use our ID token as a verification method
