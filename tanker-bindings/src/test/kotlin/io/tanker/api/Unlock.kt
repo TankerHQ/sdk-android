@@ -43,7 +43,7 @@ class UnlockTests : TankerSpec() {
         val url = tc.trustchaindUrl()
         val request = Request.Builder()
                 .url("$url/verification/session-token")
-                .post(jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()!!))
+                .post(jsonBody.toRequestBody(HttpClient.JSON))
                 .build()
         val response = OkHttpClient().newCall(request).execute()
         if (!response.isSuccessful)

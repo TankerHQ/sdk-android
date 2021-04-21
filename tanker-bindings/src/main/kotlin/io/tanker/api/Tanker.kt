@@ -1,10 +1,7 @@
 package io.tanker.api
 
 import android.util.Log
-import com.sun.jna.Memory
-import com.sun.jna.Native
-import com.sun.jna.Pointer
-import com.sun.jna.StringArray
+import com.sun.jna.*
 import io.tanker.bindings.*
 import io.tanker.jni.KVMx86Bug
 
@@ -56,6 +53,8 @@ class Tanker(tankerOptions: TankerOptions) {
 
     private val tanker: Pointer
     private var deviceRevokedHandlers = mutableListOf<TankerDeviceRevokedHandler>()
+    private val httpClient: HttpClient = HttpClient(lib, tankerOptions.sdkType, tankerOptions.sdkVersion)
+    private val httpClientCanceler: HttpClientCanceler = HttpClientCanceler(httpClient)
 
     @ProguardKeep
     private var callbacksLifeSupport = mutableListOf<Any>()
@@ -68,6 +67,9 @@ class Tanker(tankerOptions: TankerOptions) {
                     + "A hardware-acceleration bug in some versions of the x86_32 Android emulator causes it to crash when starting Tanker.\n"
                     + "If you encounter a crash only in the x86 emulator, please make sure to update Android Studio (or use an x86_64 emulator)")
         }
+
+        tankerOptions.httpSendRequest = httpClient
+        tankerOptions.httpCancelRequest = httpClientCanceler
 
         val createFuture = lib.tanker_create(tankerOptions)
         tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java).get()
