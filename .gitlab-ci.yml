@@ -12,7 +12,6 @@ include:
     when: always
     paths:
       - artifacts
-      - tanker-bindings/build/reports
 
 check/deployed-native:
   extends:

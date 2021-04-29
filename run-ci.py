@@ -71,16 +71,19 @@ def dump_logcat_for_failed_tests() -> None:
 
 def test() -> None:
     ui.info_1("Running tests")
-    tankerci.run(
-        "./gradlew",
-        "tanker-bindings:testRelease",
-    )
-    with tankerci.android.emulator():
-        try:
-            tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
-        except:
-            dump_logcat_for_failed_tests()
-            raise
+    try:
+        tankerci.run(
+            "./gradlew",
+            "tanker-bindings:testRelease",
+        )
+        with tankerci.android.emulator():
+            try:
+                tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
+            except:
+                dump_logcat_for_failed_tests()
+                raise
+    finally:
+        shutil.copytree("tanker-bindings/build/reports", Path.cwd() / "artifacts/reports")
 
 
 def build_and_test(
