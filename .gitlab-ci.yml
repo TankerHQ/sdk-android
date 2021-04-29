@@ -7,38 +7,31 @@ include:
 # check stage #
 ###############
 
-.dump-test-results:
+.artifacts:
   artifacts:
     when: always
     paths:
-      - tanker-bindings/build/reports
-    expire_in: 30 days
+      - artifacts
 
 check/deployed-native:
   extends:
     - .check
     - .tags/linux
     - .rules/deployed-native
-    - .dump-test-results
+    - .artifacts
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
-  artifacts:
-    paths:
-      - artifacts
 
 check/native-from-sources:
   extends:
     - .check
     - .tags/linux
     - .rules/native-from-sources
-    - .dump-test-results
+    - .artifacts
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
-  artifacts:
-    paths:
-      - artifacts
 
 check/downstream:
   extends:
@@ -46,13 +39,10 @@ check/downstream:
     - .tags/linux
     - .before-script/download-artifacts
     - .rules/check/downstream
-    - .dump-test-results
+    - .artifacts
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
-  artifacts:
-    paths:
-      - artifacts
 
 ######################
 # bridge-check stage #
