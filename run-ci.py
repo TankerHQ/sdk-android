@@ -62,8 +62,9 @@ def build() -> None:
 
 def dump_logcat_for_failed_tests() -> None:
     try:
-        dump_path = "tanker-bindings/build/reports/androidTests/connected/flavors/releaseAndroidTest/logcat.txt"
+        dump_path = Path("tanker-bindings/build/reports/androidTests/connected/flavors/releaseAndroidTest/logcat.txt")
         tankerci.android.dump_logcat(dump_path)
+        shutil.copy(dump_path, Path.cwd() / "artifacts" / "logcat.txt")
         ui.info("Tests have failed, logcat dumped to", dump_path)
     except Exception as e:
         ui.error("Failed to dump logcat:", e)
