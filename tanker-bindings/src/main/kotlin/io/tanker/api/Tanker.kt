@@ -175,7 +175,9 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun stop(): TankerFuture<Unit> {
         val futurePtr = lib.tanker_stop(tanker)
-        return TankerFuture(futurePtr, Unit::class.java)
+        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = this) {
+            // Keep the GC from calling tanker_destroy() through the finalizer until stop() is finished
+        })
     }
 
     /**
