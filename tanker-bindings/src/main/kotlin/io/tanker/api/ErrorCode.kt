@@ -26,4 +26,5 @@ enum class ErrorCode(val value: Int) {
 
     CONFLICT(13),
     UPGRADE_REQUIRED(14),
+    IDENTITY_ALREADY_ATTACHED(15),
 }
