@@ -20,6 +20,7 @@ class DeviceRevoked(message: String) : TankerException(ErrorCode.DEVICE_REVOKED,
 
 class Conflict(message: String) : TankerException(ErrorCode.CONFLICT, message)
 class UpgradeRequired(message: String) : TankerException(ErrorCode.UPGRADE_REQUIRED, message)
+class IdentityAlreadyAttached(message: String) : TankerException(ErrorCode.IDENTITY_ALREADY_ATTACHED, message)
 
 internal fun toError(error: TankerError): TankerException =
         when (error.errorCode) {
@@ -36,5 +37,6 @@ internal fun toError(error: TankerError): TankerException =
             ErrorCode.DEVICE_REVOKED.value -> DeviceRevoked(error.getErrorMessage())
             ErrorCode.CONFLICT.value -> Conflict(error.getErrorMessage())
             ErrorCode.UPGRADE_REQUIRED.value -> UpgradeRequired(error.getErrorMessage())
+            ErrorCode.IDENTITY_ALREADY_ATTACHED.value -> IdentityAlreadyAttached(error.getErrorMessage())
             else -> InternalError("Unknown error: ${error.errorCode}: ${error.errorMessage}")
         }

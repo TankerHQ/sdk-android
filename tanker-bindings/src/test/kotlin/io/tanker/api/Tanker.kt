@@ -3,6 +3,7 @@ package io.tanker.api
 import io.tanker.api.Tanker.Companion.prehashPassword
 import io.tanker.api.errors.DeviceRevoked
 import io.tanker.api.errors.InvalidArgument
+import io.tanker.api.errors.IdentityAlreadyAttached
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -344,6 +345,36 @@ class TankerTests : TankerSpec() {
 
         tankerBob.stop().get()
         tankerAlice.stop().get()
+    }
+
+    @Test
+    fun cannot_attach_an_already_attached_identity() {
+        val aliceId = tc.createIdentity()
+        val tankerAlice = Tanker(options)
+        tankerAlice.start(aliceId).get()
+        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
+
+        val aliceEmail = "alice@tanker.io"
+        val provisionalIdentity = Identity.createProvisionalIdentity(tc.id(), aliceEmail)
+
+        val attachAliceResult = tankerAlice.attachProvisionalIdentity(provisionalIdentity).get()
+        assertThat(attachAliceResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
+        val aliceVerificationCode = tc.getVerificationCode(aliceEmail)
+        tankerAlice.verifyProvisionalIdentity(EmailVerification(aliceEmail, aliceVerificationCode)).get()
+
+        // try to attach/verify with Bob
+        val bobId = tc.createIdentity()
+        val tankerBob = Tanker(options)
+        tankerBob.start(bobId).get()
+        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
+
+        val attachBobResult = tankerBob.attachProvisionalIdentity(provisionalIdentity).get()
+        assertThat(attachBobResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
+        val bobVerificationCode = tc.getVerificationCode(aliceEmail)
+        val e = shouldThrow<TankerFutureException> {
+            tankerBob.verifyProvisionalIdentity(EmailVerification(aliceEmail, bobVerificationCode)).get()
+        }
+        assertThat(e).hasCauseInstanceOf(IdentityAlreadyAttached::class.java) 
     }
 
     @Test
