@@ -449,8 +449,10 @@ class Tanker(tankerOptions: TankerOptions) {
      * Update the members of an existing group, referenced by its group ID.
      * @return A future that resolves when the operation completes.
      */
-    fun updateGroupMembers(groupId: String, usersToAdd: Array<String>): TankerFuture<Unit> {
-        val fut = lib.tanker_update_group_members(tanker, groupId, StringArray(usersToAdd), usersToAdd.size.toLong())
+    fun updateGroupMembers(groupId: String, usersToAdd: Array<String> = arrayOf(), usersToRemove: Array<String> = arrayOf()): TankerFuture<Unit> {
+        val fut = lib.tanker_update_group_members(tanker, groupId,
+                StringArray(usersToAdd), usersToAdd.size.toLong(),
+                StringArray(usersToRemove), usersToRemove.size.toLong())
         return TankerFuture(fut, Unit::class.java)
     }
 
