@@ -1,6 +1,6 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: a86a57362301a6e734240a0f056f83285924ba0b
+    ref: ecfaa4031b36380595405ca7078f73daf08c6b1b
     file: /android.yml
 
 ###############
@@ -12,6 +12,7 @@ include:
     when: always
     paths:
       - artifacts
+      - branch_name.txt
 
 check/deployed-native:
   extends:
@@ -22,6 +23,7 @@ check/deployed-native:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
+    - echo $CI_COMMIT_REF_NAME > branch_name.txt
 
 check/native-from-sources:
   extends:
@@ -32,6 +34,7 @@ check/native-from-sources:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+    - echo $CI_COMMIT_REF_NAME > branch_name.txt
 
 check/downstream:
   extends:
