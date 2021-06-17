@@ -6,6 +6,7 @@ import io.tanker.api.*
 const val HASH_SIZE = 32
 const val PRIVATE_SIGNATURE_KEY_SIZE = 64
 
+typealias TankerHttpRequestPointer = Pointer
 typealias SessionPointer = Pointer
 typealias ConnectionPointer = Pointer
 typealias AppDescriptorPointer = Pointer
@@ -25,6 +26,14 @@ interface TankerLib : AsyncLib, Library {
             System.setProperty("jna.debug_load", "true")
             return Native.load("ctanker", TankerLib::class.java, options)
         }
+    }
+
+    interface HttpSendRequestCallback : Callback {
+        fun callback(crequest: TankerHttpRequest, data: Pointer?): Pointer?
+    }
+
+    interface HttpCancelRequestCallback : Callback {
+        fun callback(crequest: TankerHttpRequest, requestHandle: Pointer?, data: Pointer?)
     }
 
     interface EventCallback : Callback {
@@ -94,6 +103,8 @@ interface TankerLib : AsyncLib, Library {
 
     fun tanker_create_group(tanker: SessionPointer, member_uids: StringArray, nbMembers: Long): FuturePointer
     fun tanker_update_group_members(tanker: SessionPointer, group_id: String, users_to_add: StringArray, nb_users_to_add: Long): FuturePointer
+
+    fun tanker_http_handle_response(request: TankerHttpRequestPointer, response: TankerHttpResponse)
 
     fun tanker_free_buffer(buffer: Pointer): Void
     fun tanker_free_device_list(list: Pointer): Void

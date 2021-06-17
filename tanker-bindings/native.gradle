@@ -52,22 +52,24 @@ class Builder extends DefaultTask {
     final File projectPath
     final File conanPath
     final String buildType
-    final File installPathBase
+    final File installPathBaseDebug
+    final File installPathBaseRelease
 
     Builder(String buildType) {
         this.projectPath = new File(getProject().getProjectDir().absolutePath)
         this.conanPath = new File(this.projectPath, "conan")
         this.buildType = buildType.toLowerCase()
-        this.installPathBase = new File(this.projectPath, "src/${this.buildType}/jniLibs")
+        this.installPathBaseDebug = new File(this.projectPath, "src/debug/jniLibs")
+        this.installPathBaseRelease = new File(this.projectPath, "src/release/jniLibs")
     }
 
     void compileForAndroid() {
         // Run each known android arch
         NativeHelper.conanAndroidArchs.each { k, v ->
             def conanOutPath = new File(this.conanPath, NativeHelper.getAndroidProfile(v, this.buildType))
-            def installPath = new File(this.installPathBase, k)
             def tankerDepInfos = NativeHelper.getTankerDepInfos(conanOutPath)
-            NativeHelper.copyTankerLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, installPath)
+            NativeHelper.copyTankerLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, new File(this.installPathBaseDebug, k))
+            NativeHelper.copyTankerLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, new File(this.installPathBaseRelease, k))
         }
     }
 
@@ -100,6 +102,12 @@ class BuildNative extends Builder {
     }
 }
 
+// Note that there are two buildTypes when building this. There's the sdk-native build type, and the
+// android apk build variant. I don't know what building a release android apk really means, it's
+// probably just about running R8 to minify and tree-shake.
+// Anyway, since the android build variant is not that important, all these tasks will build native in
+// the requested build type, and copy the resulting libraries for both the debug and release android
+// build.
 task buildNativeHostDebug(type: BuildNative, constructorArgs: ['Debug', 'host'])
 task buildNativeHostRelease(type: BuildNative, constructorArgs: ['Release', 'host'])
 task buildNativeAndroidRelease(type: BuildNative, constructorArgs: ['Release', 'android'])

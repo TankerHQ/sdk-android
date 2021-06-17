@@ -4,6 +4,7 @@ import io.tanker.api.Tanker.Companion.prehashPassword
 import io.tanker.api.errors.DeviceRevoked
 import io.tanker.api.errors.InvalidArgument
 import io.tanker.api.errors.IdentityAlreadyAttached
+import io.tanker.api.errors.NetworkError
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -48,6 +49,32 @@ class TankerTests : TankerSpec() {
     }
 
     @Test
+    fun reports_synchronous_http_errors_correctly() {
+        val badOptions = TankerOptions()
+        badOptions.appId = options.appId
+        badOptions.writablePath = options.writablePath
+        // This error should be reported before any network call
+        badOptions.url = "this is not an url at all"
+        val tanker = Tanker(badOptions)
+        val identity = tc.createIdentity()
+        val ex = shouldThrow<TankerFutureException> { tanker.start(identity).get() }
+        assertThat(ex).hasCauseInstanceOf(NetworkError::class.java)
+    }
+
+    @Test
+    fun reports_asynchronous_http_errors_correctly() {
+        val badOptions = TankerOptions()
+        badOptions.appId = options.appId
+        badOptions.writablePath = options.writablePath
+        // This error requires an (async) DNS lookup
+        badOptions.url = "https://this-is-not-a-tanker-server.com"
+        val tanker = Tanker(badOptions)
+        val identity = tc.createIdentity()
+        val ex = shouldThrow<TankerFutureException> { tanker.start(identity).get() }
+        assertThat(ex).hasCauseInstanceOf(NetworkError::class.java)
+    }
+
+    @Test
     fun can_encrypt_an_empty_buffer() {
         val tanker = Tanker(options)
         val identity = tc.createIdentity()
@@ -71,6 +98,19 @@ class TankerTests : TankerSpec() {
         val plaintext = "plain text"
         val decrypted = tanker.decrypt(tanker.encrypt(plaintext.toByteArray()).get()).get()
         assertThat(String(decrypted)).isEqualTo(plaintext)
+
+        tanker.stop().get()
+    }
+
+    @Test
+    fun can_stop_tanker_while_a_call_is_in_flight() {
+        val tanker = Tanker(options)
+        val identity = tc.createIdentity()
+        tanker.start(identity).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+        // Do not wait for the future, and stop tanker
+        tanker.encrypt("plain text".toByteArray())
 
         tanker.stop().get()
     }
