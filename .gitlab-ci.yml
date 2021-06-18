@@ -108,10 +108,3 @@ deploy:
   release:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
     tag_name: v$SDK_ANDROID_RELEASE_VERSION
-
-mirror:
-  extends:
-    - .deploy
-    - .rules/mirror
-  script:
-    - poetry run python run-ci.py mirror
