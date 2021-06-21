@@ -294,7 +294,7 @@ class TankerTests : TankerSpec() {
 
         val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
         assertThat(attachResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
-        val bobVerificationCode = tc.getVerificationCode(bobEmail)
+        val bobVerificationCode = tc.getEmailVerificationCode(bobEmail)
         tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
         val decrypted = tankerBob.decrypt(encrypted).get()
@@ -323,7 +323,7 @@ class TankerTests : TankerSpec() {
         val tankerBob = Tanker(options)
         val bobPrivateIdentity = tc.createIdentity()
         tankerBob.start(bobPrivateIdentity).get()
-        val bobVerificationCode = tc.getVerificationCode(bobEmail)
+        val bobVerificationCode = tc.getEmailVerificationCode(bobEmail)
         tankerBob.registerIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
         val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
@@ -348,7 +348,7 @@ class TankerTests : TankerSpec() {
         tankerBob.registerIdentity(PassphraseVerification("pass")).get()
 
         tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
-        val bobVerificationCode = tc.getVerificationCode(bobEmail)
+        val bobVerificationCode = tc.getEmailVerificationCode(bobEmail)
         tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
         tankerBob.stop().get()
@@ -377,7 +377,7 @@ class TankerTests : TankerSpec() {
 
         val attachResult = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
         assertThat(attachResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
-        val bobVerificationCode = tc.getVerificationCode(bobEmail)
+        val bobVerificationCode = tc.getEmailVerificationCode(bobEmail)
         tankerBob.verifyProvisionalIdentity(EmailVerification(bobEmail, bobVerificationCode)).get()
 
         val attachResult2 = tankerBob.attachProvisionalIdentity(bobProvisionalIdentity).get()
@@ -399,7 +399,7 @@ class TankerTests : TankerSpec() {
 
         val attachAliceResult = tankerAlice.attachProvisionalIdentity(provisionalIdentity).get()
         assertThat(attachAliceResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
-        val aliceVerificationCode = tc.getVerificationCode(aliceEmail)
+        val aliceVerificationCode = tc.getEmailVerificationCode(aliceEmail)
         tankerAlice.verifyProvisionalIdentity(EmailVerification(aliceEmail, aliceVerificationCode)).get()
 
         // try to attach/verify with Bob
@@ -410,7 +410,7 @@ class TankerTests : TankerSpec() {
 
         val attachBobResult = tankerBob.attachProvisionalIdentity(provisionalIdentity).get()
         assertThat(attachBobResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
-        val bobVerificationCode = tc.getVerificationCode(aliceEmail)
+        val bobVerificationCode = tc.getEmailVerificationCode(aliceEmail)
         val e = shouldThrow<TankerFutureException> {
             tankerBob.verifyProvisionalIdentity(EmailVerification(aliceEmail, bobVerificationCode)).get()
         }

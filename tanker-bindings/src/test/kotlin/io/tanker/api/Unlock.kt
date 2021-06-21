@@ -126,10 +126,22 @@ class UnlockTests : TankerSpec() {
         val email = "bob@tanker.io"
 
         tanker1.start(identity).get()
-        val verificationCode = tc.getVerificationCode(email)
+        val verificationCode = tc.getEmailVerificationCode(email)
         tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
         val methods = tanker1.getVerificationMethods().get()
         assertThat(methods).containsExactlyInAnyOrderElementsOf(listOf(EmailVerificationMethod(email)))
+        tanker1.stop().get()
+    }
+
+    @Test
+    fun can_check_that_the_phone_number_unlock_method_is_set_up() {
+        val phoneNumber = "+33600112233"
+
+        tanker1.start(identity).get()
+        val verificationCode = tc.getSMSVerificationCode(phoneNumber)
+        tanker1.registerIdentity(PhoneNumberVerification(phoneNumber, verificationCode)).get()
+        val methods = tanker1.getVerificationMethods().get()
+        assertThat(methods).containsExactlyInAnyOrderElementsOf(listOf(PhoneNumberVerificationMethod(phoneNumber)))
         tanker1.stop().get()
     }
 
@@ -141,7 +153,7 @@ class UnlockTests : TankerSpec() {
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()
         assertThat(tanker1.getVerificationMethods().get().size).isEqualTo(1)
-        val verificationCode = tc.getVerificationCode(email)
+        val verificationCode = tc.getEmailVerificationCode(email)
         tanker1.setVerificationMethod(EmailVerification(email, verificationCode)).get()
         val methods = tanker1.getVerificationMethods().get()
         assertThat(methods.size).isEqualTo(2)
@@ -155,7 +167,7 @@ class UnlockTests : TankerSpec() {
         val newpass = "this is a new password"
 
         tanker1.start(identity).get()
-        val verificationCode = tc.getVerificationCode(email)
+        val verificationCode = tc.getEmailVerificationCode(email)
         tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
         assertThat(tanker1.getVerificationMethods().get().size).isEqualTo(1)
         tanker1.setVerificationMethod(PassphraseVerification(oldpass)).get()
@@ -173,11 +185,11 @@ class UnlockTests : TankerSpec() {
         val email = "bob@tanker.io"
 
         tanker1.start(identity).get()
-        var verificationCode = tc.getVerificationCode(email)
+        var verificationCode = tc.getEmailVerificationCode(email)
         tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
 
         tanker2.start(identity).get()
-        verificationCode = tc.getVerificationCode(email)
+        verificationCode = tc.getEmailVerificationCode(email)
         tanker2.verifyIdentity(EmailVerification(email, verificationCode)).get()
         assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
 
