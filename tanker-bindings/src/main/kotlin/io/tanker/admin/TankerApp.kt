@@ -12,8 +12,8 @@ class TankerApp(private val url: String, val id: String, val authToken: String, 
     }
 
 
-    fun getVerificationCode(email: String): TankerFuture<String> {
-        val fut = TankerFuture<Pointer>(lib.tanker_get_verification_code(url, id, authToken, email), Pointer::class.java, lib)
+    fun getEmailVerificationCode(email: String): TankerFuture<String> {
+        val fut = TankerFuture<Pointer>(lib.tanker_get_email_verification_code(url, id, authToken, email), Pointer::class.java, lib)
         return fut.then(TankerCallback {
             val ptr = it.get()
             val str = ptr.getString(0)
@@ -22,5 +22,14 @@ class TankerApp(private val url: String, val id: String, val authToken: String, 
         })
     }
 
+    fun getSMSVerificationCode(phoneNumber: String): TankerFuture<String> {
+        val fut = TankerFuture<Pointer>(lib.tanker_get_sms_verification_code(url, id, authToken, phoneNumber), Pointer::class.java, lib)
+        return fut.then(TankerCallback {
+            val ptr = it.get()
+            val str = ptr.getString(0)
+            tankerlib.tanker_free_buffer(ptr)
+            str
+        })
+    }
 }
 

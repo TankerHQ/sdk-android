@@ -135,8 +135,12 @@ class App {
         return Config.getTrustchaindUrl()
     }
 
-    fun getVerificationCode(email: String): String {
-        return app.getVerificationCode(email).get()
+    fun getEmailVerificationCode(email: String): String {
+        return app.getEmailVerificationCode(email).get()
+    }
+
+    fun getSMSVerificationCode(phoneNumber: String): String {
+        return app.getSMSVerificationCode(phoneNumber).get()
     }
 
     fun delete() {

@@ -6,17 +6,17 @@ import com.sun.jna.Structure
 class TankerVerificationMethod(ptr: Pointer) : Structure(ptr) {
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField
-    var version: Byte = 1
+    var version: Byte = 2
     @JvmField
     var type: Byte = 0
     @JvmField
-    var email: String? = null
+    var value: String? = null
 
     init {
         super.read()
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "type", "email")
+        return listOf("version", "type", "value")
     }
 }

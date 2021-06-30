@@ -22,5 +22,6 @@ interface AdminLib : AsyncLib, Library {
     fun tanker_admin_destroy(admin: AdminPointer): FuturePointer
     fun tanker_admin_app_descriptor_free(app: AppDescriptorPointer): Void
     fun tanker_admin_app_update(admin: AdminPointer, app_id: String, options: TankerAppUpdateOptions): FuturePointer
-    fun tanker_get_verification_code(url: String, app_id: String, auth_token: String, email: String): FuturePointer
+    fun tanker_get_email_verification_code(url: String, app_id: String, auth_token: String, email: String): FuturePointer
+    fun tanker_get_sms_verification_code(url: String, app_id: String, auth_token: String, phone_number: String): FuturePointer
 }
