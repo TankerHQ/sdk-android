@@ -135,7 +135,7 @@ class UnlockTests : TankerSpec() {
 
     @Test
     fun can_check_that_the_phone_number_unlock_method_is_set_up() {
-        val phoneNumber = "+33600112233"
+        val phoneNumber = "+33639982233"
 
         tanker1.start(identity).get()
         val verificationCode = tc.getSMSVerificationCode(phoneNumber)
