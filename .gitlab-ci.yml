@@ -1,6 +1,6 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: a247a7f1fd9d33f89f95cce4f7c0105b1cc5d6b0
+    ref: 2021-07-07-1
     file: /android.yml
 
 ###############
