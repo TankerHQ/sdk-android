@@ -1,7 +1,62 @@
 include:
   - project: TankerHQ/gitlab-ci-files
     ref: 2021-07-07-1
-    file: /android.yml
+    file: /common.yml
+
+############
+# Workflow #
+############
+
+workflow:
+  rules:
+    # web pipelines for releases only
+    - if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A\d+\.\d+\.\d+(-(alpha|beta)-\d+)?\z/
+      when: never
+    - if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/(latest-stable@|(\d+\.\d+\.\d+(-(alpha|beta)\d+)?@(\w+\/\w+)?))\z/
+      when: never
+    # allow everything else
+    - when: always
+
+###########
+# Default #
+###########
+
+default:
+  before_script: &global_before_script
+    - poetry run python -m pip install --upgrade pip
+    - poetry install
+    - export PATH=$(poetry env info -p)/bin:$PATH
+  image: registry.gitlab.com/tankerhq/docker/sdk-android:latest
+
+##########
+# Stages #
+##########
+
+stages:
+  - check
+  - bridge-check
+  - deploy
+
+.check:
+  stage: check
+
+.bridge-check:
+  stage: bridge-check
+
+.deploy:
+  stage: deploy
+
+#############################
+# Default settings override #
+#############################
+
+.before-script/download-artifacts:
+  before_script:
+    - *global_before_script
+    - poetry run python run-ci.py download-artifacts --project-id=$UPSTREAM_PROJECT_ID --pipeline-id=$UPSTREAM_PIPELINE_ID --job-name=$UPSTREAM_JOB_NAME
+    - poetry run python run-ci.py reset-branch $(cat branch_name.txt)
+    - poetry run python -m pip install --upgrade pip
+    - poetry install
 
 ###############
 # check stage #
@@ -14,11 +69,16 @@ include:
       - artifacts
       - branch_name.txt
 
+.rules/check/deployed-native:
+  rules:
+    - !reference [.rules/web/auto, rules]
+    - !reference [.rules/mr/manual, rules]
+
 check/deployed-native:
   extends:
     - .check
     - .tags/linux
-    - .rules/deployed-native
+    - .rules/check/deployed-native
     - .artifacts
   script:
     - sudo chgrp 1000 -f /dev/kvm
@@ -79,10 +139,13 @@ bridge/downstream:
     project: TankerHQ/sdk-react-native
     strategy: depend
 
+.rules/bridge/deployed-native:
+  rules: !reference [.rules/check/deployed-native, rules]
+
 bridge/deployed-native:
   extends:
     - .bridge-check
-    - .rules/deployed-native
+    - .rules/bridge/deployed-native
     - .variables/bridge-common
   needs:
     - check/deployed-native
