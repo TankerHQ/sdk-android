@@ -37,15 +37,6 @@ stages:
   - bridge-check
   - deploy
 
-.check:
-  stage: check
-
-.bridge-check:
-  stage: bridge-check
-
-.deploy:
-  stage: deploy
-
 #############################
 # Default settings override #
 #############################
@@ -76,10 +67,10 @@ stages:
 
 check/deployed-native:
   extends:
-    - .check
     - .tags/linux
     - .rules/check/deployed-native
     - .artifacts
+  stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
@@ -87,10 +78,10 @@ check/deployed-native:
 
 check/native-from-sources:
   extends:
-    - .check
     - .tags/linux
     - .rules/native-from-sources
     - .artifacts
+  stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
@@ -98,11 +89,11 @@ check/native-from-sources:
 
 check/downstream:
   extends:
-    - .check
     - .tags/linux
     - .before-script/download-artifacts
     - .rules/check/downstream
     - .artifacts
+  stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
@@ -113,9 +104,9 @@ check/downstream:
 
 bridge/native-from-sources:
   extends:
-    - .bridge-check
     - .rules/native-from-sources
     - .variables/bridge-common
+  stage: bridge-check
   needs:
     - check/native-from-sources
   variables:
@@ -127,9 +118,9 @@ bridge/native-from-sources:
 
 bridge/downstream:
   extends:
-    - .bridge-check
     - .rules/check/downstream
     - .variables/bridge-common
+  stage: bridge-check
   needs:
     - check/downstream
   variables:
@@ -144,9 +135,9 @@ bridge/downstream:
 
 bridge/deployed-native:
   extends:
-    - .bridge-check
     - .rules/bridge/deployed-native
     - .variables/bridge-common
+  stage: bridge-check
   needs:
     - check/deployed-native
   variables:
@@ -162,9 +153,9 @@ bridge/deployed-native:
 
 deploy:
   extends:
-    - .deploy
     - .tags/linux
     - .rules/deploy/android
+  stage: deploy
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py reset-branch $UPSTREAM_BRANCH_NAME
