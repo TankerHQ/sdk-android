@@ -2,12 +2,12 @@ package io.tanker.api
 
 import android.os.Looper
 import android.os.NetworkOnMainThreadException
+import androidx.annotation.WorkerThread
 import com.sun.jna.Pointer
 import io.tanker.api.errors.toError
 import io.tanker.bindings.TankerLib
 import java.lang.reflect.Type
 import java.util.concurrent.Executors
-import android.support.annotation.WorkerThread
 import io.tanker.bindings.AsyncLib
 import java.util.*
 import kotlin.collections.ArrayList
