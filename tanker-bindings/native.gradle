@@ -49,18 +49,21 @@ class NativeHelper {
 }
 
 class Builder extends DefaultTask {
-    final File projectPath
+    @InputDirectory
     final File conanPath
+    @Input
     final String buildType
+    @OutputDirectories
     final File installPathBaseDebug
+    @OutputDirectories
     final File installPathBaseRelease
 
     Builder(String buildType) {
-        this.projectPath = new File(getProject().getProjectDir().absolutePath)
-        this.conanPath = new File(this.projectPath, "conan")
+        def projectPath = new File(getProject().getProjectDir().absolutePath)
+        this.conanPath = new File(projectPath, "conan")
         this.buildType = buildType.toLowerCase()
-        this.installPathBaseDebug = new File(this.projectPath, "src/debug/jniLibs")
-        this.installPathBaseRelease = new File(this.projectPath, "src/release/jniLibs")
+        this.installPathBaseDebug = new File(projectPath, "src/debug/jniLibs")
+        this.installPathBaseRelease = new File(projectPath, "src/release/jniLibs")
     }
 
     void compileForAndroid() {
@@ -86,6 +89,7 @@ class Builder extends DefaultTask {
 }
 
 class BuildNative extends Builder {
+    @Internal
     final String buildFor
 
     @Inject BuildNative(String buildType, String buildFor) {
