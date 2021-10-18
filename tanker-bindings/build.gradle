@@ -11,10 +11,10 @@ version 'dev'
 
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 30
 
         consumerProguardFiles 'proguard-rules.pro'
         ndk {
