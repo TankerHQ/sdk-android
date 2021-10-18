@@ -391,9 +391,8 @@ class Tanker(tankerOptions: TankerOptions) {
 
         val outBuf = Memory(plainSize.coerceAtLeast(1))
         val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong())
-        return TankerFuture<Pointer?>(futurePtr, Pointer::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
-            val trueSize = Pointer.nativeValue(it)
-            outBuf.getByteArray(0, trueSize.toInt())
+        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
+            outBuf.getByteArray(0, plainSize.toInt())
         })
     }
 
