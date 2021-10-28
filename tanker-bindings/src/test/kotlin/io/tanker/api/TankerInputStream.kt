@@ -62,8 +62,7 @@ class InputStreamTests : TankerSpec() {
     }
 
     @Test
-    fun encrypting_decrypting_a_small_buffer()
-    {
+    fun encrypting_decrypting_a_small_buffer() {
         val channel = TankerChannels.fromInputStream(array.inputStream())
         val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
         val b = ByteArray(10) { 1 }
@@ -73,8 +72,7 @@ class InputStreamTests : TankerSpec() {
     }
 
     @Test
-    fun encrypting_decrypting_a_big_buffer()
-    {
+    fun encrypting_decrypting_a_big_buffer() {
         // a chunk is 1MB, make multiple chunks
         val totalLength = 4 * 1024 * 1024
         array = ByteArray(totalLength) { it.toByte() }
@@ -134,8 +132,7 @@ class InputStreamTests : TankerSpec() {
     }
 
     @Test
-    fun giving_a_length_larger_than_buffer_size_minus_offset_throws()
-    {
+    fun giving_a_length_larger_than_buffer_size_minus_offset_throws() {
         val channel = TankerChannels.fromInputStream(array.inputStream())
         val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
         shouldThrow<IndexOutOfBoundsException> { encryptionStream.read(array, 9, 10) }
