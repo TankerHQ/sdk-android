@@ -9,6 +9,8 @@ object PassphraseVerificationMethod : VerificationMethod()
 object VerificationKeyVerificationMethod : VerificationMethod()
 object OIDCIDTokenVerificationMethod : VerificationMethod()
 data class PhoneNumberVerificationMethod(val phoneNumber: String) : VerificationMethod()
+data class PreverifiedEmailVerificationMethod(val preverifiedEmail: String) : VerificationMethod()
+data class PreverifiedPhoneNumberVerificationMethod(val preverifiedPhoneNumber: String): VerificationMethod()
 
 fun verificationMethodFromCVerification(method: TankerVerificationMethod) =
         when (method.type) {
@@ -17,5 +19,7 @@ fun verificationMethodFromCVerification(method: TankerVerificationMethod) =
             TankerVerification.TypePassphrase -> PassphraseVerificationMethod
             TankerVerification.TypeOIDCIDToken -> OIDCIDTokenVerificationMethod
             TankerVerification.TypePhoneNumber -> PhoneNumberVerificationMethod(method.value!!)
+            TankerVerification.TypePreverifiedEmail -> PreverifiedEmailVerificationMethod(method.value!!)
+            TankerVerification.TypePreverifiedPhoneNumber -> PreverifiedPhoneNumberVerificationMethod(method.value!!)
             else -> throw RuntimeException("unknown verification method type: ${method.type}")
         }
