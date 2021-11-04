@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'org.jetbrains.dokka'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'digital.wup.android-maven-publish'
 apply from: 'native.gradle'
@@ -11,10 +10,10 @@ version 'dev'
 
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 30
 
         consumerProguardFiles 'proguard-rules.pro'
         ndk {
@@ -100,41 +99,48 @@ task sourcesJar(type: Jar) {
     archiveClassifier.set('sources')
 }
 
-task javaDocJar(type: Jar, dependsOn: dokka) {
-    from dokka.outputDirectory
+task javaDocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    from dokkaJavadoc.outputDirectory
     archiveClassifier.set('javadoc')
 }
 
-dokka {
-    outputFormat = 'javadoc'
+tasks.dokkaJavadoc.configure {
+    dokkaSourceSets {
+        named("main") {
+            // Exclude JNA R class
+            perPackageOption {
+                matchingRegex.set("com\\.sun\\.jna")
+                suppress.set(true)
+            }
 
-    // Exclude JNA R class
-    packageOptions {
-        prefix = "com.sun.jna"
-        suppress = true
-    }
+            // Exclude our R class
+            perPackageOption {
+                matchingRegex.set("io\\.tanker\\.tanker_bindings")
+                suppress.set(true)
+            }
 
-    // Exclude our R class
-    packageOptions {
-        prefix = "io.tanker.tanker_bindings"
-        suppress = true
-    }
+            // Exclude low-level JNA bindings
+            perPackageOption {
+                matchingRegex.set("io\\.tanker\\.bindings")
+                suppress.set(true)
+            }
 
-    // Exclude low-level JNA bindings
-    packageOptions {
-        prefix = "io.tanker.bindings"
-        suppress = true
-    }
+            perPackageOption {
+                matchingRegex.set("io\\.tanker\\.jni")
+                suppress.set(true)
+            }
 
-    packageOptions {
-        prefix = "io.tanker.admin"
-        suppress = true
-    }
+            perPackageOption {
+                matchingRegex.set("io\\.tanker\\.admin")
+                suppress.set(true)
+            }
 
-    // Exclude Identity api
-    packageOptions {
-        prefix = "io.tanker.api.Identity"
-        suppress = true
+            // Exclude Identity api
+            perPackageOption {
+                matchingRegex.set("io\\.tanker\\.api\\.Identity")
+                suppress.set(true)
+            }
+        }
     }
 }
 
