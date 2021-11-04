@@ -7,6 +7,8 @@ const val HASH_SIZE = 32
 const val PRIVATE_SIGNATURE_KEY_SIZE = 64
 
 typealias TankerHttpRequestPointer = Pointer
+typealias TankerDatastoreDeviceGetResult = Pointer
+typealias TankerDatastoreCacheGetResult = Pointer
 typealias SessionPointer = Pointer
 typealias ConnectionPointer = Pointer
 typealias AppDescriptorPointer = Pointer
@@ -18,8 +20,42 @@ typealias EncryptionSessionPointer = Pointer
 // https://github.com/java-native-access/jna/issues/1076
 typealias DangerousNativeBool = Int
 
+interface DatastoreLib {
+    interface DatastoreOpenCallback : Callback {
+        fun callback(handle: Pointer, db: Pointer, data_path: String, cache_path: String)
+    }
+
+    interface DatastoreCloseCallback : Callback {
+        fun callback(datastore: Pointer)
+    }
+
+    interface DatastoreNukeCallback : Callback {
+        fun callback(datastore: Pointer, handle: Pointer)
+    }
+
+    interface DatastoreDevicePutCallback : Callback {
+        fun callback(datastore: Pointer, handle: Pointer, device: Pointer, size: Int)
+    }
+
+    interface DatastoreDeviceGetCallback : Callback {
+        fun callback(datastore: Pointer, h: TankerDatastoreDeviceGetResult)
+    }
+
+    interface DatastoreCachePutCallback : Callback {
+        fun callback(datastore: Pointer, handle: Pointer, keys: Pointer?, key_sizes: Pointer?, values: Pointer?, value_sizes: Pointer?, elem_count: Int, onConflict: Byte)
+    }
+
+    interface DatastoreCacheGetCallback : Callback {
+        fun callback(datastore: Pointer, h: TankerDatastoreCacheGetResult, keys: Pointer?, key_sizes: Pointer?, elem_count: Int)
+    }
+
+    fun tanker_datastore_allocate_device_buffer(result: TankerDatastoreDeviceGetResult, size: Int): Pointer
+    fun tanker_datastore_allocate_cache_buffer(result: TankerDatastoreCacheGetResult, data: Pointer, sizes: Pointer): Pointer
+    fun tanker_datastore_report_error(handle: Pointer, error_code: Byte, message: String)
+}
+
 @Suppress("FunctionName")
-interface TankerLib : AsyncLib, Library {
+interface TankerLib : AsyncLib, DatastoreLib, Library {
     companion object {
         val options = hashMapOf<String, Any>(Library.OPTION_TYPE_MAPPER to TankerTypeMapper())
         fun create(): TankerLib {
