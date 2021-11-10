@@ -10,11 +10,13 @@ class TankerVerification : Structure() {
         const val TypeVerificationKey: Byte = 3
         const val TypeOIDCIDToken: Byte = 4
         const val TypePhoneNumber: Byte = 5
+        const val TypePreverifiedEmail: Byte = 6
+        const val TypePreverifiedPhoneNumber: Byte = 7
     }
 
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField
-    var version: Byte = 4
+    var version: Byte = 5
     @JvmField
     var type: Byte = 0
     @JvmField
@@ -27,9 +29,13 @@ class TankerVerification : Structure() {
     var oidcIDToken: String? = null
     @JvmField
     var phoneNumberVerification: TankerPhoneNumberVerification? = null
+    @JvmField
+    var preverifiedEmail: String? = null
+    @JvmField
+    var preverifiedPhoneNumber: String? = null
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "type", "verificationKey", "emailVerification", "passphrase", "oidcIDToken", "phoneNumberVerification")
+        return listOf("version", "type", "verificationKey", "emailVerification", "passphrase", "oidcIDToken", "phoneNumberVerification", "preverifiedEmail", "preverifiedPhoneNumber")
     }
 }
 
@@ -59,6 +65,14 @@ fun Verification.toCVerification(): TankerVerification {
             out.phoneNumberVerification = TankerPhoneNumberVerification()
                     .setPhoneNumber(this.phoneNumber)
                     .setVerificationCode(this.verificationCode)
+        }
+        is PreverifiedEmailVerification -> {
+            out.type = TankerVerification.TypePreverifiedEmail
+            out.preverifiedEmail = this.preverifiedEmail
+        }
+        is PreverifiedPhoneNumberVerification -> {
+            out.type = TankerVerification.TypePreverifiedPhoneNumber
+            out.preverifiedPhoneNumber = this.preverifiedPhoneNumber
         }
     }
     return out

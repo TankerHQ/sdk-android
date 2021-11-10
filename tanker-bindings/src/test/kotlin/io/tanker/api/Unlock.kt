@@ -3,11 +3,10 @@ package io.tanker.api
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tanker.admin.TankerAppUpdateOptions
-import okhttp3.MediaType
+import io.tanker.api.errors.InvalidArgument
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -306,5 +305,137 @@ class UnlockTests : TankerSpec() {
         assertThat(usedMethod).isEqualTo(expectedMethod)
 
         tanker1.stop().get()
+    }
+
+    @Test
+    fun cannot_register_with_preverified_email() {
+        val email = "bob@tanker.io"
+
+        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker1.registerIdentity(PreverifiedEmailVerification(email)).get()
+        }
+
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun cannot_register_with_preverified_phone_number() {
+        val phoneNumber = "+33639982233"
+
+        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker1.registerIdentity(PreverifiedPhoneNumberVerification(phoneNumber)).get()
+        }
+
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun cannot_verify_with_preverified_email() {
+        val email = "bob@tanker.io"
+
+        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val verificationCode = tc.getEmailVerificationCode(email)
+        tanker1.registerIdentity(EmailVerification(email, verificationCode)).get()
+
+        tanker2.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker2.verifyIdentity(PreverifiedEmailVerification(email)).get()
+        }
+
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun cannot_verify_with_preverified_phone_number() {
+        val phoneNumber = "+33639982233"
+
+        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        val verificationCode = tc.getSMSVerificationCode(phoneNumber)
+        tanker1.registerIdentity(PhoneNumberVerification(phoneNumber, verificationCode)).get()
+
+        tanker2.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker2.verifyIdentity(PreverifiedPhoneNumberVerification(phoneNumber)).get()
+        }
+
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun can_set_preverified_email_with_setVerificationMethod() {
+        val pass = "PassOne"
+        val email = "bob@tanker.io"
+
+        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(PassphraseVerification(pass)).get()
+        assertThat(tanker1.getVerificationMethods().get()).containsExactly(
+                PassphraseVerificationMethod
+        )
+
+        tanker1.setVerificationMethod(PreverifiedEmailVerification(email)).get()
+        assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
+                PreverifiedEmailVerificationMethod(email), PassphraseVerificationMethod
+        )
+
+        tanker2.start(identity).get()
+        val verificationCode = tc.getEmailVerificationCode(email)
+        tanker2.verifyIdentity(EmailVerification(email, verificationCode)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+
+        assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
+                EmailVerificationMethod(email), PassphraseVerificationMethod
+        )
+
+        tanker1.stop().get()
+        tanker2.stop().get()
+    }
+
+    @Test
+    fun can_set_preverified_phone_number_with_setVerificationMethod() {
+        val pass = "PassOne"
+        val phoneNumber = "+33639982233"
+
+        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
+        tc.admin.appUpdate(tc.id(), appOptions).get()
+
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(PassphraseVerification(pass)).get()
+        assertThat(tanker1.getVerificationMethods().get()).containsExactly(
+                PassphraseVerificationMethod
+        )
+
+        tanker1.setVerificationMethod(PreverifiedPhoneNumberVerification(phoneNumber)).get()
+        assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
+                PreverifiedPhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
+        )
+
+        tanker2.start(identity).get()
+        val verificationCode = tc.getSMSVerificationCode(phoneNumber)
+        tanker2.verifyIdentity(PhoneNumberVerification(phoneNumber, verificationCode)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+
+        assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
+                PhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
+        )
+
+        tanker1.stop().get()
+        tanker2.stop().get()
     }
 }
