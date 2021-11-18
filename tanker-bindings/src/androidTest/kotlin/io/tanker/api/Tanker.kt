@@ -7,6 +7,7 @@ import org.junit.Before
 import org.junit.Test
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
+import kotlin.IllegalArgumentException
 
 class TankerTests : TankerSpec() {
     @Before
@@ -132,6 +133,89 @@ class TankerTests : TankerSpec() {
         assertThat(String(decrypted)).isEqualTo(plaintext)
 
         tanker.stop().get()
+    }
+
+    private val simpleEncryptionOverhead = 17
+    private val simplePaddedEncryptionOverhead = simpleEncryptionOverhead + 1
+
+    @Test
+    fun auto_padding_by_default() {
+        val tanker = Tanker(options)
+        val identity = tc.createIdentity()
+        tanker.start(identity).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = "my clear data is clear!"
+        val lengthWithPadme = 24
+        val encrypted = tanker.encrypt(plaintext.toByteArray()).get()
+        assertThat(encrypted.size - simplePaddedEncryptionOverhead).isEqualTo(lengthWithPadme)
+
+        val decrypted = tanker.decrypt(encrypted).get()
+        assertThat(String(decrypted)).isEqualTo(plaintext)
+
+        tanker.stop().get()
+    }
+
+    @Test
+    fun can_set_padding_auto() {
+        val tanker = Tanker(options)
+        val identity = tc.createIdentity()
+        tanker.start(identity).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = "my clear data is clear!"
+        val lengthWithPadme = 24
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.auto)
+        val encrypted = tanker.encrypt(plaintext.toByteArray(), encryptOptions).get()
+        assertThat(encrypted.size - simplePaddedEncryptionOverhead).isEqualTo(lengthWithPadme)
+
+        val decrypted = tanker.decrypt(encrypted).get()
+        assertThat(String(decrypted)).isEqualTo(plaintext)
+
+        tanker.stop().get()
+    }
+
+    @Test
+    fun can_disable_padding() {
+        val tanker = Tanker(options)
+        val identity = tc.createIdentity()
+        tanker.start(identity).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = "plain text"
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.off)
+        val encrypted = tanker.encrypt(plaintext.toByteArray(), encryptOptions).get()
+        assertThat(encrypted.size - simpleEncryptionOverhead).isEqualTo(plaintext.length)
+
+        val decrypted = tanker.decrypt(encrypted).get()
+        assertThat(String(decrypted)).isEqualTo(plaintext)
+
+        tanker.stop().get()
+    }
+
+    @Test
+    fun can_set_the_padding_step() {
+        val tanker = Tanker(options)
+        val identity = tc.createIdentity()
+        tanker.start(identity).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = "plain text"
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.Step(13))
+        val encrypted = tanker.encrypt(plaintext.toByteArray(), encryptOptions).get()
+        assertThat((encrypted.size - simplePaddedEncryptionOverhead) % 13).isEqualTo(0)
+
+        val decrypted = tanker.decrypt(encrypted).get()
+        assertThat(String(decrypted)).isEqualTo(plaintext)
+
+        tanker.stop().get()
+    }
+
+    @Test
+    fun cannot_set_a_bad_padding_step() {
+        listOf(-1, 0, 1).forEach {
+            shouldThrow<IllegalArgumentException> { Padding.Step(it) }
+        }
     }
 
     @Test

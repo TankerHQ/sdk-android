@@ -5,6 +5,7 @@ import com.sun.jna.*
 import io.tanker.bindings.*
 import io.tanker.datastore.*
 import io.tanker.jni.KVMx86Bug
+import kotlin.IllegalArgumentException
 
 /**
  * Main entry point for the Tanker SDK. Can open a TankerSession.
@@ -335,7 +336,8 @@ class Tanker(tankerOptions: TankerOptions) {
         val inBuf = Memory(data.size.toLong().coerceAtLeast(1))
         inBuf.write(0, data, 0, data.size)
 
-        val encryptedSize = lib.tanker_encrypted_size(data.size.toLong())
+        val paddingStep = options?.paddingStep ?: Padding.auto.native_value
+        val encryptedSize = lib.tanker_encrypted_size(data.size.toLong(), paddingStep)
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encrypt(tanker, outBuf, inBuf, data.size.toLong(), options)

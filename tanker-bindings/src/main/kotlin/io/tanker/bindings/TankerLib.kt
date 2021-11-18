@@ -105,7 +105,7 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
 
     fun tanker_set_log_handler(handler: LogHandlerCallback): Void
 
-    fun tanker_encrypted_size(clear_size: Long): Long
+    fun tanker_encrypted_size(clear_size: Long, padding_step: Int): Long
     fun tanker_decrypted_size(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
     fun tanker_get_resource_id(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
 
