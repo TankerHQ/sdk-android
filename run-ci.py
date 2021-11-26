@@ -75,9 +75,6 @@ def dump_logcat_for_failed_tests() -> None:
 def test() -> None:
     ui.info_1("Running tests")
     try:
-        tankerci.run(
-            "./gradlew", "tanker-bindings:testRelease",
-        )
         with tankerci.android.emulator():
             try:
                 tankerci.run(
@@ -136,7 +133,9 @@ def main():
         default=tankerci.conan.TankerSource.EDITABLE,
         dest="tanker_source",
     )
-    build_and_test_parser.add_argument("--tanker-ref",)
+    build_and_test_parser.add_argument(
+        "--tanker-ref",
+    )
 
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
@@ -147,7 +146,10 @@ def main():
     )
     prepare_parser.add_argument("--tanker-ref")
     prepare_parser.add_argument(
-        "--update", action="store_true", default=False, dest="update",
+        "--update",
+        action="store_true",
+        default=False,
+        dest="update",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
@@ -169,7 +171,8 @@ def main():
 
     if command == "build-and-test":
         build_and_test(
-            tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
+            tanker_source=args.tanker_source,
+            tanker_ref=args.tanker_ref,
         )
     elif command == "prepare":
         prepare(args.tanker_source, args.update, args.tanker_ref)
