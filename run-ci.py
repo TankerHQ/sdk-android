@@ -57,7 +57,10 @@ def build() -> None:
     dest_path = Path.cwd() / "artifacts"
     shutil.rmtree(dest_path, ignore_errors=True)
     dest_path.mkdir(parents=True)
-    shutil.copy(Path.cwd() / "tanker-bindings/build/outputs/aar/tanker-bindings-release.aar", dest_path / "tanker-bindings.aar")
+    shutil.copy(
+        Path.cwd() / "tanker-bindings/build/outputs/aar/tanker-bindings-release.aar",
+        dest_path / "tanker-bindings.aar",
+    )
 
 
 def dump_logcat_for_failed_tests() -> None:
@@ -73,17 +76,20 @@ def test() -> None:
     ui.info_1("Running tests")
     try:
         tankerci.run(
-            "./gradlew",
-            "tanker-bindings:testRelease",
+            "./gradlew", "tanker-bindings:testRelease",
         )
         with tankerci.android.emulator():
             try:
-                tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
+                tankerci.run(
+                    "./gradlew", "connectedAndroidTest", "-PandroidTestRelease"
+                )
             except:
                 dump_logcat_for_failed_tests()
                 raise
     finally:
-        shutil.copytree("tanker-bindings/build/reports", Path.cwd() / "artifacts/reports")
+        shutil.copytree(
+            "tanker-bindings/build/reports", Path.cwd() / "artifacts/reports"
+        )
 
 
 def build_and_test(
@@ -130,9 +136,7 @@ def main():
         default=tankerci.conan.TankerSource.EDITABLE,
         dest="tanker_source",
     )
-    build_and_test_parser.add_argument(
-        "--tanker-ref",
-    )
+    build_and_test_parser.add_argument("--tanker-ref",)
 
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
@@ -143,10 +147,7 @@ def main():
     )
     prepare_parser.add_argument("--tanker-ref")
     prepare_parser.add_argument(
-        "--update",
-        action="store_true",
-        default=False,
-        dest="update",
+        "--update", action="store_true", default=False, dest="update",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
@@ -168,8 +169,7 @@ def main():
 
     if command == "build-and-test":
         build_and_test(
-            tanker_source=args.tanker_source,
-            tanker_ref=args.tanker_ref,
+            tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
         )
     elif command == "prepare":
         prepare(args.tanker_source, args.update, args.tanker_ref)
