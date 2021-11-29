@@ -21,8 +21,8 @@ class UnlockTests : TankerSpec() {
     @Before
     fun beforeTest() {
         identity = tc.createIdentity()
-        tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()))
-        tanker2 = Tanker(options.setWritablePath(createTmpDir().toString()))
+        tanker1 = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        tanker2 = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
     }
 
     private fun checkSessionToken(publicIdentity: String, token: String, allowedMethod: String): String {

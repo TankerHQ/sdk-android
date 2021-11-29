@@ -2,7 +2,22 @@ package io.tanker.api
 
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
+import io.tanker.bindings.DatastoreLib
 import io.tanker.bindings.TankerLib
+import io.tanker.datastore.DatastoreOptions
+
+internal class HttpOptions : Structure() {
+    @JvmField var httpSendRequest: TankerLib.HttpSendRequestCallback? = null
+    @JvmField var httpCancelRequest: TankerLib.HttpCancelRequestCallback? = null
+    @JvmField var httpData: Pointer? = Pointer.NULL
+
+    override fun getFieldOrder() =
+        listOf(
+            "httpSendRequest",
+            "httpCancelRequest",
+            "httpData",
+        )
+}
 
 /**
  * Options that can be given when opening a TankerSession
@@ -12,15 +27,17 @@ import io.tanker.bindings.TankerLib
  */
 class TankerOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
-    @JvmField var version: Byte = 3
+    @JvmField var version: Byte = 4
     @JvmField var appId: String? = null
     @JvmField var url: String? = null
     @JvmField var writablePath: String? = null
     @JvmField var sdkType: String = "client-android"
     @JvmField var sdkVersion: String = "dev"
-    @JvmField var httpSendRequest: TankerLib.HttpSendRequestCallback? = null
-    @JvmField var httpCancelRequest: TankerLib.HttpCancelRequestCallback? = null
-    @JvmField var httpData: Pointer? = Pointer.NULL
+
+    @JvmField internal var httpOptions: HttpOptions = HttpOptions()
+
+    @JvmField var cachePath: String? = null
+    @JvmField internal var datastoreOptions: DatastoreOptions = DatastoreOptions()
 
     /**
      * @deprecated use setAppId
@@ -51,14 +68,32 @@ class TankerOptions : Structure() {
     }
 
     /**
-     * Mandatory. The path on disk where the Tanker SDK will save data and key material.
+     * Mandatory. The path on disk where the Tanker SDK will save private data and key material.
      */
     fun setWritablePath(writablePath: String): TankerOptions {
         this.writablePath = writablePath
         return this
     }
 
+    /**
+     * Mandatory. The path on disk where the Tanker SDK will save the encrypted cache.
+     */
+    fun setCachePath(cachePath: String): TankerOptions {
+        this.cachePath = cachePath
+        return this
+    }
+
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "appId", "url", "writablePath", "sdkType", "sdkVersion", "httpSendRequest", "httpCancelRequest", "httpData")
+        return listOf(
+            "version",
+            "appId",
+            "url",
+            "writablePath",
+            "sdkType",
+            "sdkVersion",
+            "httpOptions",
+            "cachePath",
+            "datastoreOptions",
+        )
     }
 }
