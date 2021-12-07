@@ -12,7 +12,7 @@ workflow:
     # web pipelines for releases only
     - if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A\d+\.\d+\.\d+(-(alpha|beta)-\d+)?\z/
       when: never
-    - if: $SDK_NATIVE_LATEST_CONAN_REFERENCE !~ /\Atanker\/(latest-stable@|(\d+\.\d+\.\d+(-(alpha|beta)\d+)?@(\w+\/\w+)?))\z/
+    - if: !reference [.if-invalid-native-conan-reference, if]
       when: never
     # allow everything else
     - when: always
