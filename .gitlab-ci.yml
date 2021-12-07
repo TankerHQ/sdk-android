@@ -1,6 +1,6 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: 2021-07-07-1
+    ref: 2021-11-10-229
     file: /common.yml
 
 ############
@@ -146,6 +146,60 @@ bridge/deployed-native:
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
+
+bridge/compat-from-sources:
+  stage: bridge-check
+  extends:
+    - .variables/bridge-common
+    - .rules/native-from-sources
+  needs:
+    - check/native-from-sources
+  variables:
+    UPSTREAM_JOB_NAME: check/native-from-sources
+    UPSTREAM_JOB_TARGET: android
+  trigger:
+    project: TankerHQ/compatibility-tests
+    strategy: depend
+    # FIXME
+    branch: theo/android_ci
+
+bridge/compat-downstream:
+  stage: bridge-check
+  extends:
+    - .variables/bridge-common
+  rules:
+    - if: !reference [.if-upstream-ci-pipeline, if]
+  needs:
+    - check/downstream
+  variables:
+    UPSTREAM_JOB_NAME: check/downstream
+    UPSTREAM_JOB_TARGET: android
+  trigger:
+    project: TankerHQ/compatibility-tests
+    strategy: depend
+    # FIXME
+    branch: theo/android_ci
+
+bridge/compat-deployed:
+  stage: bridge-check
+  extends:
+    - .variables/bridge-common
+  rules:
+    # only run during standalone SDK releases
+    - if: !reference [.if-invalid-android-release-version, if]
+      when: never
+    - !reference [.rules/web/auto, rules]
+  needs:
+    - check/deployed-native
+  variables:
+    SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
+    UPSTREAM_JOB_NAME: check/deployed-native
+    UPSTREAM_JOB_TARGET: android
+  trigger:
+    project: TankerHQ/compatibility-tests
+    strategy: depend
+    # FIXME
+    branch: theo/android_ci
 
 ################
 # deploy stage #
