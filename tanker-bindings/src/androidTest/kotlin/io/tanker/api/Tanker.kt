@@ -82,7 +82,7 @@ class TankerTests : TankerSpec() {
     fun reports_synchronous_http_errors_correctly() {
         val badOptions = TankerOptions()
         badOptions.appId = options.appId
-        badOptions.writablePath = options.writablePath
+        badOptions.persistentPath = options.persistentPath
         badOptions.cachePath = options.cachePath
         // This error should be reported before any network call
         badOptions.url = "this is not an url at all"
@@ -96,7 +96,7 @@ class TankerTests : TankerSpec() {
     fun reports_asynchronous_http_errors_correctly() {
         val badOptions = TankerOptions()
         badOptions.appId = options.appId
-        badOptions.writablePath = options.writablePath
+        badOptions.persistentPath = options.persistentPath
         badOptions.cachePath = options.cachePath
         // This error requires an (async) DNS lookup
         badOptions.url = "https://this-is-not-a-tanker-server.com"
@@ -474,14 +474,14 @@ class TankerTests : TankerSpec() {
         val aliceId = tc.createIdentity()
         val revokedSemaphore = Semaphore(0)
 
-        val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        val tankerAlice1 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
             revokedSemaphore.release()
         })
         tankerAlice1.start(aliceId).get()
         tankerAlice1.registerIdentity(PassphraseVerification("pass")).get()
 
-        val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        val tankerAlice2 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         tankerAlice2.start(aliceId).get()
         tankerAlice2.verifyIdentity(PassphraseVerification("pass")).get()
 
@@ -524,7 +524,7 @@ class TankerTests : TankerSpec() {
 
     @Test
     fun can_get_a_correct_device_list() {
-        val tankerAlice = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        val tankerAlice = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         tankerAlice.start(tc.createIdentity()).get()
         tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
 
@@ -538,13 +538,13 @@ class TankerTests : TankerSpec() {
     @Test
     fun can_get_a_correct_device_list_after_revocation() {
         val aliceId = tc.createIdentity()
-        val tankerAlice1 = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        val tankerAlice1 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         tankerAlice1.start(aliceId).get()
         val verificationKey = tankerAlice1.generateVerificationKey().get()
         tankerAlice1.registerIdentity(VerificationKeyVerification(verificationKey)).get()
         val aliceDeviceId1 = tankerAlice1.getDeviceId()
 
-        val tankerAlice2 = Tanker(options.setWritablePath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        val tankerAlice2 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         tankerAlice2.start(aliceId).get()
         tankerAlice2.verifyIdentity(VerificationKeyVerification(verificationKey)).get()
         val aliceDeviceId2 = tankerAlice2.getDeviceId()

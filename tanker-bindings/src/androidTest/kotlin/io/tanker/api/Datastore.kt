@@ -22,7 +22,7 @@ internal interface DatastoreTestsLib : DatastoreLib, Library {
         }
     }
 
-    fun tanker_run_datastore_test(datastore_options: DatastoreOptions, writable_path: String, output_path: String): Int
+    fun tanker_run_datastore_test(datastore_options: DatastoreOptions, persistent_path: String, output_path: String): Int
 }
 
 class DatastoreTests : TankerSpec() {

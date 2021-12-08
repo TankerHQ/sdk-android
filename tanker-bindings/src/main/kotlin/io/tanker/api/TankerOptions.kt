@@ -30,7 +30,7 @@ class TankerOptions : Structure() {
     @JvmField var version: Byte = 4
     @JvmField var appId: String? = null
     @JvmField var url: String? = null
-    @JvmField var writablePath: String? = null
+    @JvmField var persistentPath: String? = null
     @JvmField var sdkType: String = "client-android"
     @JvmField var sdkVersion: String = "dev"
 
@@ -70,8 +70,8 @@ class TankerOptions : Structure() {
     /**
      * Mandatory. The path on disk where the Tanker SDK will save private data and key material.
      */
-    fun setWritablePath(writablePath: String): TankerOptions {
-        this.writablePath = writablePath
+    fun setPersistentPath(persistentPath: String): TankerOptions {
+        this.persistentPath = persistentPath
         return this
     }
 
@@ -88,11 +88,11 @@ class TankerOptions : Structure() {
             "version",
             "appId",
             "url",
-            "writablePath",
+            "persistentPath",
+            "cachePath",
             "sdkType",
             "sdkVersion",
             "httpOptions",
-            "cachePath",
             "datastoreOptions",
         )
     }
