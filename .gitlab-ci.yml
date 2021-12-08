@@ -115,6 +115,8 @@ bridge/native-from-sources:
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
+    # FIXME
+    branch: feat/storage
 
 bridge/downstream:
   extends:
@@ -129,6 +131,8 @@ bridge/downstream:
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
+    # FIXME
+    branch: feat/storage
 
 .rules/bridge/deployed-native:
   rules: !reference [.rules/check/deployed-native, rules]
@@ -146,6 +150,8 @@ bridge/deployed-native:
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
+    # FIXME
+    branch: feat/storage
 
 bridge/compat-from-sources:
   stage: bridge-check
@@ -161,7 +167,7 @@ bridge/compat-from-sources:
     project: TankerHQ/compatibility-tests
     strategy: depend
     # FIXME
-    branch: theo/android_ci
+    branch: feat/storage
 
 bridge/compat-downstream:
   stage: bridge-check
@@ -178,7 +184,7 @@ bridge/compat-downstream:
     project: TankerHQ/compatibility-tests
     strategy: depend
     # FIXME
-    branch: theo/android_ci
+    branch: feat/storage
 
 bridge/compat-deployed:
   stage: bridge-check
@@ -199,7 +205,7 @@ bridge/compat-deployed:
     project: TankerHQ/compatibility-tests
     strategy: depend
     # FIXME
-    branch: theo/android_ci
+    branch: feat/storage
 
 ################
 # deploy stage #
