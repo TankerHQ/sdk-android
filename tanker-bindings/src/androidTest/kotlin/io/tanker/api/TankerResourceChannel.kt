@@ -103,7 +103,7 @@ class API26StreamChannelTests : TankerSpec() {
 
     @Before
     fun beforeTest() {
-        tanker = Tanker(options.setWritablePath(createTmpDir().toString()))
+        tanker = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         val st = tanker.start(tc.createIdentity()).get()
         assertThat(st).isEqualTo(Status.IDENTITY_REGISTRATION_NEEDED)
         tanker.registerIdentity(PassphraseVerification("pass")).get()

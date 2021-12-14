@@ -3,6 +3,7 @@ package io.tanker.api
 import android.util.Log
 import com.sun.jna.*
 import io.tanker.bindings.*
+import io.tanker.datastore.*
 import io.tanker.jni.KVMx86Bug
 
 /**
@@ -14,6 +15,8 @@ class Tanker(tankerOptions: TankerOptions) {
         private const val TANKER_ANDROID_VERSION = "dev"
 
         internal val lib = TankerLib.create()
+
+        internal val datastoreOptions = DatastoreOptions(lib)
 
         @ProguardKeep
         private var logCallbackLifeSupport: LogHandlerCallback? = null
@@ -68,8 +71,10 @@ class Tanker(tankerOptions: TankerOptions) {
                     + "If you encounter a crash only in the x86 emulator, please make sure to update Android Studio (or use an x86_64 emulator)")
         }
 
-        tankerOptions.httpSendRequest = httpClient
-        tankerOptions.httpCancelRequest = httpClientCanceler
+        tankerOptions.httpOptions.httpSendRequest = httpClient
+        tankerOptions.httpOptions.httpCancelRequest = httpClientCanceler
+
+        tankerOptions.datastoreOptions = datastoreOptions
 
         val createFuture = lib.tanker_create(tankerOptions)
         tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java).get()

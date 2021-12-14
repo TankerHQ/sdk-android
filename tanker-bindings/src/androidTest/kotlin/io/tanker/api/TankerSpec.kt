@@ -18,7 +18,8 @@ abstract class TankerSpec {
             tc = App()
             options.setTrustchainId(tc.id())
                     .setUrl(tc.url)
-                    .setWritablePath(createTmpDir().toString())
+                    .setPersistentPath(createTmpDir().toString())
+                    .setCachePath(createTmpDir().toString())
                     .setSdkType("test")
             setupTestEnv()
         }

@@ -57,7 +57,10 @@ def build() -> None:
     dest_path = Path.cwd() / "artifacts"
     shutil.rmtree(dest_path, ignore_errors=True)
     dest_path.mkdir(parents=True)
-    shutil.copy(Path.cwd() / "tanker-bindings/build/outputs/aar/tanker-bindings-release.aar", dest_path / "tanker-bindings.aar")
+    shutil.copy(
+        Path.cwd() / "tanker-bindings/build/outputs/aar/tanker-bindings-release.aar",
+        dest_path / "tanker-bindings.aar",
+    )
 
 
 def dump_logcat_for_failed_tests() -> None:
@@ -72,18 +75,18 @@ def dump_logcat_for_failed_tests() -> None:
 def test() -> None:
     ui.info_1("Running tests")
     try:
-        tankerci.run(
-            "./gradlew",
-            "tanker-bindings:testRelease",
-        )
         with tankerci.android.emulator():
             try:
-                tankerci.run("./gradlew", "connectedAndroidTest", "-PandroidTestRelease")
+                tankerci.run(
+                    "./gradlew", "connectedAndroidTest", "-PandroidTestRelease"
+                )
             except:
                 dump_logcat_for_failed_tests()
                 raise
     finally:
-        shutil.copytree("tanker-bindings/build/reports", Path.cwd() / "artifacts/reports")
+        shutil.copytree(
+            "tanker-bindings/build/reports", Path.cwd() / "artifacts/reports"
+        )
 
 
 def build_and_test(
