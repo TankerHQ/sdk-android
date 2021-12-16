@@ -1,6 +1,6 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: 2021-11-10-229
+    ref: 2021-12-16-236
     file: /common.yml
 
 ############
@@ -67,7 +67,6 @@ stages:
 
 check/deployed-native:
   extends:
-    - .tags/linux
     - .rules/check/deployed-native
     - .artifacts
   stage: check
@@ -75,10 +74,10 @@ check/deployed-native:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
     - echo $CI_COMMIT_REF_NAME > branch_name.txt
+  tags: !reference [.tags/compilation-linux, tags]
 
 check/native-from-sources:
   extends:
-    - .tags/linux
     - .rules/native-from-sources
     - .artifacts
   stage: check
@@ -86,10 +85,10 @@ check/native-from-sources:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
     - echo $CI_COMMIT_REF_NAME > branch_name.txt
+  tags: !reference [.tags/compilation-linux, tags]
 
 check/downstream:
   extends:
-    - .tags/linux
     - .before-script/download-artifacts
     - .rules/check/downstream
     - .artifacts
@@ -97,6 +96,7 @@ check/downstream:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py --isolate-conan-user-home build-and-test --use-tanker=upstream
+  tags: !reference [.tags/compilation-linux, tags]
 
 ######################
 # bridge-check stage #
@@ -201,7 +201,6 @@ bridge/compat-deployed:
 
 deploy:
   extends:
-    - .tags/linux
     - .rules/deploy/android
   stage: deploy
   script:
@@ -211,3 +210,4 @@ deploy:
   release:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
     tag_name: v$SDK_ANDROID_RELEASE_VERSION
+  tags: !reference [.tags/compilation-linux, tags]
