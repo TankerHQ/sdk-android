@@ -21,7 +21,7 @@ class EncryptionSession(private val csess: Pointer) {
         val inBuf = Memory(data.size.toLong().coerceAtLeast(1))
         inBuf.write(0, data, 0, data.size)
 
-        val encryptedSize = lib.tanker_encryption_session_encrypted_size(data.size.toLong())
+        val encryptedSize = lib.tanker_encryption_session_encrypted_size(csess, data.size.toLong())
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encryption_session_encrypt(csess, outBuf, inBuf, data.size.toLong())

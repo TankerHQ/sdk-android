@@ -128,7 +128,7 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
 
     fun tanker_encryption_session_open(session: SessionPointer, options: EncryptionOptions): FuturePointer
     fun tanker_encryption_session_close(encSess: EncryptionSessionPointer): FuturePointer
-    fun tanker_encryption_session_encrypted_size(clear_size: Long): Long
+    fun tanker_encryption_session_encrypted_size(encSess: EncryptionSessionPointer, clear_size: Long): Long
     fun tanker_encryption_session_get_resource_id(encSess: EncryptionSessionPointer): ExpectedPointer
     fun tanker_encryption_session_encrypt(encSess: EncryptionSessionPointer, encrypted_data: Pointer,
                                           data: Pointer, data_size: Long): FuturePointer
