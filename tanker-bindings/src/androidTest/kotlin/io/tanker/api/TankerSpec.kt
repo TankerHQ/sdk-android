@@ -33,5 +33,5 @@ abstract class TankerSpec {
 
     @Rule
     @JvmField
-    val timeout: Timeout = Timeout.seconds(10)
+    val timeout: Timeout = Timeout.seconds(30)
 }
