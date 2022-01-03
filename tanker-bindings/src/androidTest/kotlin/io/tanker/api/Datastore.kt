@@ -7,9 +7,6 @@ import org.junit.rules.TemporaryFolder
 import com.sun.jna.*
 import io.tanker.bindings.DatastoreLib
 import io.tanker.datastore.*
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 
 typealias AdminPointer = Pointer
 
@@ -22,7 +19,7 @@ internal interface DatastoreTestsLib : DatastoreLib, Library {
         }
     }
 
-    fun tanker_run_datastore_test(datastore_options: DatastoreOptions, persistent_path: String, output_path: String): Int
+    fun tanker_run_datastore_test(datastore_options: DatastoreOptions, persistent_path: String): Int
 }
 
 class DatastoreTests : TankerSpec() {
@@ -35,12 +32,7 @@ class DatastoreTests : TankerSpec() {
         val datastoreTests = DatastoreTestsLib.create()
         val datastoreOptions = DatastoreOptions(datastoreTests)
 
-        // stdout goes to a black hole on Android. There's a secret sauce that redirects kotlin's
-        // println() to logcat, but nothing for the real stdout fd. We circumvent that by outputing
-        // the logs to a file and printing the file after the tests have run.
-        val testOutputPath = Paths.get(tempFolder.root.path, "testoutput.txt")
-        val ret = datastoreTests.tanker_run_datastore_test(datastoreOptions, tempFolder.root.toString(), testOutputPath.toString())
-        println(String(Files.readAllBytes(testOutputPath)))
+        val ret = datastoreTests.tanker_run_datastore_test(datastoreOptions, tempFolder.root.toString())
         assertThat(ret).withFailMessage("Datastore tests have failed, please read logcat's output").isEqualTo(0)
     }
 }
