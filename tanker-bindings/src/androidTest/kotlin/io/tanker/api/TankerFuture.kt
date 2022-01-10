@@ -30,12 +30,12 @@ class FutureTests {
 
     @Test
     fun constructing_a_TankerFuture_should_not_fail() {
-        TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
     }
 
     @Test
     fun can_get_a_ready_future() {
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         assertThat(future.get()).isEqualTo(Unit)
     }
 
@@ -46,7 +46,7 @@ class FutureTests {
 
     @Test
     fun then_can_return_an_Int() {
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val newFut = future.then<Int>(TankerCallback { 42 })
         System.gc() // Make sure we got our lifetimes right
         assertThat(newFut.get()).isEqualTo(42)
@@ -54,7 +54,7 @@ class FutureTests {
 
     @Test
     fun then_can_return_a_Long() {
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val newFut = future.then<Long>(TankerCallback { 42L })
         System.gc() // Make sure we got our lifetimes right
         assertThat(newFut.get()).isEqualTo(42L)
@@ -63,7 +63,7 @@ class FutureTests {
     @Test
     fun then_can_return_a_ByteArray() {
         val data = ByteArray(16) { idx -> idx.toByte() }
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val newFut = future.then<ByteArray>(TankerCallback { data })
         System.gc() // Make sure we got our lifetimes right
         val res: ByteArray = newFut.get()
@@ -72,7 +72,7 @@ class FutureTests {
 
     @Test
     fun then_can_return_an_error() {
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val exception = RuntimeException("Error")
         val newFut = future.then<ByteArray>(TankerCallback { throw exception })
         System.gc() // Make sure we got our lifetimes right
@@ -82,7 +82,7 @@ class FutureTests {
 
     @Test
     fun can_chain_then_calls_with_different_types() {
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.then<Double>(TankerCallback {
             170.37
         }).then<Int>(TankerCallback { readyFuture ->
@@ -96,10 +96,10 @@ class FutureTests {
         val str = "this is a very long string"
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
-        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java)
+        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
                 .then<String>(TankerCallback { str })
 
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.thenUnwrap<String>(TankerUnwrapCallback {
             Thread.sleep(25) // If there's any race, we want to lose it so the test fails
             lib.tanker_promise_set_value(wrappedCPromise, Pointer(0))
@@ -114,10 +114,10 @@ class FutureTests {
         val str = "This is a very long string"
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
-        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java)
+        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
                 .then<String>(TankerCallback { str })
 
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.thenUnwrap<String>(TankerUnwrapCallback {
             Thread.sleep(25) // If there's any race, we want to lose it so the test fails
             lib.tanker_promise_set_value(wrappedCPromise, Pointer(0))
@@ -143,11 +143,11 @@ class FutureTests {
     fun a_get_in_a_then_does_not_hang() {
         val innerCPromise = lib.tanker_promise_create()
         val innerCFuture = lib.tanker_promise_get_future(innerCPromise)
-        val innerFuture = TankerFuture<Unit>(innerCFuture, Unit::class.java)
+        val innerFuture = TankerFuture<Unit>(innerCFuture, Unit::class.java, keepAlive = null)
         lib.tanker_promise_set_value(innerCPromise, Pointer(0))
         innerFuture.get()
 
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.then<Int>(TankerCallback {
             1031 + innerFuture.then<Int>(TankerCallback { 8 }).get()
         })
@@ -160,16 +160,16 @@ class FutureTests {
     fun a_get_in_an_unwrapping_then_does_not_hang() {
         val innerCPromise = lib.tanker_promise_create()
         val innerCFuture = lib.tanker_promise_get_future(innerCPromise)
-        val innerFuture = TankerFuture<Unit>(innerCFuture, Unit::class.java)
+        val innerFuture = TankerFuture<Unit>(innerCFuture, Unit::class.java, keepAlive = null)
         lib.tanker_promise_set_value(innerCPromise, Pointer(0))
         innerFuture.get()
 
         val blockingCPromise = lib.tanker_promise_create()
         val blockingCFuture = lib.tanker_promise_get_future(blockingCPromise)
-        val blockingFuture = TankerFuture<Unit>(blockingCFuture, Unit::class.java)
+        val blockingFuture = TankerFuture<Unit>(blockingCFuture, Unit::class.java, keepAlive = null)
         lib.tanker_promise_set_value(blockingCPromise, Pointer(0))
 
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.thenUnwrap<Int>(TankerUnwrapCallback {
             val value = blockingFuture.then<Int>(TankerCallback { 1031 }).get()
             innerFuture.then<Int>(TankerCallback {
@@ -183,7 +183,7 @@ class FutureTests {
 
     @Test
     fun andThen_can_return_a_value() {
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val newFut = future.andThen<Int>(TankerCallback { 42 })
         System.gc() // Make sure we got our lifetimes right
         assertThat(newFut.get()).isEqualTo(42)
@@ -191,7 +191,7 @@ class FutureTests {
 
     @Test
     fun andThen_can_return_an_error() {
-        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val future = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val exception = RuntimeException("Error")
         val newFut = future.andThen<ByteArray>(TankerCallback { throw exception })
         System.gc() // Make sure we got our lifetimes right
@@ -201,7 +201,7 @@ class FutureTests {
 
     @Test
     fun can_chain_andThen_calls_with_different_types() {
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.andThen<Double>(TankerCallback {
             170.37
         }).andThen<Int>(TankerCallback { result ->
@@ -215,10 +215,10 @@ class FutureTests {
         val str = "this a very long string"
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
-        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java)
+        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
                 .andThen<String>(TankerCallback { str })
 
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.andThenUnwrap<String>(TankerUnwrapCallback {
             Thread.sleep(25) // If there's any race, we want to lose it so the test fails
             lib.tanker_promise_set_value(wrappedCPromise, Pointer(0))
@@ -233,10 +233,10 @@ class FutureTests {
         val str = "this is a very long string"
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
-        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java)
+        val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
                 .andThen<String>(TankerCallback { str })
 
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.andThenUnwrap<String>(TankerUnwrapCallback {
             Thread.sleep(25) // If there's any race, we want to lose it so the test fails
             lib.tanker_promise_set_value(wrappedCPromise, Pointer(0))
@@ -252,7 +252,7 @@ class FutureTests {
     @Test
     fun andThen_stops_executing_a_chain_after_an_error() {
         val except = RuntimeException("Error")
-        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java)
+        val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
                 .andThen<Double>(TankerCallback {
                     throw except
                 }).andThen<String>(TankerCallback {

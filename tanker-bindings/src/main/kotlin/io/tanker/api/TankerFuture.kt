@@ -12,7 +12,12 @@ import io.tanker.bindings.AsyncLib
 import java.util.*
 import kotlin.collections.ArrayList
 
-class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type, private var lib: AsyncLib = tankerlib) {
+class TankerFuture<T>(
+    private var cfuture: Pointer,
+    private var valueType: Type,
+    private var lib: AsyncLib = tankerlib,
+    @ProguardKeep @Suppress("unused") private val keepAlive: Any?
+) {
     private sealed class ThenResult {
         data class Object(val result: Any?) : ThenResult()
         data class Error(val error: Throwable) : ThenResult()
@@ -57,7 +62,8 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
     /**
      * Create a ready future returning Unit
      */
-    constructor(lib: AsyncLib = tankerlib) : this(Pointer(0), Unit.javaClass) {
+    constructor(lib: AsyncLib = tankerlib)
+            : this(Pointer(0), Unit.javaClass, keepAlive = null) {
         val prom = lib.tanker_promise_create()
         cfuture = lib.tanker_promise_get_future(prom)
         lib.tanker_promise_set_value(prom, Pointer(0))
@@ -68,7 +74,7 @@ class TankerFuture<T>(private var cfuture: Pointer, private var valueType: Type,
      * Creates the futures returned by then()
      */
     private constructor(parent: TankerFuture<*>, cfuture: Pointer)
-            : this(cfuture, ThenResultType::class.java) {
+            : this(cfuture, ThenResultType::class.java, keepAlive = null) {
         this.parent = parent
     }
 

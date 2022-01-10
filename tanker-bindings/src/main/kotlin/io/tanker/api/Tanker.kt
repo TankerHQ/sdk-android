@@ -46,7 +46,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
         @JvmStatic
         fun prehashPassword(password: String): String {
-            val fut = TankerFuture<Pointer>(lib.tanker_prehash_password(password), Pointer::class.java)
+            val fut = TankerFuture<Pointer>(lib.tanker_prehash_password(password), Pointer::class.java, keepAlive = null)
             val ptr = fut.get()
             val str = ptr.getString(0)
             lib.tanker_free_buffer(ptr)
@@ -77,7 +77,7 @@ class Tanker(tankerOptions: TankerOptions) {
         tankerOptions.datastoreOptions = datastoreOptions
 
         val createFuture = lib.tanker_create(tankerOptions)
-        tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java).get()
+        tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java, keepAlive = null).get()
 
         connectInternalHandler(TankerEvent.DEVICE_REVOKED, this::triggerDeviceRevokedEvent)
     }
@@ -94,7 +94,7 @@ class Tanker(tankerOptions: TankerOptions) {
             }
         }
         val fut = lib.tanker_event_connect(tanker, e, callbackWrapper, Pointer(0))
-        TankerFuture<Unit>(fut, Unit::class.java).get()
+        TankerFuture<Unit>(fut, Unit::class.java, keepAlive = this).get()
         callbacksLifeSupport.add(callbackWrapper)
     }
 
@@ -113,7 +113,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun start(identity: String): TankerFuture<Status> {
         val futurePtr = lib.tanker_start(tanker, identity)
-        return TankerFuture<Int>(futurePtr, Int::class.java).andThen(TankerCallback {
+        return TankerFuture<Int>(futurePtr, Int::class.java, keepAlive = this).andThen(TankerCallback {
             Status.fromInt(it)
         })
     }
@@ -135,7 +135,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun registerIdentity(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
         val futurePtr = lib.tanker_register_identity(tanker, verification.toCVerification(), options)
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).then<String?>(TankerCallback {
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java, keepAlive = this).then(TankerCallback {
             val ptr = it.get()
             if (Pointer.nativeValue(ptr) == 0L) {
                 null
@@ -164,7 +164,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun verifyIdentity(verification: Verification, options: VerificationOptions?): TankerFuture<String?> {
         val futurePtr = lib.tanker_verify_identity(tanker, verification.toCVerification(), options)
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).then(TankerCallback {
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java, keepAlive = this).then(TankerCallback {
             val ptr = it.get()
             if (Pointer.nativeValue(ptr) == 0L) {
                 null
@@ -182,9 +182,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun stop(): TankerFuture<Unit> {
         val futurePtr = lib.tanker_stop(tanker)
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = this) {
-            // Keep the GC from calling tanker_destroy() through the finalizer until stop() is finished
-        })
+        return TankerFuture(futurePtr, Unit::class.java, keepAlive = this)
     }
 
     /**
@@ -192,7 +190,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return A future that resolves when the claim is successful
      */
     fun attachProvisionalIdentity(provisionalIdentity: String): TankerFuture<AttachResult> {
-        val fut = TankerFuture<Pointer>(lib.tanker_attach_provisional_identity(tanker, provisionalIdentity), Pointer::class.java)
+        val fut = TankerFuture<Pointer>(lib.tanker_attach_provisional_identity(tanker, provisionalIdentity), Pointer::class.java, keepAlive = this)
         return fut.then(TankerCallback {
             val attachResultPtr = it.get()
             val status = attachResultPtr.getByte(1).toInt()
@@ -206,7 +204,7 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     fun verifyProvisionalIdentity(verification: Verification): TankerFuture<Unit> {
-        return TankerFuture(lib.tanker_verify_provisional_identity(tanker, verification.toCVerification()), Unit::class.java)
+        return TankerFuture(lib.tanker_verify_provisional_identity(tanker, verification.toCVerification()), Unit::class.java, keepAlive = this)
     }
 
     /**
@@ -220,7 +218,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * Gets the current device's ID as a string
      */
     fun getDeviceId(): String {
-        val fut = TankerFuture<Pointer>(lib.tanker_device_id(tanker), Pointer::class.java)
+        val fut = TankerFuture<Pointer>(lib.tanker_device_id(tanker), Pointer::class.java, keepAlive = this)
         return fut.then<String>(TankerCallback {
             val ptr = it.get()
             val str = ptr.getString(0)
@@ -233,7 +231,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * Gets the list of the user's devices
      */
     fun getDeviceList(): TankerFuture<List<DeviceInfo>> {
-        val fut = TankerFuture<Pointer>(lib.tanker_get_device_list(tanker), Pointer::class.java)
+        val fut = TankerFuture<Pointer>(lib.tanker_get_device_list(tanker), Pointer::class.java, keepAlive = this)
         return fut.then(TankerCallback {
             val devListPtr = it.get()
             val count = devListPtr.getInt(Native.POINTER_SIZE.toLong())
@@ -256,7 +254,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     @Deprecated("The deviceRevoked method is deprecated, it will be removed in the future")
     fun revokeDevice(deviceId: String): TankerFuture<Unit> {
-        return TankerFuture(lib.tanker_revoke_device(tanker, deviceId), Unit::class.java)
+        return TankerFuture(lib.tanker_revoke_device(tanker, deviceId), Unit::class.java, keepAlive = this)
     }
 
     /**
@@ -264,7 +262,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return The verification key.
      */
     fun generateVerificationKey(): TankerFuture<String> {
-        val fut = TankerFuture<Pointer>(lib.tanker_generate_verification_key(tanker), Pointer::class.java)
+        val fut = TankerFuture<Pointer>(lib.tanker_generate_verification_key(tanker), Pointer::class.java, keepAlive = this)
         return fut.then(TankerCallback {
             val ptr = it.get()
             val str = ptr.getString(0)
@@ -279,7 +277,7 @@ class Tanker(tankerOptions: TankerOptions) {
      * @return Ordered list of verification methods that are currently set-up.
      */
     fun getVerificationMethods(): TankerFuture<List<VerificationMethod>> {
-        val fut = TankerFuture<Pointer>(lib.tanker_get_verification_methods(tanker), Pointer::class.java)
+        val fut = TankerFuture<Pointer>(lib.tanker_get_verification_methods(tanker), Pointer::class.java, keepAlive = this)
         return fut.then(TankerCallback {
             val methodListPtr = it.get()
             val count = methodListPtr.getInt(Native.POINTER_SIZE.toLong())
@@ -317,7 +315,7 @@ class Tanker(tankerOptions: TankerOptions) {
                 verification.toCVerification(),
                 options
         )
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).then(TankerCallback {
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java, keepAlive = this).then(TankerCallback {
             val ptr = it.get()
             if (Pointer.nativeValue(ptr) == 0L) {
                 null
@@ -349,7 +347,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encrypt(tanker, outBuf, inBuf, data.size.toLong(), options)
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = this).andThen(TankerCallback {
             outBuf.getByteArray(0, encryptedSize.toInt())
         })
     }
@@ -357,7 +355,7 @@ class Tanker(tankerOptions: TankerOptions) {
     fun encrypt(channel: TankerAsynchronousByteChannel, options: EncryptionOptions?): TankerFuture<TankerAsynchronousByteChannel> {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = lib.tanker_stream_encrypt(tanker, cb, null, options)
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java, keepAlive = this).andThen(TankerCallback {
             TankerStream(it, cb)
         })
     }
@@ -369,7 +367,7 @@ class Tanker(tankerOptions: TankerOptions) {
     fun decrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = lib.tanker_stream_decrypt(tanker, cb, null)
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).then(TankerCallback {
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java, keepAlive = this).then(TankerCallback {
             val e = it.getError()
             if (e != null) {
                 val previousError = cb.streamError
@@ -387,7 +385,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val inBuf = Memory(data.size.toLong().coerceAtLeast(1))
         inBuf.write(0, data, 0, data.size)
 
-        val plainSizeFut = TankerFuture<Pointer>(lib.tanker_decrypted_size(inBuf, data.size.toLong()), Pointer::class.java)
+        val plainSizeFut = TankerFuture<Pointer>(lib.tanker_decrypted_size(inBuf, data.size.toLong()), Pointer::class.java, keepAlive = this)
         val plainSize = try {
             Pointer.nativeValue(plainSizeFut.get())
         } catch (_: Throwable) {
@@ -396,7 +394,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
         val outBuf = Memory(plainSize.coerceAtLeast(1))
         val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong())
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = this).andThen(TankerCallback {
             outBuf.getByteArray(0, plainSize.toInt())
         })
     }
@@ -411,7 +409,7 @@ class Tanker(tankerOptions: TankerOptions) {
         inBuf.write(0, data, 0, data.size)
 
         val future = lib.tanker_get_resource_id(inBuf, data.size.toLong())
-        val outStringPtr = TankerFuture<Pointer>(future, Pointer::class.java).get()
+        val outStringPtr = TankerFuture<Pointer>(future, Pointer::class.java, keepAlive = this).get()
         val outString = outStringPtr.getString(0, "UTF-8")
         lib.tanker_free_buffer(outStringPtr)
         return outString
@@ -434,7 +432,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun share(resourceIDs: Array<String>, sharingOptions: SharingOptions): TankerFuture<Unit> {
         val fut = lib.tanker_share(tanker, StringArray(resourceIDs), resourceIDs.size.toLong(), sharingOptions)
-        return TankerFuture(fut, Unit::class.java)
+        return TankerFuture(fut, Unit::class.java, keepAlive = this)
     }
 
     /**
@@ -443,7 +441,7 @@ class Tanker(tankerOptions: TankerOptions) {
      */
     fun createGroup(vararg memberPublicIdentities: String): TankerFuture<String> {
         val fut = lib.tanker_create_group(tanker, StringArray(memberPublicIdentities), memberPublicIdentities.size.toLong())
-        return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
+        return TankerFuture<Pointer>(fut, Pointer::class.java, keepAlive = this).then(TankerCallback {
             it.getError()?.let { throw it }
             val ptr = it.get()
             val str = ptr.getString(0)
@@ -460,7 +458,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val fut = lib.tanker_update_group_members(tanker, groupId,
                 StringArray(usersToAdd), usersToAdd.size.toLong(),
                 StringArray(usersToRemove), usersToRemove.size.toLong())
-        return TankerFuture(fut, Unit::class.java)
+        return TankerFuture(fut, Unit::class.java, keepAlive = this)
     }
 
     /**
@@ -506,7 +504,7 @@ class Tanker(tankerOptions: TankerOptions) {
     fun createEncryptionSession(encryptionOptions: EncryptionOptions?): TankerFuture<EncryptionSession> {
         val fut = lib.tanker_encryption_session_open(tanker, encryptionOptions
                 ?: EncryptionOptions())
-        return TankerFuture<Pointer>(fut, Pointer::class.java).then(TankerCallback {
+        return TankerFuture<Pointer>(fut, Pointer::class.java, keepAlive = this).then(TankerCallback {
             it.getError()?.let { throw it }
             val csession = it.get()
             EncryptionSession(csession)
