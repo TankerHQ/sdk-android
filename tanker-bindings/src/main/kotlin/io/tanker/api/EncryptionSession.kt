@@ -25,7 +25,7 @@ class EncryptionSession(private val csess: Pointer) {
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encryption_session_encrypt(csess, outBuf, inBuf, data.size.toLong())
-        return TankerFuture<Unit>(futurePtr, Unit::class.java).andThen(TankerCallbackWithKeepAlive(keepAlive = inBuf) {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = this).andThen(TankerCallback {
             outBuf.getByteArray(0, encryptedSize.toInt())
         })
     }
@@ -36,7 +36,7 @@ class EncryptionSession(private val csess: Pointer) {
     fun encrypt(channel: TankerAsynchronousByteChannel): TankerFuture<TankerAsynchronousByteChannel> {
         val cb = TankerStreamInputSourceCallback(channel)
         val futurePtr = Tanker.lib.tanker_encryption_session_stream_encrypt(csess, cb, null)
-        return TankerFuture<Pointer>(futurePtr, Pointer::class.java).andThen(TankerCallback {
+        return TankerFuture<Pointer>(futurePtr, Pointer::class.java, keepAlive = this).andThen(TankerCallback {
             TankerStream(it, cb)
         })
     }
@@ -46,7 +46,7 @@ class EncryptionSession(private val csess: Pointer) {
      */
     fun getResourceId(): String {
         val fut = lib.tanker_encryption_session_get_resource_id(csess)
-        val ptr = TankerFuture<Pointer>(fut, Pointer::class.java).get()
+        val ptr = TankerFuture<Pointer>(fut, Pointer::class.java, keepAlive = this).get()
         val str = ptr.getString(0)
         lib.tanker_free_buffer(ptr)
         return str

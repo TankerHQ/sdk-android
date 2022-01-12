@@ -27,7 +27,7 @@ class Admin(private val adminUrl: String, private val idToken: String, private v
      * This must be called before doing any other operation
      */
     fun connect(): TankerFuture<Unit> {
-        return TankerFuture<Pointer>(lib.tanker_admin_connect(adminUrl, idToken), Pointer::class.java, lib).andThen(TankerVoidCallback {
+        return TankerFuture<Pointer>(lib.tanker_admin_connect(adminUrl, idToken), Pointer::class.java, lib, keepAlive = this).andThen(TankerVoidCallback {
             cadmin = it
         })
     }
@@ -35,7 +35,7 @@ class Admin(private val adminUrl: String, private val idToken: String, private v
     fun createApp(name: String): TankerFuture<TankerApp> {
         requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
         val cfut = lib.tanker_admin_create_app(cadmin!!, name)
-        return TankerFuture<Pointer>(cfut, Pointer::class.java, lib).andThen(TankerCallback {
+        return TankerFuture<Pointer>(cfut, Pointer::class.java, lib, keepAlive = this).andThen(TankerCallback {
             val descriptor = TankerAppDescriptor(it)
             TankerApp(apiUrl, descriptor.id!!, descriptor.authToken!!, descriptor.privateKey!!)
         })
@@ -43,7 +43,7 @@ class Admin(private val adminUrl: String, private val idToken: String, private v
 
     fun deleteApp(appId: String): TankerFuture<Unit> {
         requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
-        return TankerFuture(lib.tanker_admin_delete_app(cadmin!!, appId), Unit::class.java, lib)
+        return TankerFuture(lib.tanker_admin_delete_app(cadmin!!, appId), Unit::class.java, lib, keepAlive = this)
     }
 
     /**
@@ -51,6 +51,6 @@ class Admin(private val adminUrl: String, private val idToken: String, private v
      */
     fun appUpdate(appId: String, options: TankerAppUpdateOptions): TankerFuture<Unit> {
         requireNotNull(cadmin) { "You need to connect() before using the admin API!" }
-        return TankerFuture(lib.tanker_admin_app_update(cadmin!!, appId, options), Unit::class.java, lib)
+        return TankerFuture(lib.tanker_admin_app_update(cadmin!!, appId, options), Unit::class.java, lib, keepAlive = this)
     }
 }

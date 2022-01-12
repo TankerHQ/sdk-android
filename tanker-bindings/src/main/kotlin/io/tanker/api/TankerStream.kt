@@ -17,7 +17,7 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
             throw IOException("Stream is closed")
 
         val future = Tanker.lib.tanker_stream_get_resource_id(cStream!!)
-        val outStringPtr = TankerFuture<Pointer>(future, Pointer::class.java).get()
+        val outStringPtr = TankerFuture<Pointer>(future, Pointer::class.java, keepAlive = this).get()
         val outString = outStringPtr.getString(0, "UTF-8")
         Tanker.lib.tanker_free_buffer(outStringPtr)
         return outString
@@ -31,7 +31,7 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
         if (cStream == null)
             return
         underlyingStream.close()
-        TankerFuture<Unit>(Tanker.lib.tanker_stream_close(cStream!!), Unit::class.java).get()
+        TankerFuture<Unit>(Tanker.lib.tanker_stream_close(cStream!!), Unit::class.java, keepAlive = this).get()
         pendingReadOperation = false
         cStream = null
     }
@@ -56,7 +56,7 @@ internal class TankerStream constructor(private var cStream: StreamPointer?, pri
             inBuf = Memory(size.toLong())
 
         pendingReadOperation = true
-        TankerFuture<Int>(Tanker.lib.tanker_stream_read(cStream!!, inBuf, size.toLong()), Int::class.java).then(TankerVoidCallback {
+        TankerFuture<Int>(Tanker.lib.tanker_stream_read(cStream!!, inBuf, size.toLong()), Int::class.java, keepAlive = this).then(TankerVoidCallback {
             pendingReadOperation = false
             val err = it.getError()
             if (err != null) {
