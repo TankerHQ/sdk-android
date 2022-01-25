@@ -431,17 +431,6 @@ class Tanker(tankerOptions: TankerOptions) {
         return TankerFuture(fut, Unit::class.java, keepAlive = this)
     }
 
-    @Deprecated("Use createEncryptionSession(EncryptionOptions) instead")
-    fun createEncryptionSession(sharingOptions: SharingOptions): TankerFuture<EncryptionSession> {
-        val encryptionOptions = EncryptionOptions()
-        encryptionOptions.shareWithUsers = sharingOptions.shareWithUsers
-        encryptionOptions.nbUsers = sharingOptions.nbUsers
-        encryptionOptions.shareWithGroups = sharingOptions.shareWithGroups
-        encryptionOptions.nbGroups = sharingOptions.nbGroups
-
-        return createEncryptionSession(encryptionOptions)
-    }
-
     /**
      * Create an encryption session that will allow doing multiple encryption operations
      * with a reduced number of keys.
