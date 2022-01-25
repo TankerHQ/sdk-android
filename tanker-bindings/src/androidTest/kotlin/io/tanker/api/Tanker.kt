@@ -450,79 +450,6 @@ class TankerTests : TankerSpec() {
     }
 
     @Test
-    fun can_self_revoke() {
-        val aliceId = tc.createIdentity()
-        val revokedSemaphore = Semaphore(0)
-
-        val tankerAlice = Tanker(options)
-        tankerAlice.start(aliceId).get()
-        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-        tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
-            revokedSemaphore.release()
-        })
-        tankerAlice.revokeDevice(tankerAlice.getDeviceId()).get()
-        val e = shouldThrow<TankerFutureException> { tankerAlice.encrypt("Oh no".toByteArray()).get() }
-        assertThat(e).hasCauseInstanceOf(DeviceRevoked::class.java)
-
-        assertThat(tankerAlice.getStatus()).isEqualTo(Status.STOPPED)
-        val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
-        assertThat(ok).isEqualTo(true)
-    }
-
-    @Test
-    fun can_revoke_another_device_of_the_same_user() {
-        val aliceId = tc.createIdentity()
-        val revokedSemaphore = Semaphore(0)
-
-        val tankerAlice1 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tankerAlice1.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
-            revokedSemaphore.release()
-        })
-        tankerAlice1.start(aliceId).get()
-        tankerAlice1.registerIdentity(PassphraseVerification("pass")).get()
-
-        val tankerAlice2 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tankerAlice2.start(aliceId).get()
-        tankerAlice2.verifyIdentity(PassphraseVerification("pass")).get()
-
-        tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
-        val e = shouldThrow<TankerFutureException> { tankerAlice1.encrypt("Oh no".toByteArray()).get() }
-        assertThat(e).hasCauseInstanceOf(DeviceRevoked::class.java)
-        val ok = revokedSemaphore.tryAcquire(1, TimeUnit.SECONDS)
-        assertThat(ok).isEqualTo(true)
-        assertThat(tankerAlice1.getStatus()).isEqualTo(Status.STOPPED)
-
-        tankerAlice1.stop().get()
-        tankerAlice2.stop().get()
-    }
-
-    @Test
-    fun cannot_revoke_a_device_of_another_user() {
-        val aliceId = tc.createIdentity()
-        val bobId = tc.createIdentity()
-
-        val tankerAlice = Tanker(options)
-        tankerAlice.start(aliceId).get()
-        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-        tankerAlice.connectDeviceRevokedHandler(TankerDeviceRevokedHandler {
-            assert(false)
-        })
-
-        val tankerBob = Tanker(options)
-        tankerBob.start(bobId).get()
-        tankerBob.registerIdentity(PassphraseVerification("pass")).get()
-
-        val aliceDevId = tankerAlice.getDeviceId()
-        val e = shouldThrow<TankerFutureException> {
-            tankerBob.revokeDevice(aliceDevId).get()
-        }
-        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
-
-        tankerAlice.stop().get()
-        tankerBob.stop().get()
-    }
-
-    @Test
     fun can_get_a_correct_device_list() {
         val tankerAlice = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
         tankerAlice.start(tc.createIdentity()).get()
@@ -533,46 +460,6 @@ class TankerTests : TankerSpec() {
         assertThat(devices[0].getDeviceId()).isEqualTo(tankerAlice.getDeviceId())
         assertThat(devices[0].isRevoked()).isEqualTo(false)
         tankerAlice.stop().get()
-    }
-
-    @Test
-    fun can_get_a_correct_device_list_after_revocation() {
-        val aliceId = tc.createIdentity()
-        val tankerAlice1 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tankerAlice1.start(aliceId).get()
-        val verificationKey = tankerAlice1.generateVerificationKey().get()
-        tankerAlice1.registerIdentity(VerificationKeyVerification(verificationKey)).get()
-        val aliceDeviceId1 = tankerAlice1.getDeviceId()
-
-        val tankerAlice2 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tankerAlice2.start(aliceId).get()
-        tankerAlice2.verifyIdentity(VerificationKeyVerification(verificationKey)).get()
-        val aliceDeviceId2 = tankerAlice2.getDeviceId()
-
-        tankerAlice2.revokeDevice(tankerAlice1.getDeviceId()).get()
-        val devices = tankerAlice2.getDeviceList().get()
-        assertThat(devices.size).isEqualTo(2)
-        var foundDevice1 = false
-        var foundDevice2 = false
-
-        for (device in devices) {
-            when {
-                device.getDeviceId() == aliceDeviceId1 -> {
-                    assertThat(device.isRevoked()).isEqualTo(true)
-                    foundDevice1 = true
-                }
-                device.getDeviceId() == aliceDeviceId2 -> {
-                    assertThat(device.isRevoked()).isEqualTo(false)
-                    foundDevice2 = true
-                }
-            }
-        }
-
-        assertThat(foundDevice1).isEqualTo(true)
-        assertThat(foundDevice2).isEqualTo(true)
-
-        tankerAlice1.stop().get()
-        tankerAlice2.stop().get()
     }
 
     @Test

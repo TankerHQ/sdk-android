@@ -55,12 +55,8 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     private val tanker: Pointer
-    private var deviceRevokedHandlers = mutableListOf<TankerDeviceRevokedHandler>()
     private val httpClient: HttpClient = HttpClient(lib, tankerOptions.sdkType, tankerOptions.sdkVersion)
     private val httpClientCanceler: HttpClientCanceler = HttpClientCanceler(httpClient)
-
-    @ProguardKeep
-    private var callbacksLifeSupport = mutableListOf<Any>()
 
     init {
         lib.tanker_init()
@@ -78,24 +74,6 @@ class Tanker(tankerOptions: TankerOptions) {
 
         val createFuture = lib.tanker_create(tankerOptions)
         tanker = TankerFuture<Pointer>(createFuture, Pointer::class.java, keepAlive = null).get()
-
-        connectInternalHandler(TankerEvent.DEVICE_REVOKED, this::triggerDeviceRevokedEvent)
-    }
-
-    private fun connectInternalHandler(e: TankerEvent, f: () -> Unit) {
-        val callbackWrapper = object : TankerLib.EventCallback {
-            override fun callback(arg: Pointer?) {
-                // We don't want to let the user run code directly on the callback thread,
-                // because blocking in the callback prevents progress and could deadlock us.
-                // Instead we wrap in a future to move the handler to another thread, and run asynchronously
-                TankerFuture.threadPool.execute {
-                    f()
-                }
-            }
-        }
-        val fut = lib.tanker_event_connect(tanker, e, callbackWrapper, Pointer(0))
-        TankerFuture<Unit>(fut, Unit::class.java, keepAlive = this).get()
-        callbacksLifeSupport.add(callbackWrapper)
     }
 
     @Suppress("ProtectedInFinal", "Unused")
@@ -247,14 +225,6 @@ class Tanker(tankerOptions: TankerOptions) {
                 devices.toList()
             }
         })
-    }
-
-    /**
-     * Revoke a device by device id.
-     */
-    @Deprecated("The deviceRevoked method is deprecated, it will be removed in the future")
-    fun revokeDevice(deviceId: String): TankerFuture<Unit> {
-        return TankerFuture(lib.tanker_revoke_device(tanker, deviceId), Unit::class.java, keepAlive = this)
     }
 
     /**
@@ -459,31 +429,6 @@ class Tanker(tankerOptions: TankerOptions) {
                 StringArray(usersToAdd), usersToAdd.size.toLong(),
                 StringArray(usersToRemove), usersToRemove.size.toLong())
         return TankerFuture(fut, Unit::class.java, keepAlive = this)
-    }
-
-    /**
-     * Subscribes to the "Device Revoked" Tanker event.
-     * @param eventCallback The function to call when the event happens.
-     */
-    @Deprecated("The deviceRevoked event is deprecated, it will be removed in the future")
-    fun connectDeviceRevokedHandler(eventCallback: TankerDeviceRevokedHandler) {
-        deviceRevokedHandlers.add(eventCallback)
-    }
-
-    private fun triggerDeviceRevokedEvent() {
-        for (handler in deviceRevokedHandlers)
-            try {
-                handler.call()
-            } catch (e: Throwable) {
-                Log.e(LOG_TAG, "Callback has thrown an exception", e)
-            }
-    }
-
-    /**
-     * Unsubscribes from a Tanker event.
-     */
-    fun disconnectHandler(handler: Any) {
-        deviceRevokedHandlers.remove(handler)
     }
 
     @Deprecated("Use createEncryptionSession(EncryptionOptions) instead")
