@@ -11,12 +11,12 @@ import java.util.concurrent.TimeUnit
 class TankerTests : TankerSpec() {
     @Before
     fun beforeTest() {
-        options.setTrustchainId(tc.id())
+        options.setAppId(tc.id())
     }
 
     @Test
     fun tanker_create_fails_if_the_options_passed_are_wrong() {
-        options.setTrustchainId("Invalid base64!")
+        options.setAppId("Invalid base64!")
         val e = shouldThrow<TankerFutureException> { Tanker(options) }
         assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
     }

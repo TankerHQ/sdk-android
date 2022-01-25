@@ -16,7 +16,7 @@ abstract class TankerSpec {
         @JvmStatic
         fun beforeSpec() {
             tc = App()
-            options.setTrustchainId(tc.id())
+            options.setAppId(tc.id())
                     .setUrl(tc.url)
                     .setPersistentPath(createTmpDir().toString())
                     .setCachePath(createTmpDir().toString())

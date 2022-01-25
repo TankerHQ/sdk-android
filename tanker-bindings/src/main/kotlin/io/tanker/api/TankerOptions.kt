@@ -40,13 +40,6 @@ class TankerOptions : Structure() {
     @JvmField internal var datastoreOptions: DatastoreOptions = DatastoreOptions()
 
     /**
-     * @deprecated use setAppId
-     */
-    fun setTrustchainId(trustchainId: String): TankerOptions {
-        return setAppId(trustchainId)
-    }
-
-    /**
      * Mandatory. Sets the app to use for the TankerSession.
      */
     fun setAppId(appId: String): TankerOptions {
