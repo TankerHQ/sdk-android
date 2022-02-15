@@ -347,7 +347,7 @@ class Tanker(tankerOptions: TankerOptions) {
         val outBuf = Memory(encryptedSize)
 
         val futurePtr = lib.tanker_encrypt(tanker, outBuf, inBuf, data.size.toLong(), options)
-        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = this).andThen(TankerCallback {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = listOf(this, inBuf)).andThen(TankerCallback {
             outBuf.getByteArray(0, encryptedSize.toInt())
         })
     }
@@ -394,7 +394,7 @@ class Tanker(tankerOptions: TankerOptions) {
 
         val outBuf = Memory(plainSize.coerceAtLeast(1))
         val futurePtr = lib.tanker_decrypt(tanker, outBuf, inBuf, data.size.toLong())
-        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = this).andThen(TankerCallback {
+        return TankerFuture<Unit>(futurePtr, Unit::class.java, keepAlive = listOf(this, inBuf)).andThen(TankerCallback {
             outBuf.getByteArray(0, plainSize.toInt())
         })
     }
@@ -409,7 +409,7 @@ class Tanker(tankerOptions: TankerOptions) {
         inBuf.write(0, data, 0, data.size)
 
         val future = lib.tanker_get_resource_id(inBuf, data.size.toLong())
-        val outStringPtr = TankerFuture<Pointer>(future, Pointer::class.java, keepAlive = this).get()
+        val outStringPtr = TankerFuture<Pointer>(future, Pointer::class.java, keepAlive = listOf(this, inBuf)).get()
         val outString = outStringPtr.getString(0, "UTF-8")
         lib.tanker_free_buffer(outStringPtr)
         return outString
