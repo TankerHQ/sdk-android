@@ -14,8 +14,6 @@ enum class ErrorCode(val value: Int) {
 
     DECRYPTION_FAILED(6),
 
-    @Deprecated("This enum value is deprecated", ReplaceWith("GROUP_TOO_BIG"))
-    INVALID_GROUP_TOO_BIG(7),
     GROUP_TOO_BIG(7),
 
     INVALID_VERIFICATION(8),

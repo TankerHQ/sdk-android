@@ -92,7 +92,6 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_status(tanker: SessionPointer): Status
     fun tanker_generate_verification_key(tanker: SessionPointer): FuturePointer
     fun tanker_device_id(tanker: SessionPointer): ExpectedPointer
-    fun tanker_revoke_device(tanker: SessionPointer, deviceId: String): FuturePointer
     fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
 
     fun tanker_attach_provisional_identity(tanker: SessionPointer, provisionalIdentity: String): FuturePointer
@@ -102,8 +101,6 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_set_verification_method(tanker: SessionPointer, verification: TankerVerification, verification_options: VerificationOptions?): FuturePointer
 
     fun tanker_set_log_handler(handler: LogHandlerCallback): Void
-    fun tanker_event_connect(tanker: SessionPointer, event: TankerEvent, callback: EventCallback, user_data: Pointer): ExpectedPointer
-    fun tanker_event_disconnect(tanker: SessionPointer, event: TankerEvent): ExpectedPointer
 
     fun tanker_encrypted_size(clear_size: Long): Long
     fun tanker_decrypted_size(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer

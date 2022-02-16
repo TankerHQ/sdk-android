@@ -33,7 +33,7 @@ class EncryptionSessionTests : TankerSpec() {
 
     @Test
     fun can_open_and_close_native_encryption_sessions() {
-        tankerAlice.createEncryptionSession(SharingOptions()).get()
+        tankerAlice.createEncryptionSession(EncryptionOptions()).get()
         System.gc() // Try to have HotSpot close the session before the test ends
     }
 
@@ -48,8 +48,8 @@ class EncryptionSessionTests : TankerSpec() {
     @Test
     fun can_share_with_Bob_using_an_encryption_session() {
         val plaintext = "La Pléiade"
-        val shareOpt = SharingOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
-        val sess = tankerAlice.createEncryptionSession(shareOpt).get()
+        val encryptOpt = EncryptionOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+        val sess = tankerAlice.createEncryptionSession(encryptOpt).get()
         val encrypted = sess.encrypt(plaintext.toByteArray()).get()
         assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
     }
@@ -58,8 +58,8 @@ class EncryptionSessionTests : TankerSpec() {
     fun can_share_with_group_using_an_encryption_session() {
         val plaintext = "La Pléiade"
         val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(bobId)).get()
-        val shareOpt = SharingOptions().shareWithGroups(groupId)
-        val sess = tankerAlice.createEncryptionSession(shareOpt).get()
+        val encryptOpt = EncryptionOptions().shareWithGroups(groupId)
+        val sess = tankerAlice.createEncryptionSession(encryptOpt).get()
         val encrypted = sess.encrypt(plaintext.toByteArray()).get()
         assertThat(String(tankerBob.decrypt(encrypted).get())).isEqualTo(plaintext)
     }
@@ -75,7 +75,7 @@ class EncryptionSessionTests : TankerSpec() {
 
     @Test
     fun can_encrypt_a_stream_in_an_encryption_session() {
-        val sess = tankerAlice.createEncryptionSession(SharingOptions()).get()
+        val sess = tankerAlice.createEncryptionSession(EncryptionOptions()).get()
         val plaintext = "La Comédie Humaine".toByteArray()
         val plaintextChannel = TankerChannels.fromInputStream(plaintext.inputStream())
         val encryptStream = sess.encrypt(plaintextChannel).get()
@@ -88,15 +88,15 @@ class EncryptionSessionTests : TankerSpec() {
 
     @Test
     fun resource_IDs_of_the_session_and_ciphertext_match() {
-        val sess = tankerAlice.createEncryptionSession(SharingOptions()).get()
+        val sess = tankerAlice.createEncryptionSession(EncryptionOptions()).get()
         val encrypted = sess.encrypt("Les Rougon-Macquart".toByteArray()).get()
         assertThat(tankerAlice.getResourceID(encrypted)).isEqualTo(sess.getResourceId())
     }
 
     @Test
     fun ciphertexts_from_different_sessions_have_different_resource_IDs() {
-        val sess1 = tankerAlice.createEncryptionSession(SharingOptions()).get()
-        val sess2 = tankerAlice.createEncryptionSession(SharingOptions()).get()
+        val sess1 = tankerAlice.createEncryptionSession(EncryptionOptions()).get()
+        val sess2 = tankerAlice.createEncryptionSession(EncryptionOptions()).get()
         val cipher1 = sess1.encrypt("La Fontaine — Fables".toByteArray()).get()
         val cipher2 = sess2.encrypt("Monmoulin — Lettres".toByteArray()).get()
         assertThat(tankerAlice.getResourceID(cipher1)).isNotEqualTo(tankerAlice.getResourceID(cipher2))
@@ -104,9 +104,9 @@ class EncryptionSessionTests : TankerSpec() {
 
     @Test
     fun different_sessions_encrypt_with_different_keys() {
-        val shareOpt = SharingOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
-        val sessShared = tankerAlice.createEncryptionSession(shareOpt).get()
-        val sessPrivate = tankerAlice.createEncryptionSession(SharingOptions()).get()
+        val encryptOpt = EncryptionOptions().shareWithUsers(Identity.getPublicIdentity(bobId))
+        val sessShared = tankerAlice.createEncryptionSession(encryptOpt).get()
+        val sessPrivate = tankerAlice.createEncryptionSession(EncryptionOptions()).get()
 
         val plaintext = "Les Crimes Célèbres"
         val shared = sessShared.encrypt(plaintext.toByteArray()).get()

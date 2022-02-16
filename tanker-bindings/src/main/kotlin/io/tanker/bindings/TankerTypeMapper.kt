@@ -25,22 +25,6 @@ class TankerTypeMapper : DefaultTypeMapper() {
             }
         })
 
-        addTypeConverter(TankerEvent::class.java, object : TypeConverter {
-            override fun toNative(value: Any?, context: ToNativeContext?): Any {
-                val status = value as TankerEvent
-                return status.value
-            }
-
-            override fun fromNative(nativeValue: Any?, context: FromNativeContext?): Any? {
-                val value = nativeValue as? Int ?: return null
-                return TankerEvent.values().find { it.value == value }
-            }
-
-            override fun nativeType(): Class<*> {
-                return Int::class.java
-            }
-        })
-
         addTypeConverter(ErrorCode::class.java, object : TypeConverter {
             override fun toNative(value: Any?, context: ToNativeContext?): Any {
                 val status = value as ErrorCode
