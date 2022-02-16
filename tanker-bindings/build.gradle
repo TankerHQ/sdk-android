@@ -37,6 +37,7 @@ android {
             }
         }
     }
+    ndkVersion "21.1.6352462"
     // This is the only way to build instrumented tests in release mode
     // https://stackoverflow.com/a/51719271/1810193
     if (project.hasProperty('androidTestRelease')) {
