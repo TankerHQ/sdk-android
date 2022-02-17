@@ -133,9 +133,16 @@ def main():
         default=tankerci.conan.TankerSource.EDITABLE,
         dest="tanker_source",
     )
-    build_and_test_parser.add_argument(
-        "--tanker-ref",
+    build_and_test_parser.add_argument("--tanker-ref")
+
+    build_parser = subparsers.add_parser("build")
+    build_parser.add_argument(
+        "--use-tanker",
+        type=tankerci.conan.TankerSource,
+        default=tankerci.conan.TankerSource.EDITABLE,
+        dest="tanker_source",
     )
+    build_parser.add_argument("--tanker-ref")
 
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
@@ -146,10 +153,7 @@ def main():
     )
     prepare_parser.add_argument("--tanker-ref")
     prepare_parser.add_argument(
-        "--update",
-        action="store_true",
-        default=False,
-        dest="update",
+        "--update", action="store_true", default=False, dest="update",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
@@ -171,9 +175,11 @@ def main():
 
     if command == "build-and-test":
         build_and_test(
-            tanker_source=args.tanker_source,
-            tanker_ref=args.tanker_ref,
+            tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
         )
+    elif command == "build":
+        prepare(args.tanker_source, False, args.tanker_ref)
+        build()
     elif command == "prepare":
         prepare(args.tanker_source, args.update, args.tanker_ref)
     elif command == "deploy":
