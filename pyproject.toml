@@ -6,7 +6,7 @@ authors = ["Tanker team <tech@tanker.io>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-tankerci = { version = ">= 2022.01.3940", source = "gitlab" }
+tankerci = { version = ">= 2022.2.4054", source = "gitlab" }
 
 [[tool.poetry.source]]
 name = "gitlab"
