@@ -94,6 +94,9 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_device_id(tanker: SessionPointer): ExpectedPointer
     fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
 
+    fun tanker_create_oidc_nonce(tanker: SessionPointer): FuturePointer
+    fun tanker_set_oidc_test_nonce(tanker: SessionPointer, nonce: String): FuturePointer
+
     fun tanker_attach_provisional_identity(tanker: SessionPointer, provisionalIdentity: String): FuturePointer
     fun tanker_verify_provisional_identity(tanker: SessionPointer, verification: TankerVerification): FuturePointer
 
