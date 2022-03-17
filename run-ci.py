@@ -1,22 +1,19 @@
-from typing import Optional  # noqa
-
 import argparse
 import os
-from pathlib import Path
 import shutil
 import sys
+from pathlib import Path
+from typing import Optional  # noqa
 
 import cli_ui as ui
-
 import tankerci
-import tankerci.conan
-from tankerci.conan import TankerSource
-import tankerci.cpp
-import tankerci.git
-import tankerci.gcp
-import tankerci.gitlab
 import tankerci.android
-
+import tankerci.conan
+import tankerci.cpp
+import tankerci.gcp
+import tankerci.git
+import tankerci.gitlab
+from tankerci.conan import TankerSource
 
 PROFILES = [
     "linux-release-shared",
@@ -153,7 +150,10 @@ def main():
     )
     prepare_parser.add_argument("--tanker-ref")
     prepare_parser.add_argument(
-        "--update", action="store_true", default=False, dest="update",
+        "--update",
+        action="store_true",
+        default=False,
+        dest="update",
     )
 
     deploy_parser = subparsers.add_parser("deploy")
@@ -175,7 +175,8 @@ def main():
 
     if command == "build-and-test":
         build_and_test(
-            tanker_source=args.tanker_source, tanker_ref=args.tanker_ref,
+            tanker_source=args.tanker_source,
+            tanker_ref=args.tanker_ref,
         )
     elif command == "build":
         prepare(args.tanker_source, False, args.tanker_ref)
