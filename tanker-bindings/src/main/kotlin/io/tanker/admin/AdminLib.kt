@@ -16,7 +16,7 @@ interface AdminLib : AsyncLib, Library {
         }
     }
 
-    fun tanker_admin_connect(url: String, id_token: String): FuturePointer
+    fun tanker_admin_connect(app_management_url: String, app_management_token: String, environment_name: String): FuturePointer
     fun tanker_admin_create_app(admin: AdminPointer, name: String): FuturePointer
     fun tanker_admin_delete_app(admin: AdminPointer, app_id: String): FuturePointer
     fun tanker_admin_destroy(admin: AdminPointer): FuturePointer

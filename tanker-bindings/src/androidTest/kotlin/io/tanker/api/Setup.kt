@@ -9,7 +9,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-data class ConfigData(val idToken: String, val url: String, val trustchaindUrl: String, val adminUrl: String)
+data class ConfigData(val appManagementToken: String, val appManagementUrl: String, val environmentName: String, val trustchaindUrl: String, val url: String)
 
 data class ConfigOIDC(
         val clientId: String,
@@ -49,17 +49,24 @@ class Config {
             return instance!!.trustchaindUrl
         }
 
-        fun getAdminUrl(): String {
+        fun getAppManagementToken(): String {
             if (instance == null)
                 Config()
-            return instance!!.adminUrl
+            return instance!!.appManagementToken
         }
 
-        fun getIdToken(): String {
+        fun getAppManagementUrl(): String {
             if (instance == null)
                 Config()
 
-            return instance!!.idToken
+            return instance!!.appManagementUrl
+        }
+
+        fun getEnvironmentName(): String {
+            if (instance == null)
+                Config()
+
+            return instance!!.environmentName
         }
 
         fun getOIDCConfig(): ConfigOIDC {
@@ -82,10 +89,11 @@ class Config {
         }
 
         instance = ConfigData(
-                idToken = safeGetEnv("TANKER_ID_TOKEN"),
-                url = safeGetEnv("TANKER_APPD_URL"),
+                appManagementToken = safeGetEnv("TANKER_MANAGEMENT_API_ACCESS_TOKEN"),
+                appManagementUrl = safeGetEnv("TANKER_MANAGEMENT_API_URL"),
+                environmentName = safeGetEnv("TANKER_MANAGEMENT_API_DEFAULT_ENVIRONMENT_NAME"),
                 trustchaindUrl = safeGetEnv("TANKER_TRUSTCHAIND_URL"),
-                adminUrl = safeGetEnv("TANKER_ADMIND_URL")
+                url = safeGetEnv("TANKER_APPD_URL"),
         )
         instanceOIDC = ConfigOIDC(
                 clientId = safeGetEnv("TANKER_OIDC_CLIENT_ID"),
@@ -106,7 +114,7 @@ class Config {
 }
 
 class App {
-    val admin = Admin(Config.getAdminUrl(), Config.getIdToken(), Config.getTrustchaindUrl())
+    val admin = Admin(Config.getAppManagementUrl(), Config.getAppManagementToken(), Config.getTrustchaindUrl(), Config.getEnvironmentName())
     val url: String = Config.getUrl()
     private val app: TankerApp
 
