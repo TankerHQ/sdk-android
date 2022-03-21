@@ -12,7 +12,6 @@ class TankerAppDescriptor(p: Pointer) : Structure(p) {
     @JvmField var id: String? = null
     @JvmField var authToken: String? = null
     @JvmField var privateKey: String? = null
-    @JvmField var publicKey: String? = null
     init {
         read()
     }
@@ -26,7 +25,6 @@ class TankerAppDescriptor(p: Pointer) : Structure(p) {
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("name", "id", "authToken", "privateKey", "publicKey")
+        return listOf("name", "id", "authToken", "privateKey")
     }
 }
-
