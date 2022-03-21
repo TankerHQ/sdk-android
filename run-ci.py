@@ -79,6 +79,7 @@ def test() -> None:
                 )
             except:
                 dump_logcat_for_failed_tests()
+                tankerci.android.take_screenshot(Path.cwd() / "screenshot.png")
                 raise
     finally:
         shutil.copytree(
