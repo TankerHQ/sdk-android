@@ -58,6 +58,7 @@ stages:
     paths:
       - artifacts
       - branch_name.txt
+      - screenshot.png
 
 .rules/check/deployed-native:
   rules:
