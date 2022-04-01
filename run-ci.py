@@ -70,6 +70,8 @@ def dump_logcat_for_failed_tests() -> None:
 
 
 def test() -> None:
+    ui.info_1("Building tests")
+    tankerci.run("./gradlew", "packageReleaseAndroidTest", "-PandroidTestRelease")
     ui.info_1("Running tests")
     try:
         with tankerci.android.emulator():
