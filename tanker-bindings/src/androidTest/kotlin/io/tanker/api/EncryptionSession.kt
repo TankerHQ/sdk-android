@@ -158,7 +158,7 @@ class EncryptionSessionTests : TankerSpec() {
     fun can_encrypt_with_a_padding_step() {
         val plaintext = "Au Bonheur des Dames"
         val step = 13
-        val encryptOptions = EncryptionOptions().paddingStep(Padding.Step(step))
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.step(step))
         val sess = tankerAlice.createEncryptionSession(encryptOptions).get()
         val encrypted = sess.encrypt(plaintext.toByteArray()).get()
 

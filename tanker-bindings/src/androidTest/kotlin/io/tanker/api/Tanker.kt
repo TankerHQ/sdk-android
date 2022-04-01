@@ -201,7 +201,7 @@ class TankerTests : TankerSpec() {
         tanker.registerIdentity(PassphraseVerification("pass")).get()
 
         val plaintext = "plain text"
-        val encryptOptions = EncryptionOptions().paddingStep(Padding.Step(13))
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.step(13))
         val encrypted = tanker.encrypt(plaintext.toByteArray(), encryptOptions).get()
         assertThat((encrypted.size - simplePaddedEncryptionOverhead) % 13).isEqualTo(0)
 
@@ -214,7 +214,7 @@ class TankerTests : TankerSpec() {
     @Test
     fun cannot_set_a_bad_padding_step() {
         listOf(-1, 0, 1).forEach {
-            shouldThrow<IllegalArgumentException> { Padding.Step(it) }
+            shouldThrow<IllegalArgumentException> { Padding.step(it) }
         }
     }
 
@@ -243,6 +243,26 @@ class TankerTests : TankerSpec() {
 
         val encryptor = tanker.encrypt(clear).get()
         val decryptor = tanker.decrypt(encryptor).get()
+
+        val decrypted = TankerInputStream(decryptor).readBytes()
+        assertThat(decrypted).isEqualTo(plaintext)
+        tanker.stop().get()
+    }
+
+    @Test
+    fun can_stream_encrypt_with_padding() {
+        val tanker = Tanker(options)
+        val identity = tc.createIdentity()
+        tanker.start(identity).get()
+        tanker.registerIdentity(PassphraseVerification("pass")).get()
+
+        val plaintext = ByteArray(3 * 1024 * 1024 + 2)
+        val clear = InputStreamWrapper(plaintext.inputStream())
+
+        val encryptor = tanker.encrypt(clear).get()
+        val encrypted = TankerInputStream(encryptor).readBytes()
+        assertThat(encrypted).hasSize(3211512)
+        val decryptor = tanker.decrypt(InputStreamWrapper(encrypted.inputStream())).get()
 
         val decrypted = TankerInputStream(decryptor).readBytes()
         assertThat(decrypted).isEqualTo(plaintext)
