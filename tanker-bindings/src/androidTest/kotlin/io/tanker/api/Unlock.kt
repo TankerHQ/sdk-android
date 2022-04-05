@@ -25,32 +25,6 @@ class UnlockTests : TankerSpec() {
         tanker2 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
     }
 
-    private fun checkSessionToken(publicIdentity: String, token: String, allowedMethod: String): String {
-        val jsonMapper = ObjectMapper()
-        val jsonAllowedMethod = jsonMapper.createObjectNode()
-        jsonAllowedMethod.put("type", allowedMethod)
-        val jsonAllowedMethods = jsonMapper.createArrayNode()
-        jsonAllowedMethods.add(jsonAllowedMethod)
-        val jsonObj = jsonMapper.createObjectNode()
-        jsonObj.put("app_id", tc.id())
-        jsonObj.put("auth_token", tc.authToken())
-        jsonObj.put("public_identity", publicIdentity)
-        jsonObj.put("session_token", token)
-        jsonObj.set<JsonNode>("allowed_methods", jsonAllowedMethods)
-        val jsonBody = jsonMapper.writeValueAsString(jsonObj)
-
-        val url = tc.trustchaindUrl()
-        val request = Request.Builder()
-                .url("$url/verification/session-token")
-                .post(jsonBody.toRequestBody(HttpClient.JSON))
-                .build()
-        val response = OkHttpClient().newCall(request).execute()
-        if (!response.isSuccessful)
-            throw RuntimeException("Check session token request failed: "+response.body?.string())
-        val jsonResponse = jsonMapper.readTree(response.body?.string())
-        return jsonResponse.get("verification_method").asText()
-    }
-
     @Test
     fun can_validate_a_new_device_using_a_verification_key() {
         tanker1.start(identity).get()
@@ -244,71 +218,6 @@ class UnlockTests : TankerSpec() {
         assert(methods[0] is OIDCIDTokenVerificationMethod)
 
         tanker2.stop().get()
-    }
-
-    @Test
-    fun can_get_a_session_token_with_registerIdentity() {
-        val passphrase = "Offline Last Seen Mar 3rd, 2018"
-
-        val appOptions = TankerAppUpdateOptions().setSessionCertificates(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
-
-        tanker1.start(identity).get()
-        val options = VerificationOptions().withSessionToken(true)
-        val token = tanker1.registerIdentity(PassphraseVerification(passphrase), options).get()
-        assertThat(token).isNotBlank()
-
-        val publicIdentity = Identity.getPublicIdentity(identity)
-        val expectedMethod = "passphrase"
-        val usedMethod = checkSessionToken(publicIdentity, token!!, expectedMethod)
-        assertThat(usedMethod).isEqualTo(expectedMethod)
-
-        tanker1.stop().get()
-    }
-
-    @Test
-    fun can_get_a_session_token_with_verifyIdentity() {
-        val passphrase = "Offline Last Seen Mar 3rd, 2018"
-
-        val appOptions = TankerAppUpdateOptions().setSessionCertificates(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
-
-        tanker1.start(identity).get()
-        val options = VerificationOptions().withSessionToken(true)
-        val notToken = tanker1.registerIdentity(PassphraseVerification(passphrase)).get()
-        assertThat(notToken).isNull()
-        val token = tanker1.verifyIdentity(PassphraseVerification(passphrase), options).get()
-        assertThat(token).isNotBlank()
-
-        val publicIdentity = Identity.getPublicIdentity(identity)
-        val expectedMethod = "passphrase"
-        val usedMethod = checkSessionToken(publicIdentity, token!!, expectedMethod)
-        assertThat(usedMethod).isEqualTo(expectedMethod)
-
-        tanker1.stop().get()
-    }
-
-    @Test
-    fun can_get_a_session_token_with_setVerificationMethod() {
-        val pass1 = "PassOne"
-        val pass2 = "PassTwo"
-
-        val appOptions = TankerAppUpdateOptions().setSessionCertificates(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
-
-        tanker1.start(identity).get()
-        val options = VerificationOptions().withSessionToken(true)
-        val notToken = tanker1.registerIdentity(PassphraseVerification(pass1)).get()
-        assertThat(notToken).isNull()
-        val token = tanker1.setVerificationMethod(PassphraseVerification(pass2), options).get()
-        assertThat(token).isNotBlank()
-
-        val publicIdentity = Identity.getPublicIdentity(identity)
-        val expectedMethod = "passphrase"
-        val usedMethod = checkSessionToken(publicIdentity, token!!, expectedMethod)
-        assertThat(usedMethod).isEqualTo(expectedMethod)
-
-        tanker1.stop().get()
     }
 
     @Test
