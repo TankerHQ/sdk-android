@@ -164,6 +164,26 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
+     * Create an Oidc nonce
+     */
+    fun createOidcNonce(): TankerFuture<String> {
+        val fut = TankerFuture<Pointer>(lib.tanker_create_oidc_nonce(tanker), Pointer::class.java, keepAlive = this)
+        return fut.then(TankerCallback {
+            val ptr = it.get()
+            val str = ptr.getString(0)
+            lib.tanker_free_buffer(ptr)
+            str 
+        })
+    }
+
+    /**
+     * Set the Oidc nonce to use during the next verification
+     */
+    fun _setOidcTestNonce(nonce: String): TankerFuture<Unit> {
+        return TankerFuture(lib.tanker_set_oidc_test_nonce(tanker, nonce), Pointer::class.java, keepAlive = this)
+    }
+
+    /**
      * Attaches a provisional identity to the current user.
      * @return A future that resolves when the claim is successful
      */
