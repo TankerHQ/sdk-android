@@ -220,6 +220,7 @@ brige/bump-android-compat-tests:
   needs: [deploy]
   variables:
     SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
+    SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: deploy
     UPSTREAM_JOB_TARGET: android
   trigger:
