@@ -211,3 +211,16 @@ deploy:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
     tag_name: v$SDK_ANDROID_RELEASE_VERSION
   tags: !reference [.tags/compilation-linux, tags]
+
+brige/bump-android-compat-tests:
+  stage: deploy
+  extends:
+    - .rules/deploy/android
+  needs: [deploy]
+  variables:
+    SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
+    UPSTREAM_JOB_NAME: deploy
+    UPSTREAM_JOB_TARGET: android
+  trigger:
+    project: TankerHQ/compatibility-tests
+    strategy: depend
