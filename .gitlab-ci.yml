@@ -216,6 +216,7 @@ brige/bump-android-compat-tests:
   stage: deploy
   extends:
     - .rules/deploy/android
+    - .variables/bridge-common
   needs: [deploy]
   variables:
     SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
