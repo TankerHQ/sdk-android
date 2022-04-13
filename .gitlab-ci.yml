@@ -215,8 +215,14 @@ deploy:
 brige/bump-android-compat-tests:
   stage: deploy
   extends:
-    - .rules/deploy/android
     - .variables/bridge-common
+  rules:
+    - if: !reference [.if-invalid-android-release-version, if]
+      when: never
+    - if: !reference [.if-web-pipeline, if]
+      when: manual
+    - if: !reference [.if-upstream-release-deploy-stage, if]
+      when: manual
   needs: [deploy]
   variables:
     SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
