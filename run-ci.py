@@ -13,17 +13,22 @@ import tankerci.cpp
 import tankerci.gcp
 import tankerci.git
 import tankerci.gitlab
-from tankerci.conan import TankerSource
+from tankerci.conan import Profile, TankerSource
 
 PROFILES = [
-    "linux-release-shared",
-    "android-x86-release",
-    "android-x86_64-release",
-    "android-armv7-release",
-    "android-armv8-release",
+    Profile(["linux-x86_64", "shared"]),
+    Profile("android-x86"),
+    Profile("android-x86_64"),
+    Profile("android-armv7"),
+    Profile("android-armv8"),
 ]
 
 LATEST_STABLE_REF = "tanker/latest-stable@"
+
+def parse_profile(profile: str) -> Profile:
+    if profile.endswith("-shared"):
+        return Profile([profile[:-len("-shared")], "shared"])
+    return Profile(profile)
 
 
 def prepare(
@@ -33,7 +38,7 @@ def prepare(
     tanker_deployed_ref = tanker_ref
 
     if tanker_source == TankerSource.UPSTREAM:
-        profiles = [d.name for d in artifact_path.iterdir() if d.is_dir()]
+        profiles = [parse_profile(d.name) for d in artifact_path.iterdir() if d.is_dir()]
     else:
         profiles = PROFILES
     if tanker_source == TankerSource.DEPLOYED and not tanker_deployed_ref:
@@ -41,7 +46,8 @@ def prepare(
     tankerci.conan.install_tanker_source(
         tanker_source,
         output_path=Path("tanker-bindings/conan"),
-        profiles=profiles,
+        host_profiles=profiles,
+        build_profile=Profile("linux-x86_64"),
         update=update,
         tanker_deployed_ref=tanker_deployed_ref,
     )
@@ -115,6 +121,7 @@ def main():
         dest="home_isolation",
         default=False,
     )
+    parser.add_argument("--remote", default="artifactory")
 
     subparsers = parser.add_subparsers(title="subcommands", dest="command")
 
@@ -166,9 +173,9 @@ def main():
     args = parser.parse_args()
     command = args.command
 
+    user_home = None
     if args.home_isolation:
-        tankerci.conan.set_home_isolation()
-        tankerci.conan.update_config()
+        user_home = Path.cwd() / ".cache" / "conan" / args.remote
         if command in ("build-and-test", "deploy"):
             # Because of GitLab issue https://gitlab.com/gitlab-org/gitlab/-/issues/254323
             # the downstream deploy jobs will be triggered even if upstream has failed
@@ -177,17 +184,21 @@ def main():
             tankerci.conan.run("remove", "tanker/*", "--force")
 
     if command == "build-and-test":
-        build_and_test(
-            tanker_source=args.tanker_source,
-            tanker_ref=args.tanker_ref,
-        )
+        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+            build_and_test(
+                tanker_source=args.tanker_source,
+                tanker_ref=args.tanker_ref,
+            )
     elif command == "build":
-        prepare(args.tanker_source, False, args.tanker_ref)
-        build()
+        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+            prepare(args.tanker_source, False, args.tanker_ref)
+            build()
     elif command == "prepare":
-        prepare(args.tanker_source, args.update, args.tanker_ref)
+        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+            prepare(args.tanker_source, args.update, args.tanker_ref)
     elif command == "deploy":
-        deploy(version=args.version, tanker_ref=args.tanker_ref)
+        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home, clean_on_exit=True):
+            deploy(version=args.version, tanker_ref=args.tanker_ref)
     elif command == "reset-branch":
         fallback = os.environ["CI_COMMIT_REF_NAME"]
         ref = tankerci.git.find_ref(
