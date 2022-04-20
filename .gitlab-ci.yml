@@ -232,3 +232,4 @@ brige/bump-android-compat-tests:
   trigger:
     project: TankerHQ/compatibility-tests
     strategy: depend
+  allow_failure: true
