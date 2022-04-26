@@ -236,14 +236,14 @@ class UnlockTests : TankerSpec() {
         // Check that we can use our ID token as a verification method
         val nonce = tanker1.createOidcNonce().get()
         tanker1.start(martineIdentity).get()
-        tanker1._setOidcTestNonce(nonce).get()
+        tanker1.setOidcTestNonce(nonce).get()
         tanker1.registerIdentity(OIDCIDTokenVerification(oidcIdToken)).get()
         tanker1.stop().get()
 
         tanker2.start(martineIdentity).get()
         val nonce2 = tanker2.createOidcNonce().get()
         assertThat(tanker2.getStatus()).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
-        tanker2._setOidcTestNonce(nonce2).get()
+        tanker2.setOidcTestNonce(nonce2).get()
         tanker2.verifyIdentity(OIDCIDTokenVerification(oidcIdToken)).get()
         assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
 
