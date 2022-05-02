@@ -179,7 +179,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Set the Oidc nonce to use during the next verification
      */
-    fun _setOidcTestNonce(nonce: String): TankerFuture<Unit> {
+    fun setOidcTestNonce(nonce: String): TankerFuture<Unit> {
         return TankerFuture(lib.tanker_set_oidc_test_nonce(tanker, nonce), Pointer::class.java, keepAlive = this)
     }
 
