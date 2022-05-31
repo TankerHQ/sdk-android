@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.tanker.api.admin.TankerAppUpdateOptions
 import io.tanker.api.errors.InvalidArgument
+import io.tanker.api.errors.InvalidVerification
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -21,11 +22,22 @@ class UnlockTests : TankerSpec() {
     @Before
     fun beforeTest() {
         identity = tc.createIdentity()
-        tanker1 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tanker2 = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        tanker1 = Tanker(
+            options.setPersistentPath(createTmpDir().toString())
+                .setCachePath(createTmpDir().toString())
+        )
+        tanker2 = Tanker(
+            options.setPersistentPath(createTmpDir().toString())
+                .setCachePath(createTmpDir().toString())
+        )
     }
 
-    private fun checkSessionToken(publicIdentity: String, token: String, allowedMethod: String, value: String? = null): String {
+    private fun checkSessionToken(
+        publicIdentity: String,
+        token: String,
+        allowedMethod: String,
+        value: String? = null
+    ): String {
         val jsonMapper = ObjectMapper()
         val jsonAllowedMethod = jsonMapper.createObjectNode()
         jsonAllowedMethod.put("type", allowedMethod)
@@ -48,12 +60,12 @@ class UnlockTests : TankerSpec() {
 
         val url = tc.trustchaindUrl()
         val request = Request.Builder()
-                .url("$url/verification/session-token")
-                .post(jsonBody.toRequestBody(HttpClient.JSON))
-                .build()
+            .url("$url/verification/session-token")
+            .post(jsonBody.toRequestBody(HttpClient.JSON))
+            .build()
         val response = OkHttpClient().newCall(request).execute()
         if (!response.isSuccessful)
-            throw RuntimeException("Check session token request failed: "+response.body?.string())
+            throw RuntimeException("Check session token request failed: " + response.body?.string())
         val jsonResponse = jsonMapper.readTree(response.body?.string())
         return jsonResponse.get("verification_method").asText()
     }
@@ -147,7 +159,13 @@ class UnlockTests : TankerSpec() {
         val verificationCode = tc.getSMSVerificationCode(phoneNumber)
         tanker1.registerIdentity(PhoneNumberVerification(phoneNumber, verificationCode)).get()
         val methods = tanker1.getVerificationMethods().get()
-        assertThat(methods).containsExactlyInAnyOrderElementsOf(listOf(PhoneNumberVerificationMethod(phoneNumber)))
+        assertThat(methods).containsExactlyInAnyOrderElementsOf(
+            listOf(
+                PhoneNumberVerificationMethod(
+                    phoneNumber
+                )
+            )
+        )
         tanker1.stop().get()
     }
 
@@ -210,8 +228,8 @@ class UnlockTests : TankerSpec() {
         val martineIdentity = tc.createIdentity(martineConfig.email)
 
         val appOptions = TankerAppUpdateOptions()
-                .setOidcClientId(oidcConfig.clientId)
-                .setOidcClientProvider(oidcConfig.provider)
+            .setOidcClientId(oidcConfig.clientId)
+            .setOidcClientProvider(oidcConfig.provider)
         tc.admin.appUpdate(tc.id(), appOptions)
 
         // Get a fresh OIDC ID token from GOOG
@@ -224,9 +242,9 @@ class UnlockTests : TankerSpec() {
         val jsonBody = jsonMapper.writeValueAsString(jsonObj)
 
         val request = Request.Builder()
-                .url("https://www.googleapis.com/oauth2/v4/token")
-                .post(jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()!!))
-                .build()
+            .url("https://www.googleapis.com/oauth2/v4/token")
+            .post(jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()!!))
+            .build()
         val response = OkHttpClient().newCall(request).execute()
         if (!response.isSuccessful)
             throw java.lang.RuntimeException("Google OAuth test request failed!")
@@ -320,7 +338,8 @@ class UnlockTests : TankerSpec() {
         assertThat(notToken).isNull()
 
         var verificationCode = tc.getEmailVerificationCode(email)
-        val token = tanker1.setVerificationMethod(EmailVerification(email, verificationCode), options).get()
+        val token =
+            tanker1.setVerificationMethod(EmailVerification(email, verificationCode), options).get()
         assertThat(token).isNotBlank
 
         val publicIdentity = Identity.getPublicIdentity(identity)
@@ -342,7 +361,10 @@ class UnlockTests : TankerSpec() {
         assertThat(notToken).isNull()
 
         var verificationCode = tc.getSMSVerificationCode(phoneNumber)
-        val token = tanker1.setVerificationMethod(PhoneNumberVerification(phoneNumber, verificationCode), options).get()
+        val token = tanker1.setVerificationMethod(
+            PhoneNumberVerification(phoneNumber, verificationCode),
+            options
+        ).get()
         assertThat(token).isNotBlank
 
         val publicIdentity = Identity.getPublicIdentity(identity)
@@ -432,12 +454,12 @@ class UnlockTests : TankerSpec() {
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()
         assertThat(tanker1.getVerificationMethods().get()).containsExactly(
-                PassphraseVerificationMethod
+            PassphraseVerificationMethod
         )
 
         tanker1.setVerificationMethod(PreverifiedEmailVerification(email)).get()
         assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
-                PreverifiedEmailVerificationMethod(email), PassphraseVerificationMethod
+            PreverifiedEmailVerificationMethod(email), PassphraseVerificationMethod
         )
 
         tanker2.start(identity).get()
@@ -446,7 +468,7 @@ class UnlockTests : TankerSpec() {
         assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
 
         assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
-                EmailVerificationMethod(email), PassphraseVerificationMethod
+            EmailVerificationMethod(email), PassphraseVerificationMethod
         )
 
         tanker1.stop().get()
@@ -464,12 +486,12 @@ class UnlockTests : TankerSpec() {
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()
         assertThat(tanker1.getVerificationMethods().get()).containsExactly(
-                PassphraseVerificationMethod
+            PassphraseVerificationMethod
         )
 
         tanker1.setVerificationMethod(PreverifiedPhoneNumberVerification(phoneNumber)).get()
         assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
-                PreverifiedPhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
+            PreverifiedPhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
         )
 
         tanker2.start(identity).get()
@@ -478,7 +500,7 @@ class UnlockTests : TankerSpec() {
         assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
 
         assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
-                PhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
+            PhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
         )
 
         tanker1.stop().get()
