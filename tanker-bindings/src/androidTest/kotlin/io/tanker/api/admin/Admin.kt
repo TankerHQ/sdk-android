@@ -1,10 +1,9 @@
-package io.tanker.admin
+package io.tanker.api.admin
 
 import com.sun.jna.Pointer
 import io.tanker.api.TankerCallback
 import io.tanker.api.TankerFuture
 import io.tanker.api.TankerVoidCallback
-import io.tanker.bindings.TankerAppDescriptor
 
 class Admin(private val appManagementUrl: String, private val appManagementToken: String, private val apiUrl: String, private val environmentName: String) {
     private var cadmin: Pointer? = null

@@ -1,4 +1,4 @@
-package io.tanker.admin
+package io.tanker.api.admin
 
 import com.sun.jna.Structure
 import com.sun.jna.ptr.ByteByReference

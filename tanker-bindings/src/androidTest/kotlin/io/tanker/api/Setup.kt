@@ -1,9 +1,8 @@
 package io.tanker.api
 
-import android.system.Os.setenv
 import androidx.test.platform.app.InstrumentationRegistry
-import io.tanker.admin.Admin
-import io.tanker.admin.TankerApp
+import io.tanker.api.admin.Admin
+import io.tanker.api.admin.TankerApp
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
