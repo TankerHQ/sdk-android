@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.tanker.api.admin.TankerAppUpdateOptions
 import io.tanker.api.errors.InvalidArgument
 import io.tanker.api.errors.InvalidVerification
+import io.tanker.api.errors.PreconditionFailed
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -505,5 +506,99 @@ class UnlockTests : TankerSpec() {
 
         tanker1.stop().get()
         tanker2.stop().get()
+    }
+
+    @Test
+    fun test_register_e2e_passphrase() {
+        val passphrase = "mangerbouger.fr"
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(E2ePassphraseVerification(passphrase)).get()
+
+        tanker2.start(identity).get()
+        tanker2.verifyIdentity(E2ePassphraseVerification(passphrase)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+
+        tanker1.stop().get()
+        tanker2.stop().get()
+    }
+
+    @Test
+    fun test_update_e2e_passphrase() {
+        val oldPassphrase = "alkalosis"
+        val newPassphrase = "acidosis"
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(E2ePassphraseVerification(oldPassphrase)).get()
+        tanker1.setVerificationMethod(E2ePassphraseVerification(newPassphrase)).get()
+        tanker1.stop().get()
+
+        tanker2.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker2.verifyIdentity(E2ePassphraseVerification(oldPassphrase)).get()
+        }
+        assertThat(e.cause).hasCauseInstanceOf(InvalidVerification::class.java)
+
+        tanker2.verifyIdentity(E2ePassphraseVerification(newPassphrase)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+        tanker2.stop().get()
+    }
+
+    @Test
+    fun test_switch_to_e2e_passphrase() {
+        val oldPassphrase = "alkalosis"
+        val newPassphrase = "acidosis"
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(PassphraseVerification(oldPassphrase)).get()
+        tanker1.setVerificationMethod(
+            E2ePassphraseVerification(newPassphrase),
+            VerificationOptions().allowE2eMethodSwitch(true)
+        ).get()
+        tanker1.stop().get()
+
+        tanker2.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker2.verifyIdentity(PassphraseVerification(oldPassphrase)).get()
+        }
+        assertThat(e.cause).hasCauseInstanceOf(PreconditionFailed::class.java)
+
+        tanker2.verifyIdentity(E2ePassphraseVerification(newPassphrase)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+        tanker2.stop().get()
+    }
+
+    fun test_switch_from_e2e_passphrase() {
+        val oldPassphrase = "alkalosis"
+        val newPassphrase = "acidosis"
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(E2ePassphraseVerification(oldPassphrase)).get()
+        tanker1.setVerificationMethod(
+            PassphraseVerification(newPassphrase),
+            VerificationOptions().allowE2eMethodSwitch(true)
+        ).get()
+        tanker1.stop().get()
+
+        tanker2.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker2.verifyIdentity(E2ePassphraseVerification(oldPassphrase)).get()
+        }
+        assertThat(e.cause).hasCauseInstanceOf(PreconditionFailed::class.java)
+
+        tanker2.verifyIdentity(PassphraseVerification(newPassphrase)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+        tanker2.stop().get()
+    }
+
+    @Test
+    fun test_cannot_switch_to_e2e_passphrase_without_allow_e2e_switch_flag() {
+        val oldPassphrase = "alkalosis"
+        val newPassphrase = "acidosis"
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(PassphraseVerification(oldPassphrase)).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker1.setVerificationMethod(
+                E2ePassphraseVerification(newPassphrase),
+            ).get()
+        }
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+        tanker1.stop().get()
     }
 }
