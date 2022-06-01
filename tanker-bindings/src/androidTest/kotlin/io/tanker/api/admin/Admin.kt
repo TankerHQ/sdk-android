@@ -60,9 +60,9 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
         if (options.oidcClientProvider != null)
             reqJson.put("oidc_provider", options.oidcClientProvider)
         if (options.preverifiedVerification != null)
-            reqJson.put("preverified_verification_enabled", options.preverifiedVerification?.value != 0.toByte())
+            reqJson.put("preverified_verification_enabled", options.preverifiedVerification!!)
         if (options.userEnrollment != null)
-            reqJson.put("enroll_users_enabled", options.userEnrollment?.value != 0.toByte())
+            reqJson.put("enroll_users_enabled", options.userEnrollment!!)
 
         val request = Request.Builder()
                 .url("$appManagementUrl/v1/apps/${toUrlSafeAppId(appId)}")
