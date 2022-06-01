@@ -12,12 +12,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
 class TankerApp(private val client: OkHttpClient, private val url: String, val id: String, val authToken: String, val privateKey: String) {
-    companion object {
-        private val lib = AdminLib.create()
-        private val tankerlib = TankerLib.create()
-    }
-
-    fun getEmailVerificationCode(email: String): TankerFuture<String> {
+    fun getEmailVerificationCode(email: String): String {
         val jsonMapper = ObjectMapper()
         val reqJson = jsonMapper.createObjectNode()
         reqJson.put("app_id", id)
@@ -32,11 +27,11 @@ class TankerApp(private val client: OkHttpClient, private val url: String, val i
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
             val jsonResponse = jsonMapper.readTree(response.body?.string())
-            return TankerFuture<Unit>(lib).then<String> { return@then jsonResponse.get("verification_code").asText() }
+            return jsonResponse.get("verification_code").asText()
         }
     }
 
-    fun getSMSVerificationCode(phoneNumber: String): TankerFuture<String> {
+    fun getSMSVerificationCode(phoneNumber: String): String {
         val jsonMapper = ObjectMapper()
         val reqJson = jsonMapper.createObjectNode()
         reqJson.put("app_id", id)
@@ -51,7 +46,7 @@ class TankerApp(private val client: OkHttpClient, private val url: String, val i
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
             val jsonResponse = jsonMapper.readTree(response.body?.string())
-            return TankerFuture<Unit>(lib).then<String> { return@then jsonResponse.get("verification_code").asText() }
+            return jsonResponse.get("verification_code").asText()
         }
     }
 }
