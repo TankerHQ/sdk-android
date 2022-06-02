@@ -9,7 +9,7 @@ import java.io.IOException
 
 private fun toUrlSafeAppId(appId: String) = appId.replace('/', '_').replace('+', '-').trimEnd('=')
 
-class Admin(private val appManagementUrl: String, private val appManagementToken: String, private val apiUrl: String, private val environmentName: String) {
+class Admin(private val appManagementUrl: String, private val appManagementToken: String, private val apiUrl: String, private val environmentName: String, private val verificationApiToken: String) {
     private val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val req = chain.request().newBuilder()
@@ -34,7 +34,7 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
             val jsonResponse = jsonMapper.readTree(response.body?.string())
             val jsonApp = jsonResponse.get("app")
-            return TankerApp(client, apiUrl, jsonApp.get("id").asText(), jsonApp.get("auth_token").asText(), jsonApp.get("private_signature_key").asText())
+            return TankerApp(client, verificationApiToken, apiUrl, jsonApp.get("id").asText(), jsonApp.get("private_signature_key").asText())
         }
     }
 

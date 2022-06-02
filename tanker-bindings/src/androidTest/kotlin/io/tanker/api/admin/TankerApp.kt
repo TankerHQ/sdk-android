@@ -11,12 +11,12 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 
-class TankerApp(private val client: OkHttpClient, private val url: String, val id: String, val authToken: String, val privateKey: String) {
+class TankerApp(private val client: OkHttpClient, private val verificationApiToken: String, private val url: String, val id: String, val privateKey: String) {
     fun getEmailVerificationCode(email: String): String {
         val jsonMapper = ObjectMapper()
         val reqJson = jsonMapper.createObjectNode()
         reqJson.put("app_id", id)
-        reqJson.put("auth_token", authToken)
+        reqJson.put("auth_token", verificationApiToken)
         reqJson.put("email", email)
 
         val request = Request.Builder()
@@ -35,7 +35,7 @@ class TankerApp(private val client: OkHttpClient, private val url: String, val i
         val jsonMapper = ObjectMapper()
         val reqJson = jsonMapper.createObjectNode()
         reqJson.put("app_id", id)
-        reqJson.put("auth_token", authToken)
+        reqJson.put("auth_token", verificationApiToken)
         reqJson.put("phone_number", phoneNumber)
 
         val request = Request.Builder()
@@ -50,4 +50,3 @@ class TankerApp(private val client: OkHttpClient, private val url: String, val i
         }
     }
 }
-
