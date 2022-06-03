@@ -2,7 +2,7 @@ package io.tanker.api
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.tanker.admin.TankerAppUpdateOptions
+import io.tanker.api.admin.TankerAppUpdateOptions
 import io.tanker.api.errors.InvalidArgument
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
@@ -212,7 +212,7 @@ class UnlockTests : TankerSpec() {
         val appOptions = TankerAppUpdateOptions()
                 .setOidcClientId(oidcConfig.clientId)
                 .setOidcClientProvider(oidcConfig.provider)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         // Get a fresh OIDC ID token from GOOG
         val jsonMapper = ObjectMapper()
@@ -358,7 +358,7 @@ class UnlockTests : TankerSpec() {
         val email = "bob@tanker.io"
 
         val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         val e = shouldThrow<TankerFutureException> {
@@ -373,7 +373,7 @@ class UnlockTests : TankerSpec() {
         val phoneNumber = "+33639982233"
 
         val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         val e = shouldThrow<TankerFutureException> {
@@ -388,7 +388,7 @@ class UnlockTests : TankerSpec() {
         val email = "bob@tanker.io"
 
         val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         val verificationCode = tc.getEmailVerificationCode(email)
@@ -407,7 +407,7 @@ class UnlockTests : TankerSpec() {
         val phoneNumber = "+33639982233"
 
         val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         val verificationCode = tc.getSMSVerificationCode(phoneNumber)
@@ -427,7 +427,7 @@ class UnlockTests : TankerSpec() {
         val email = "bob@tanker.io"
 
         val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()
@@ -459,7 +459,7 @@ class UnlockTests : TankerSpec() {
         val phoneNumber = "+33639982233"
 
         val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions).get()
+        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()

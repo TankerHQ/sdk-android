@@ -1,9 +1,8 @@
 package io.tanker.api
 
-import android.system.Os.setenv
 import androidx.test.platform.app.InstrumentationRegistry
-import io.tanker.admin.Admin
-import io.tanker.admin.TankerApp
+import io.tanker.api.admin.Admin
+import io.tanker.api.admin.TankerApp
 import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -116,12 +115,7 @@ class Config {
 class App {
     val admin = Admin(Config.getAppManagementUrl(), Config.getAppManagementToken(), Config.getTrustchaindUrl(), Config.getEnvironmentName())
     val url: String = Config.getUrl()
-    private val app: TankerApp
-
-    init {
-        admin.connect().get()
-        app = admin.createApp("android-test").get()
-    }
+    private val app: TankerApp = admin.createApp("android-test")
 
     fun createIdentity(userId: String = UUID.randomUUID().toString()): String {
         return Identity.createIdentity(
@@ -143,17 +137,9 @@ class App {
         return Config.getTrustchaindUrl()
     }
 
-    fun getEmailVerificationCode(email: String): String {
-        return app.getEmailVerificationCode(email).get()
-    }
-
-    fun getSMSVerificationCode(phoneNumber: String): String {
-        return app.getSMSVerificationCode(phoneNumber).get()
-    }
-
-    fun delete() {
-        admin.deleteApp(id()).get()
-    }
+    fun getEmailVerificationCode(email: String) = app.getEmailVerificationCode(email)
+    fun getSMSVerificationCode(phoneNumber: String) = app.getSMSVerificationCode(phoneNumber)
+    fun delete() = admin.deleteApp(id())
 }
 
 fun createTmpDir(): Path {
