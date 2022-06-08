@@ -40,7 +40,7 @@ class UnlockTests : TankerSpec() {
         jsonAllowedMethods.add(jsonAllowedMethod)
         val jsonObj = jsonMapper.createObjectNode()
         jsonObj.put("app_id", tc.id())
-        jsonObj.put("auth_token", tc.authToken())
+        jsonObj.put("auth_token", tc.verificationApiToken())
         jsonObj.put("public_identity", publicIdentity)
         jsonObj.put("session_token", token)
         jsonObj.set<JsonNode>("allowed_methods", jsonAllowedMethods)

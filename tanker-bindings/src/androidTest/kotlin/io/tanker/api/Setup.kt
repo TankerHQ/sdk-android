@@ -8,7 +8,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 
-data class ConfigData(val appManagementToken: String, val appManagementUrl: String, val environmentName: String, val trustchaindUrl: String, val url: String)
+data class ConfigData(val appManagementToken: String, val appManagementUrl: String, val environmentName: String, val trustchaindUrl: String, val url: String, val verificationApiToken: String)
 
 data class ConfigOIDC(
         val clientId: String,
@@ -74,6 +74,13 @@ class Config {
 
             return instanceOIDC!!
         }
+
+        fun getVerificationApiToken(): String {
+            if (instance == null)
+                Config()
+
+            return instance!!.verificationApiToken
+        }
     }
 
     init {
@@ -93,6 +100,7 @@ class Config {
                 environmentName = safeGetEnv("TANKER_MANAGEMENT_API_DEFAULT_ENVIRONMENT_NAME"),
                 trustchaindUrl = safeGetEnv("TANKER_TRUSTCHAIND_URL"),
                 url = safeGetEnv("TANKER_APPD_URL"),
+                verificationApiToken = safeGetEnv("TANKER_VERIFICATION_API_TEST_TOKEN"),
         )
         instanceOIDC = ConfigOIDC(
                 clientId = safeGetEnv("TANKER_OIDC_CLIENT_ID"),
@@ -113,7 +121,7 @@ class Config {
 }
 
 class App {
-    val admin = Admin(Config.getAppManagementUrl(), Config.getAppManagementToken(), Config.getTrustchaindUrl(), Config.getEnvironmentName())
+    val admin = Admin(Config.getAppManagementUrl(), Config.getAppManagementToken(), Config.getTrustchaindUrl(), Config.getEnvironmentName(), Config.getVerificationApiToken())
     val url: String = Config.getUrl()
     private val app: TankerApp = admin.createApp("android-test")
 
@@ -129,12 +137,12 @@ class App {
         return app.id
     }
 
-    fun authToken(): String {
-        return app.authToken
-    }
-
     fun trustchaindUrl(): String {
         return Config.getTrustchaindUrl()
+    }
+
+    fun verificationApiToken(): String {
+      return Config.getVerificationApiToken()
     }
 
     fun getEmailVerificationCode(email: String) = app.getEmailVerificationCode(email)
