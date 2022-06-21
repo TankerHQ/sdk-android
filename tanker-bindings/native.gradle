@@ -24,7 +24,7 @@ class NativeHelper {
     }
 
     static def getAndroidProfile(arch, buildType) {
-        return "android-$arch-${buildType.toLowerCase()}"
+        return "android-$arch"
     }
 
     // This creates a .jar with our .so inside, so we can put it in the classpath for tests
@@ -84,7 +84,7 @@ class Builder extends DefaultTask {
     }
 
     void compileForHost() {
-        def conanOutputPath = new File(this.conanPath, "linux-${this.buildType}-shared")
+        def conanOutputPath = new File(this.conanPath, "linux-x86_64-shared")
         def conanHostPath = new File(this.conanPath, 'host')
         conanHostPath.mkdirs()
         def tankerDepInfos = NativeHelper.getTankerDepInfos(conanOutputPath)
@@ -100,7 +100,7 @@ class BuildNative extends Builder {
     final String buildFor
 
     @Inject BuildNative(String buildType, String buildFor) {
-        super(buildType) 
+        super(buildType)
         this.buildFor = buildFor
     }
 
