@@ -25,9 +25,10 @@ PROFILES = [
 
 LATEST_STABLE_REF = "tanker/latest-stable@"
 
+
 def parse_profile(profile: str) -> Profile:
     if profile.endswith("-shared"):
-        return Profile([profile[:-len("-shared")], "shared"])
+        return Profile([profile[: -len("-shared")], "shared"])
     return Profile(profile)
 
 
@@ -38,7 +39,9 @@ def prepare(
     tanker_deployed_ref = tanker_ref
 
     if tanker_source == TankerSource.UPSTREAM:
-        profiles = [parse_profile(d.name) for d in artifact_path.iterdir() if d.is_dir()]
+        profiles = [
+            parse_profile(d.name) for d in artifact_path.iterdir() if d.is_dir()
+        ]
     else:
         profiles = PROFILES
     if tanker_source == TankerSource.DEPLOYED and not tanker_deployed_ref:
@@ -68,7 +71,7 @@ def build() -> None:
 
 def dump_logcat_for_failed_tests() -> None:
     try:
-        dump_path = "tanker-bindings/build/reports/androidTests/connected/flavors/releaseAndroidTest/logcat.txt"
+        dump_path = "tanker-bindings/build/reports/androidTests/connected/flavors/releaseAndroidTest/logcat.txt"  # noqa: E501
         tankerci.android.dump_logcat(dump_path)
         ui.info("Tests have failed, logcat dumped to", dump_path)
     except Exception as e:
@@ -85,7 +88,7 @@ def test() -> None:
                 tankerci.run(
                     "./gradlew", "connectedAndroidTest", "-PandroidTestRelease"
                 )
-            except:
+            except Exception:
                 dump_logcat_for_failed_tests()
                 tankerci.android.take_screenshot(Path.cwd() / "screenshot.png")
                 raise
@@ -197,7 +200,9 @@ def main():
         with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
             prepare(args.tanker_source, args.update, args.tanker_ref)
     elif command == "deploy":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home, clean_on_exit=True):
+        with tankerci.conan.ConanContextManager(
+            [args.remote], conan_home=user_home, clean_on_exit=True
+        ):
             deploy(version=args.version, tanker_ref=args.tanker_ref)
     elif command == "reset-branch":
         fallback = os.environ["CI_COMMIT_REF_NAME"]
