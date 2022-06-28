@@ -123,7 +123,7 @@ class Config {
 class App {
     val admin = Admin(Config.getAppManagementUrl(), Config.getAppManagementToken(), Config.getTrustchaindUrl(), Config.getEnvironmentName(), Config.getVerificationApiToken())
     val url: String = Config.getUrl()
-    private val app: TankerApp = admin.createApp("android-test")
+    private val app: TankerApp = admin.createApp("sdk-android-tests")
 
     fun createIdentity(userId: String = UUID.randomUUID().toString()): String {
         return Identity.createIdentity(
