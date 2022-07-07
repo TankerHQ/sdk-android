@@ -13,12 +13,13 @@ import com.sun.jna.Structure
  */
 open class EncryptionOptions : Structure() {
     // NOTE: Remember to keep the version in sync w/ the c++!
-    @JvmField var version: Byte = 3
+    @JvmField var version: Byte = 4
     @JvmField var shareWithUsers = Pointer(0)
     @JvmField var nbUsers = 0
     @JvmField var shareWithGroups = Pointer(0)
     @JvmField var nbGroups = 0
     @JvmField var shareWithSelf = 1.toByte()
+    @JvmField var paddingStep = Padding.auto.native_value
 
     /**
      * JNA does not support having a StringArray directly in a struct,
@@ -58,7 +59,16 @@ open class EncryptionOptions : Structure() {
         return this
     }
 
+    /**
+     * Sets the padding step.
+     * @param paddingStep A Padding object
+     */
+    fun paddingStep(paddingStep: Padding): EncryptionOptions {
+        this.paddingStep = paddingStep.native_value
+        return this
+    }
+
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "shareWithUsers", "nbUsers", "shareWithGroups", "nbGroups", "shareWithSelf")
+        return listOf("version", "shareWithUsers", "nbUsers", "shareWithGroups", "nbGroups", "shareWithSelf", "paddingStep")
     }
 }

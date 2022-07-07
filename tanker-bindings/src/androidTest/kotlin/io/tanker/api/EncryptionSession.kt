@@ -116,4 +116,53 @@ class EncryptionSessionTests : TankerSpec() {
         val e = shouldThrow<TankerFutureException> { tankerBob.decrypt(private).get() }
         assertThat((e.cause is TankerException)).isEqualTo(true)
     }
+
+    private val encryptionSessionOverhead = 57
+    private val encryptionSessionPaddedOverhead = encryptionSessionOverhead + 1
+
+    @Test
+    fun can_encrypt_with_auto_padding_by_default() {
+        val plaintext = "my clear data is clear!"
+        val lengthWithPadme = 24
+        val sess = tankerAlice.createEncryptionSession(null).get()
+        val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+
+        assertThat(encrypted.size - encryptionSessionPaddedOverhead).isEqualTo(lengthWithPadme)
+        assertThat(String(tankerAlice.decrypt(encrypted).get())).isEqualTo(plaintext)
+    }
+
+    @Test
+    fun can_encrypt_with_auto_padding() {
+        val plaintext = "my clear data is clear!"
+        val lengthWithPadme = 24
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.auto)
+        val sess = tankerAlice.createEncryptionSession(encryptOptions).get()
+        val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+
+        assertThat(encrypted.size - encryptionSessionPaddedOverhead).isEqualTo(lengthWithPadme)
+        assertThat(String(tankerAlice.decrypt(encrypted).get())).isEqualTo(plaintext)
+    }
+
+    @Test
+    fun can_encrypt_with_no_padding() {
+        val plaintext = "L'assommoir"
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.off)
+        val sess = tankerAlice.createEncryptionSession(encryptOptions).get()
+        val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+
+        assertThat(encrypted.size - encryptionSessionOverhead).isEqualTo(plaintext.length)
+        assertThat(String(tankerAlice.decrypt(encrypted).get())).isEqualTo(plaintext)
+    }
+
+    @Test
+    fun can_encrypt_with_a_padding_step() {
+        val plaintext = "Au Bonheur des Dames"
+        val step = 13
+        val encryptOptions = EncryptionOptions().paddingStep(Padding.step(step))
+        val sess = tankerAlice.createEncryptionSession(encryptOptions).get()
+        val encrypted = sess.encrypt(plaintext.toByteArray()).get()
+
+        assertThat((encrypted.size - encryptionSessionPaddedOverhead) % step).isEqualTo(0)
+        assertThat(String(tankerAlice.decrypt(encrypted).get())).isEqualTo(plaintext)
+    }
 }

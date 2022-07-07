@@ -105,7 +105,7 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
 
     fun tanker_set_log_handler(handler: LogHandlerCallback): Void
 
-    fun tanker_encrypted_size(clear_size: Long): Long
+    fun tanker_encrypted_size(clear_size: Long, padding_step: Int): Long
     fun tanker_decrypted_size(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
     fun tanker_get_resource_id(encrypted_data: Pointer, encrypted_size: Long): ExpectedPointer
 
@@ -128,7 +128,7 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
 
     fun tanker_encryption_session_open(session: SessionPointer, options: EncryptionOptions): FuturePointer
     fun tanker_encryption_session_close(encSess: EncryptionSessionPointer): FuturePointer
-    fun tanker_encryption_session_encrypted_size(clear_size: Long): Long
+    fun tanker_encryption_session_encrypted_size(encSess: EncryptionSessionPointer, clear_size: Long): Long
     fun tanker_encryption_session_get_resource_id(encSess: EncryptionSessionPointer): ExpectedPointer
     fun tanker_encryption_session_encrypt(encSess: EncryptionSessionPointer, encrypted_data: Pointer,
                                           data: Pointer, data_size: Long): FuturePointer
