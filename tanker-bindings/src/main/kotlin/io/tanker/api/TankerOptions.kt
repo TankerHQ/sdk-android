@@ -6,7 +6,7 @@ import io.tanker.bindings.DatastoreLib
 import io.tanker.bindings.TankerLib
 import io.tanker.datastore.DatastoreOptions
 
-internal class HttpOptions : Structure() {
+class HttpOptions : Structure() {
     @JvmField var httpSendRequest: TankerLib.HttpSendRequestCallback? = null
     @JvmField var httpCancelRequest: TankerLib.HttpCancelRequestCallback? = null
     @JvmField var httpData: Pointer? = Pointer.NULL
