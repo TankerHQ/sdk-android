@@ -11,7 +11,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicInteger
 
-internal class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, private val sdkVersion: String) : TankerLib.HttpSendRequestCallback {
+class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, private val sdkVersion: String) : TankerLib.HttpSendRequestCallback {
     companion object {
         val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()!!
     }
@@ -96,7 +96,7 @@ internal class HttpClient(private val tankerLib: TankerLib, private val sdkType:
     }
 }
 
-internal class HttpClientCanceler(private val httpClient: HttpClient) : TankerLib.HttpCancelRequestCallback {
+class HttpClientCanceler(private val httpClient: HttpClient) : TankerLib.HttpCancelRequestCallback {
     override fun callback(crequest: TankerHttpRequest, requestHandle: Pointer?, data: Pointer?) {
         val requestId = Pointer.nativeValue(requestHandle).toInt()
         synchronized(httpClient) {

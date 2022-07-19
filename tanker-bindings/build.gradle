@@ -140,6 +140,12 @@ tasks.dokkaJavadoc.configure {
                 matchingRegex.set("io\\.tanker\\.api\\.Identity")
                 suppress.set(true)
             }
+
+            // Exclude HttpClient api
+            perPackageOption {
+                matchingRegex.set("io\\.tanker\\.api\\.HttpClient")
+                suppress.set(true)
+            }
         }
     }
 }
