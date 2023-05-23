@@ -135,7 +135,7 @@ class TankerTests : TankerSpec() {
         tanker.stop().get()
     }
 
-    private val simpleEncryptionOverhead = 17
+    private val simpleEncryptionOverhead = 49
     private val simplePaddedEncryptionOverhead = simpleEncryptionOverhead + 1
 
     @Test
