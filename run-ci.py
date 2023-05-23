@@ -187,21 +187,21 @@ def main():
             tankerci.conan.run("remove", "tanker/*", "--force")
 
     if command == "build-and-test":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             build_and_test(
                 tanker_source=args.tanker_source,
                 tanker_ref=args.tanker_ref,
             )
     elif command == "build":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             prepare(args.tanker_source, False, args.tanker_ref)
             build()
     elif command == "prepare":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             prepare(args.tanker_source, args.update, args.tanker_ref)
     elif command == "deploy":
         with tankerci.conan.ConanContextManager(
-            [args.remote], conan_home=user_home, clean_on_exit=True
+            [args.remote, "conancenter"], conan_home=user_home, clean_on_exit=True
         ):
             deploy(version=args.version, tanker_ref=args.tanker_ref)
     elif command == "reset-branch":
