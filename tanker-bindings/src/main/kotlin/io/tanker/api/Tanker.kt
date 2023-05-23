@@ -228,29 +228,6 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Gets the list of the user's devices
-     */
-    @Deprecated("This method has been deprecated and will be removed in the future")
-    fun getDeviceList(): TankerFuture<List<DeviceInfo>> {
-        val fut = TankerFuture<Pointer>(lib.tanker_get_device_list(tanker), Pointer::class.java, keepAlive = this)
-        return fut.then(TankerCallback {
-            val devListPtr = it.get()
-            val count = devListPtr.getInt(Native.POINTER_SIZE.toLong())
-            val finalizer = TankerDeviceListFinalizer(lib, devListPtr)
-            val firstDevice = DeviceInfo(devListPtr.getPointer(0))
-            if (count == 0) {
-                listOf()
-            } else {
-                @Suppress("UNCHECKED_CAST")
-                val devices = firstDevice.toArray(count) as Array<DeviceInfo>
-                for (device in devices)
-                    device.finalizer = finalizer
-                devices.toList()
-            }
-        })
-    }
-
-    /**
      * Generates and registers an verification key that can be used to verify a device.
      * @return The verification key.
      */

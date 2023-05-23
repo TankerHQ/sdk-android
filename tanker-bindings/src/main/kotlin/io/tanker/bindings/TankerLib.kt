@@ -92,7 +92,6 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_status(tanker: SessionPointer): Status
     fun tanker_generate_verification_key(tanker: SessionPointer): FuturePointer
     fun tanker_device_id(tanker: SessionPointer): ExpectedPointer
-    fun tanker_get_device_list(tanker: SessionPointer): FuturePointer
 
     fun tanker_create_oidc_nonce(tanker: SessionPointer): FuturePointer
     fun tanker_set_oidc_test_nonce(tanker: SessionPointer, nonce: String): FuturePointer
@@ -145,7 +144,6 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_http_handle_response(request: TankerHttpRequestPointer, response: TankerHttpResponse)
 
     fun tanker_free_buffer(buffer: Pointer): Void
-    fun tanker_free_device_list(list: Pointer): Void
     fun tanker_free_verification_method_list(list: Pointer): Void
 
     fun tanker_prehash_password(password: String): ExpectedPointer
