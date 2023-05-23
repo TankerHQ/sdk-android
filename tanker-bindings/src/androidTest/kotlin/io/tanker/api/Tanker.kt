@@ -554,19 +554,6 @@ class TankerTests : TankerSpec() {
     }
 
     @Test
-    fun can_get_a_correct_device_list() {
-        val tankerAlice = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tankerAlice.start(tc.createIdentity()).get()
-        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-
-        val devices = tankerAlice.getDeviceList().get()
-        assertThat(devices.size).isEqualTo(1)
-        assertThat(devices[0].getDeviceId()).isEqualTo(tankerAlice.getDeviceId())
-        assertThat(devices[0].isRevoked()).isEqualTo(false)
-        tankerAlice.stop().get()
-    }
-
-    @Test
     fun prehashPassword_empty_string() {
         val e = shouldThrow<TankerFutureException> { prehashPassword("") }
         assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
