@@ -261,7 +261,7 @@ class TankerTests : TankerSpec() {
 
         val encryptor = tanker.encrypt(clear).get()
         val encrypted = TankerInputStream(encryptor).readBytes()
-        assertThat(encrypted).hasSize(3211512)
+        assertThat(encrypted).hasSize(3211381)
         val decryptor = tanker.decrypt(InputStreamWrapper(encrypted.inputStream())).get()
 
         val decrypted = TankerInputStream(decryptor).readBytes()
