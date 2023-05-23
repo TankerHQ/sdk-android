@@ -154,6 +154,8 @@ def main():
     )
     build_parser.add_argument("--tanker-ref")
 
+    subparsers.add_parser("test")
+
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
         "--use-tanker",
@@ -196,6 +198,8 @@ def main():
         with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             prepare(args.tanker_source, False, args.tanker_ref)
             build()
+    elif command == "test":
+        test()
     elif command == "prepare":
         with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             prepare(args.tanker_source, args.update, args.tanker_ref)
