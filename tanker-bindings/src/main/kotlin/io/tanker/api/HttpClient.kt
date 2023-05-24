@@ -9,7 +9,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
-import java.util.concurrent.atomic.AtomicInteger
 
 class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, private val sdkVersion: String) : TankerLib.HttpSendRequestCallback {
     companion object {
@@ -69,12 +68,12 @@ class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, 
                         val cresponse = TankerHttpResponse()
                         cresponse.statusCode = it.code
                         cresponse.contentType = it.header("content-type")
-                        val body = it.body?.bytes()
-                        if (body != null && body.isNotEmpty()) {
-                            val bodyMemory = Memory(body.size.toLong())
-                            bodyMemory.write(0, body, 0, body.size)
+                        val bodyData = it.body?.bytes()
+                        if (bodyData != null && bodyData.isNotEmpty()) {
+                            val bodyMemory = Memory(bodyData.size.toLong())
+                            bodyMemory.write(0, bodyData, 0, bodyData.size)
                             cresponse.body = bodyMemory
-                            cresponse.bodySize = body.size.toLong()
+                            cresponse.bodySize = bodyData.size.toLong()
                         }
 
                         synchronized(this) {
