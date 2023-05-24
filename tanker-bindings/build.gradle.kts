@@ -201,8 +201,7 @@ afterEvaluate {
 dependencies {
     api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
     api("net.java.dev.jna:jna:5.13.0@aar")
-    implementation("com.android.support:support-compat:28.0.0")
-    implementation("com.android.support:support-annotations:28.0.0")
+    implementation("androidx.annotation:annotation:1.6.0")
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
     androidTestImplementation("androidx.test:runner:1.5.2")

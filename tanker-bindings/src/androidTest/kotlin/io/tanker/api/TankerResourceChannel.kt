@@ -1,6 +1,6 @@
 package io.tanker.api
 
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
