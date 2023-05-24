@@ -1,7 +1,10 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: 2021-12-16-236
+    ref: 2022-09-05-258
     file: /common.yml
+
+variables:
+  SDK_NATIVE_CONAN_REFERENCE: tanker/latest-stable@
 
 ############
 # Workflow #
