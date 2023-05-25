@@ -5,6 +5,7 @@ include:
 
 variables:
   SDK_NATIVE_CONAN_REFERENCE: tanker/latest-stable@
+  GIT_DEPTH: 1
 
 ############
 # Workflow #
