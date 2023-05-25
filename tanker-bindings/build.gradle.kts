@@ -38,7 +38,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         testInstrumentationRunnerArguments += System.getenv().filter { (k, _) -> k.startsWith("TANKER_") }
-        testInstrumentationRunnerArguments += (System.getProperties() as Map<String, String>).filter { (k, _) -> k.startsWith("TANKER_") }
+        testInstrumentationRunnerArguments += (System.getProperties().map { (k, v) -> (k as String to v as String) })
+                                                                     .filter { (k, _) -> k.startsWith("TANKER_") }
     }
 
     compileOptions {
