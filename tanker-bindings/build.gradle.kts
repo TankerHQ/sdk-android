@@ -1,12 +1,12 @@
 import android.annotation.SuppressLint
 
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.dokka")
-    id("maven-publish")
-    id("digital.wup.android-maven-publish")
-    id("com.getkeepsafe.dexcount")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.getkeepsafe.dexcount)
+    alias(libs.plugins.wup.android.maven.publish)
+    `maven-publish`
 }
 
 // FIXME: Convert to buildSrc per https://docs.gradle.org/current/userguide/organizing_gradle_projects.html#sec:build_sources
@@ -201,18 +201,22 @@ afterEvaluate {
 
 
 dependencies {
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-    api("net.java.dev.jna:jna:5.13.0@aar")
-    implementation("androidx.annotation:annotation:1.6.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.1")
+    api(libs.kotlinx.coroutines.android)
+    api(libs.jna) {
+        artifact {
+            type = "aar"
+        }
+    }
+    implementation(libs.androidx.annotation)
+    implementation(libs.okhttp)
 
-    androidTestImplementation("androidx.test:runner:1.5.2")
-    androidTestImplementation("androidx.test:core:1.5.0")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.androidx.core)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.rules)
     // assertj 3.0 is not compatible with API level < 26
-    androidTestImplementation("org.assertj:assertj-core:2.9.1")
+    androidTestImplementation(libs.assertj.core)
 
-    androidTestImplementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.7")
-    androidTestImplementation("org.slf4j:slf4j-nop:1.7.28")
+    androidTestImplementation(libs.jackson.module.kotlin)
+    androidTestImplementation(libs.slf4j.nop)
 }
