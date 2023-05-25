@@ -1,6 +1,6 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: 2022-09-05-258
+    ref: 2023-05-25-262
     file: /common.yml
 
 variables:
