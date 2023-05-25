@@ -122,6 +122,7 @@ bridge/native-from-sources:
   variables:
     UPSTREAM_JOB_NAME: check/native-from-sources
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
@@ -136,6 +137,7 @@ bridge/downstream:
   variables:
     UPSTREAM_JOB_NAME: check/downstream
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
@@ -153,6 +155,7 @@ bridge/deployed-native:
   variables:
     UPSTREAM_JOB_NAME: check/deployed-native
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/sdk-react-native
     strategy: depend
@@ -167,6 +170,7 @@ bridge/compat-from-sources:
   variables:
     UPSTREAM_JOB_NAME: check/native-from-sources
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
     strategy: depend
@@ -182,6 +186,7 @@ bridge/compat-downstream:
   variables:
     UPSTREAM_JOB_NAME: check/downstream
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
     strategy: depend
@@ -201,6 +206,7 @@ bridge/compat-deployed:
     SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: check/deployed-native
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
     strategy: depend
@@ -239,6 +245,7 @@ brige/bump-android-compat-tests:
     SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: deploy
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
     strategy: depend
