@@ -131,54 +131,6 @@ bridge-dotenv:
       dotenv: bridge.env
   tags: !reference [.tags/linux, tags]
 
-bridge/native-from-sources:
-  extends:
-    - .rules/native-from-sources
-    - .variables/bridge-common
-  stage: bridge-check
-  needs:
-    - check/native-from-sources
-  variables:
-    UPSTREAM_JOB_NAME: check/native-from-sources
-    UPSTREAM_JOB_TARGET: android
-    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
-  trigger:
-    project: TankerHQ/sdk-react-native
-    strategy: depend
-
-bridge/downstream:
-  extends:
-    - .rules/check/downstream
-    - .variables/bridge-common
-  stage: bridge-check
-  needs:
-    - check/downstream
-  variables:
-    UPSTREAM_JOB_NAME: check/downstream
-    UPSTREAM_JOB_TARGET: android
-    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
-  trigger:
-    project: TankerHQ/sdk-react-native
-    strategy: depend
-
-.rules/bridge/deployed-native:
-  rules: !reference [.rules/check/deployed-native, rules]
-
-bridge/deployed-native:
-  extends:
-    - .rules/bridge/deployed-native
-    - .variables/bridge-common
-  stage: bridge-check
-  needs:
-    - check/deployed-native
-  variables:
-    UPSTREAM_JOB_NAME: check/deployed-native
-    UPSTREAM_JOB_TARGET: android
-    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
-  trigger:
-    project: TankerHQ/sdk-react-native
-    strategy: depend
-
 bridge/compat-from-sources:
   stage: bridge-check
   extends:
