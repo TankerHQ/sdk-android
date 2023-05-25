@@ -116,6 +116,16 @@ def deploy(*, version: str, tanker_ref: str) -> None:
     tankerci.run("./gradlew", "tanker-bindings:publish")
 
 
+def matching_downstream_branch(repo: str) -> str:
+    current_ref = os.environ.get(
+        "UPSTREAM_COMMIT_REF_NAME", os.environ["CI_COMMIT_REF_NAME"]
+    )
+    if tankerci.git.remote_branch_exists(current_ref, repo):
+        return current_ref
+    else:
+        return "master"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -175,6 +185,11 @@ def main():
     deploy_parser.add_argument("--version", required=True)
     deploy_parser.add_argument("--tanker-ref", required=True)
 
+    write_bridge_dotenv = subparsers.add_parser("write-bridge-dotenv")
+    write_bridge_dotenv.add_argument(
+        "--downstream", dest="downstreams", action="append", required=True
+    )
+
     args = parser.parse_args()
     command = args.command
 
@@ -220,6 +235,16 @@ def main():
             pipeline_id=args.pipeline_id,
             job_name=args.job_name,
         )
+    elif args.command == "write-bridge-dotenv":
+        branches = [matching_downstream_branch(repo) for repo in args.downstreams]
+        keys = [
+            repo.replace("-", "_").upper() + "_BRIDGE_BRANCH"
+            for repo in args.downstreams
+        ]
+        env_list = "\n".join([f"{k}={v}" for k, v in zip(keys, branches)])
+        with open("bridge.env", "a+") as f:
+            f.write(env_list)
+        ui.info(env_list)
     else:
         parser.print_help()
         sys.exit()

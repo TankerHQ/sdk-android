@@ -112,6 +112,25 @@ check/downstream:
 # bridge-check stage #
 ######################
 
+bridge-dotenv:
+  stage: bridge-check
+  inherit:
+    default: [] # Skip docker image
+  rules:
+    - !reference [ .rules/push-master-or-feat, rules ]
+    - !reference [ .rules/check/downstream/android, rules ]
+    - !reference [ .rules/mr/manual, rules ]
+    - !reference [ .rules/nightly, rules ]
+  before_script:
+    - *global_before_script
+  script:
+    - poetry run python run-ci.py write-bridge-dotenv --downstream compatibility-tests
+  artifacts:
+    expire_in: 7 days
+    reports:
+      dotenv: bridge.env
+  tags: !reference [.tags/linux, tags]
+
 bridge/native-from-sources:
   extends:
     - .rules/native-from-sources
@@ -167,12 +186,14 @@ bridge/compat-from-sources:
     - .rules/native-from-sources
   needs:
     - check/native-from-sources
+    - bridge-dotenv
   variables:
     UPSTREAM_JOB_NAME: check/native-from-sources
     UPSTREAM_JOB_TARGET: android
     UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
 bridge/compat-downstream:
@@ -183,12 +204,14 @@ bridge/compat-downstream:
     - if: !reference [.if-upstream-ci-pipeline, if]
   needs:
     - check/downstream
+    - bridge-dotenv
   variables:
     UPSTREAM_JOB_NAME: check/downstream
     UPSTREAM_JOB_TARGET: android
     UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
 bridge/compat-deployed:
@@ -202,6 +225,7 @@ bridge/compat-deployed:
     - !reference [.rules/web/auto, rules]
   needs:
     - check/deployed-native
+    - bridge-dotenv
   variables:
     SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: check/deployed-native
@@ -209,6 +233,7 @@ bridge/compat-deployed:
     UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
 ################
@@ -239,7 +264,9 @@ brige/bump-android-compat-tests:
       when: manual
     - if: !reference [.if-upstream-release-deploy-stage, if]
       when: manual
-  needs: [deploy]
+  needs:
+    - deploy
+    - bridge-dotenv
   variables:
     SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
     SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
@@ -248,5 +275,6 @@ brige/bump-android-compat-tests:
     UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
   allow_failure: true
