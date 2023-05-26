@@ -13,6 +13,7 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
     private val client = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val req = chain.request().newBuilder()
+                        .addHeader("accept", "application/json")
                         .addHeader("authorization", "Bearer $appManagementToken")
                         .build()
                 chain.proceed(req)
@@ -59,8 +60,6 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
             reqJson.put("oidc_client_id", options.oidcClientId)
         if (options.oidcClientProvider != null)
             reqJson.put("oidc_provider", options.oidcClientProvider)
-        if (options.preverifiedVerification != null)
-            reqJson.put("preverified_verification_enabled", options.preverifiedVerification!!)
         if (options.userEnrollment != null)
             reqJson.put("enroll_users_enabled", options.userEnrollment!!)
 

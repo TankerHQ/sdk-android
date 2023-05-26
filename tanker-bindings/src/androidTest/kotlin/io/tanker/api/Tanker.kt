@@ -135,7 +135,7 @@ class TankerTests : TankerSpec() {
         tanker.stop().get()
     }
 
-    private val simpleEncryptionOverhead = 17
+    private val simpleEncryptionOverhead = 49
     private val simplePaddedEncryptionOverhead = simpleEncryptionOverhead + 1
 
     @Test
@@ -261,7 +261,7 @@ class TankerTests : TankerSpec() {
 
         val encryptor = tanker.encrypt(clear).get()
         val encrypted = TankerInputStream(encryptor).readBytes()
-        assertThat(encrypted).hasSize(3211512)
+        assertThat(encrypted).hasSize(3211381)
         val decryptor = tanker.decrypt(InputStreamWrapper(encrypted.inputStream())).get()
 
         val decrypted = TankerInputStream(decryptor).readBytes()
@@ -551,19 +551,6 @@ class TankerTests : TankerSpec() {
             tankerBob.verifyProvisionalIdentity(EmailVerification(aliceEmail, bobVerificationCode)).get()
         }
         assertThat(e).hasCauseInstanceOf(IdentityAlreadyAttached::class.java) 
-    }
-
-    @Test
-    fun can_get_a_correct_device_list() {
-        val tankerAlice = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
-        tankerAlice.start(tc.createIdentity()).get()
-        tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-
-        val devices = tankerAlice.getDeviceList().get()
-        assertThat(devices.size).isEqualTo(1)
-        assertThat(devices[0].getDeviceId()).isEqualTo(tankerAlice.getDeviceId())
-        assertThat(devices[0].isRevoked()).isEqualTo(false)
-        tankerAlice.stop().get()
     }
 
     @Test

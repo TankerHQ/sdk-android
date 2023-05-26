@@ -164,8 +164,7 @@ class GroupTests : TankerSpec() {
         val tankerAlice = Tanker(options)
         tankerAlice.start(aliceId).get()
         tankerAlice.registerIdentity(PassphraseVerification("pass")).get()
-
-        val plaintext = "Two's company, three's a crowd"
+        
         val groupId = tankerAlice.createGroup(Identity.getPublicIdentity(aliceId)).get()
 
         val e = shouldThrow<TankerFutureException> {

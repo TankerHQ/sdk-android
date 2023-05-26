@@ -116,6 +116,16 @@ def deploy(*, version: str, tanker_ref: str) -> None:
     tankerci.run("./gradlew", "tanker-bindings:publish")
 
 
+def matching_downstream_branch(repo: str) -> str:
+    current_ref = os.environ.get(
+        "UPSTREAM_COMMIT_REF_NAME", os.environ["CI_COMMIT_REF_NAME"]
+    )
+    if tankerci.git.remote_branch_exists(current_ref, repo):
+        return current_ref
+    else:
+        return "master"
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -154,6 +164,8 @@ def main():
     )
     build_parser.add_argument("--tanker-ref")
 
+    subparsers.add_parser("test")
+
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
         "--use-tanker",
@@ -173,6 +185,11 @@ def main():
     deploy_parser.add_argument("--version", required=True)
     deploy_parser.add_argument("--tanker-ref", required=True)
 
+    write_bridge_dotenv = subparsers.add_parser("write-bridge-dotenv")
+    write_bridge_dotenv.add_argument(
+        "--downstream", dest="downstreams", action="append", required=True
+    )
+
     args = parser.parse_args()
     command = args.command
 
@@ -187,21 +204,23 @@ def main():
             tankerci.conan.run("remove", "tanker/*", "--force")
 
     if command == "build-and-test":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             build_and_test(
                 tanker_source=args.tanker_source,
                 tanker_ref=args.tanker_ref,
             )
     elif command == "build":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             prepare(args.tanker_source, False, args.tanker_ref)
             build()
+    elif command == "test":
+        test()
     elif command == "prepare":
-        with tankerci.conan.ConanContextManager([args.remote], conan_home=user_home):
+        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
             prepare(args.tanker_source, args.update, args.tanker_ref)
     elif command == "deploy":
         with tankerci.conan.ConanContextManager(
-            [args.remote], conan_home=user_home, clean_on_exit=True
+            [args.remote, "conancenter"], conan_home=user_home, clean_on_exit=True
         ):
             deploy(version=args.version, tanker_ref=args.tanker_ref)
     elif command == "reset-branch":
@@ -216,6 +235,16 @@ def main():
             pipeline_id=args.pipeline_id,
             job_name=args.job_name,
         )
+    elif args.command == "write-bridge-dotenv":
+        branches = [matching_downstream_branch(repo) for repo in args.downstreams]
+        keys = [
+            repo.replace("-", "_").upper() + "_BRIDGE_BRANCH"
+            for repo in args.downstreams
+        ]
+        env_list = "\n".join([f"{k}={v}" for k, v in zip(keys, branches)])
+        with open("bridge.env", "a+") as f:
+            f.write(env_list)
+        ui.info(env_list)
     else:
         parser.print_help()
         sys.exit()

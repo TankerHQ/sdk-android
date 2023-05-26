@@ -15,9 +15,4 @@ open class TankerAppUpdateOptions {
         this.oidcClientProvider = u
         return this
     }
-
-    fun setPreverifiedVerification(preverifiedVerification: Boolean): TankerAppUpdateOptions {
-        this.preverifiedVerification = preverifiedVerification
-        return this
-    }
 }

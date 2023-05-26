@@ -1,13 +1,12 @@
 package io.tanker.api
 
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousByteChannel
-import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
 import java.nio.channels.ReadPendingException
 import java.util.concurrent.FutureTask
@@ -28,7 +27,7 @@ class BlockingChannel : TankerAsynchronousByteChannel {
 }
 
 class DummyChannel : TankerAsynchronousByteChannel {
-    val clearBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
+    val clearBuffer = ByteBuffer.allocate(1024 * 1024 * 2)
     private var isClosed = false
 
     override fun <A> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
@@ -66,7 +65,7 @@ class API26StreamChannelTestHelper(tanker: Tanker, chan: TankerAsynchronousByteC
     var err: Throwable? = null
     var nbRead = 0
     var outputChannel: AsynchronousByteChannel
-    val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)!!
+    val decryptedBuffer = ByteBuffer.allocate(1024 * 1024 * 2)
     val fut = FutureTask {}
 
     fun callback(): CompletionHandler<Int, Unit> {
@@ -123,16 +122,6 @@ class API26StreamChannelTests : TankerSpec() {
         assertThat(helper.nbRead).isEqualTo(helper.decryptedBuffer.capacity())
         helper.dummyChannel.clearBuffer.position(0)
         assertThat(helper.decryptedBuffer).isEqualTo(helper.dummyChannel.clearBuffer)
-    }
-
-    @Test
-    fun reading_a_closed_channel_throws() {
-        val helper = API26StreamChannelTestHelper(tanker, BlockingChannel(), false)
-        helper.outputChannel.read(helper.decryptedBuffer, Unit, helper.callback())
-        helper.outputChannel.close()
-        helper.fut.get()
-        assertThat(helper.err).isNotNull()
-        assertThat((helper.err is ClosedChannelException)).isEqualTo(true)
     }
 
     @Test

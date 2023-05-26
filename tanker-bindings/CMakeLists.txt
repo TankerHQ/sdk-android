@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.6.0)
+project(detect_kvm)
 
 if(${ANDROID_ABI} STREQUAL "x86")
     enable_language(ASM_NASM)

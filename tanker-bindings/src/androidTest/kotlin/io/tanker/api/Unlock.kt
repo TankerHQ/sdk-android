@@ -380,9 +380,6 @@ class UnlockTests : TankerSpec() {
     fun cannot_register_with_preverified_email() {
         val email = "bob@tanker.io"
 
-        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions)
-
         tanker1.start(identity).get()
         val e = shouldThrow<TankerFutureException> {
             tanker1.registerIdentity(PreverifiedEmailVerification(email)).get()
@@ -395,9 +392,6 @@ class UnlockTests : TankerSpec() {
     fun cannot_register_with_preverified_phone_number() {
         val phoneNumber = "+33639982233"
 
-        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions)
-
         tanker1.start(identity).get()
         val e = shouldThrow<TankerFutureException> {
             tanker1.registerIdentity(PreverifiedPhoneNumberVerification(phoneNumber)).get()
@@ -409,9 +403,6 @@ class UnlockTests : TankerSpec() {
     @Test
     fun cannot_verify_with_preverified_email() {
         val email = "bob@tanker.io"
-
-        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         val verificationCode = tc.getEmailVerificationCode(email)
@@ -429,9 +420,6 @@ class UnlockTests : TankerSpec() {
     fun cannot_verify_with_preverified_phone_number() {
         val phoneNumber = "+33639982233"
 
-        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions)
-
         tanker1.start(identity).get()
         val verificationCode = tc.getSMSVerificationCode(phoneNumber)
         tanker1.registerIdentity(PhoneNumberVerification(phoneNumber, verificationCode)).get()
@@ -448,9 +436,6 @@ class UnlockTests : TankerSpec() {
     fun can_set_preverified_email_with_setVerificationMethod() {
         val pass = "PassOne"
         val email = "bob@tanker.io"
-
-        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()
@@ -480,9 +465,6 @@ class UnlockTests : TankerSpec() {
     fun can_set_preverified_phone_number_with_setVerificationMethod() {
         val pass = "PassOne"
         val phoneNumber = "+33639982233"
-
-        val appOptions = TankerAppUpdateOptions().setPreverifiedVerification(true)
-        tc.admin.appUpdate(tc.id(), appOptions)
 
         tanker1.start(identity).get()
         tanker1.registerIdentity(PassphraseVerification(pass)).get()

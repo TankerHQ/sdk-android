@@ -1,7 +1,11 @@
 include:
   - project: TankerHQ/gitlab-ci-files
-    ref: 2021-12-16-236
+    ref: 2023-05-25-262
     file: /common.yml
+
+variables:
+  SDK_NATIVE_CONAN_REFERENCE: tanker/latest-stable@
+  GIT_DEPTH: 1
 
 ############
 # Workflow #
@@ -109,50 +113,24 @@ check/downstream:
 # bridge-check stage #
 ######################
 
-bridge/native-from-sources:
-  extends:
-    - .rules/native-from-sources
-    - .variables/bridge-common
+bridge-dotenv:
   stage: bridge-check
-  needs:
-    - check/native-from-sources
-  variables:
-    UPSTREAM_JOB_NAME: check/native-from-sources
-    UPSTREAM_JOB_TARGET: android
-  trigger:
-    project: TankerHQ/sdk-react-native
-    strategy: depend
-
-bridge/downstream:
-  extends:
-    - .rules/check/downstream
-    - .variables/bridge-common
-  stage: bridge-check
-  needs:
-    - check/downstream
-  variables:
-    UPSTREAM_JOB_NAME: check/downstream
-    UPSTREAM_JOB_TARGET: android
-  trigger:
-    project: TankerHQ/sdk-react-native
-    strategy: depend
-
-.rules/bridge/deployed-native:
-  rules: !reference [.rules/check/deployed-native, rules]
-
-bridge/deployed-native:
-  extends:
-    - .rules/bridge/deployed-native
-    - .variables/bridge-common
-  stage: bridge-check
-  needs:
-    - check/deployed-native
-  variables:
-    UPSTREAM_JOB_NAME: check/deployed-native
-    UPSTREAM_JOB_TARGET: android
-  trigger:
-    project: TankerHQ/sdk-react-native
-    strategy: depend
+  inherit:
+    default: [] # Skip docker image
+  rules:
+    - !reference [ .rules/push-master-or-feat, rules ]
+    - !reference [ .rules/check/downstream/android, rules ]
+    - !reference [ .rules/mr/manual, rules ]
+    - !reference [ .rules/nightly, rules ]
+  before_script:
+    - *global_before_script
+  script:
+    - poetry run python run-ci.py write-bridge-dotenv --downstream compatibility-tests
+  artifacts:
+    expire_in: 7 days
+    reports:
+      dotenv: bridge.env
+  tags: !reference [.tags/linux, tags]
 
 bridge/compat-from-sources:
   stage: bridge-check
@@ -161,11 +139,14 @@ bridge/compat-from-sources:
     - .rules/native-from-sources
   needs:
     - check/native-from-sources
+    - bridge-dotenv
   variables:
     UPSTREAM_JOB_NAME: check/native-from-sources
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
 bridge/compat-downstream:
@@ -176,11 +157,14 @@ bridge/compat-downstream:
     - if: !reference [.if-upstream-ci-pipeline, if]
   needs:
     - check/downstream
+    - bridge-dotenv
   variables:
     UPSTREAM_JOB_NAME: check/downstream
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
 bridge/compat-deployed:
@@ -194,12 +178,15 @@ bridge/compat-deployed:
     - !reference [.rules/web/auto, rules]
   needs:
     - check/deployed-native
+    - bridge-dotenv
   variables:
     SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: check/deployed-native
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
 ################
@@ -230,13 +217,17 @@ brige/bump-android-compat-tests:
       when: manual
     - if: !reference [.if-upstream-release-deploy-stage, if]
       when: manual
-  needs: [deploy]
+  needs:
+    - deploy
+    - bridge-dotenv
   variables:
     SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
     SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: deploy
     UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
   trigger:
     project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
   allow_failure: true

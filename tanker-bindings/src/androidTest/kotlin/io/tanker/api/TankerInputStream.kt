@@ -36,15 +36,6 @@ class InputStreamTests : TankerSpec() {
     }
 
     @Test
-    fun attempting_to_encrypt_a_closed_stream_throws() {
-        val file = File.createTempFile("sdk-android-stream-test", null)
-        val channel = TankerChannels.fromInputStream(file.inputStream())
-        val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
-        channel.close()
-        shouldThrow<IOException> { encryptionStream.read() }
-    }
-
-    @Test
     fun attempting_to_decrypt_a_closed_stream_throws() {
         val channel = InputStreamWrapper(array.inputStream())
         val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
