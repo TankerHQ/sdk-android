@@ -122,6 +122,7 @@ bridge-dotenv:
     - !reference [ .rules/check/downstream/android, rules ]
     - !reference [ .rules/mr/manual, rules ]
     - !reference [ .rules/nightly, rules ]
+    - !reference [ .rules/deploy/android, rules ]
   before_script:
     - *global_before_script
   script:
