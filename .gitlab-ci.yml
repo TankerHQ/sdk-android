@@ -118,11 +118,16 @@ bridge-dotenv:
   inherit:
     default: [] # Skip docker image
   rules:
+    # Start with accept-only rules, these must **NOT** contain a when: never
     - !reference [ .rules/push-master-or-feat, rules ]
-    - !reference [ .rules/check/downstream/android, rules ]
     - !reference [ .rules/mr/manual, rules ]
     - !reference [ .rules/nightly, rules ]
-    - !reference [ .rules/deploy/android, rules ]
+    - !reference [ .rules/check/downstream, rules ]
+    # Deploy pipeline checks start here, this must be the *ONLY* when: never in these rules!
+    - if: !reference [ .if-invalid-android-release-version, if ]
+      when: never
+    - !reference [ .rules/web/auto, rules ]
+    - !reference [ .rules/deploy-pipeline, rules ]
   before_script:
     - *global_before_script
   script:
