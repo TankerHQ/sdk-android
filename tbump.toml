@@ -24,7 +24,7 @@ message_template = "Bump to {new_version}"
 tag_template = "v{new_version}"
 
 [[file]]
-src = "tanker-bindings/build.gradle"
+src = "tanker-bindings/build.gradle.kts"
 search = "version '{current_version}'"
 
 
