@@ -83,7 +83,7 @@ check/deployed-native:
   stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
-    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_LATEST_CONAN_REFERENCE
+    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_CONAN_REFERENCE
     - echo $CI_COMMIT_REF_NAME > branch_name.txt
   tags: !reference [.tags/compilation-linux, tags]
 
@@ -186,7 +186,7 @@ bridge/compat-deployed:
     - check/deployed-native
     - bridge-dotenv
   variables:
-    SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
+    SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: check/deployed-native
     UPSTREAM_JOB_TARGET: android
     UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
@@ -206,7 +206,7 @@ deploy:
   script:
     - sudo chgrp 1000 -f /dev/kvm
     - poetry run python run-ci.py reset-branch $UPSTREAM_BRANCH_NAME
-    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home deploy --version $SDK_ANDROID_RELEASE_VERSION --tanker-ref $SDK_NATIVE_LATEST_CONAN_REFERENCE
+    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home deploy --version $SDK_ANDROID_RELEASE_VERSION --tanker-ref $SDK_NATIVE_CONAN_REFERENCE
   release:
     description: sdk-android v$SDK_ANDROID_RELEASE_VERSION
     tag_name: v$SDK_ANDROID_RELEASE_VERSION
@@ -228,7 +228,7 @@ brige/bump-android-compat-tests:
     - bridge-dotenv
   variables:
     SDK_ANDROID_RELEASE_VERSION: $SDK_ANDROID_RELEASE_VERSION
-    SDK_NATIVE_LATEST_CONAN_REFERENCE: $SDK_NATIVE_LATEST_CONAN_REFERENCE
+    SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
     UPSTREAM_JOB_NAME: deploy
     UPSTREAM_JOB_TARGET: android
     UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
