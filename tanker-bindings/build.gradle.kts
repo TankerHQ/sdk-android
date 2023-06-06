@@ -52,7 +52,9 @@ android {
     }
 
     publishing {
-        singleVariant("tankerBindings")
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 
     buildTypes {
