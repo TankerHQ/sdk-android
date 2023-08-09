@@ -13,7 +13,6 @@ regex = '''
     (
       -
       (?P<channel>alpha|beta|r)
-      -
       (?P<release>\d+)
     )?
   )

@@ -14,7 +14,7 @@ variables:
 workflow:
   rules:
     # web pipelines for releases only
-    - if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A\d+\.\d+\.\d+(-(alpha|beta)-\d+)?\z/
+    - if: $CI_PIPELINE_SOURCE == "web" && $SDK_ANDROID_RELEASE_VERSION !~ /\A\d+\.\d+\.\d+(-(alpha|beta)\d+)?\z/
       when: never
     - if: !reference [.if-invalid-native-conan-reference, if]
       when: never
