@@ -1,5 +1,5 @@
 [versions]
-androidGradlePlugin = "8.0.2"
+androidGradlePlugin = "8.1.1"
 kotlinAndroid = "1.8.21"
 dokka = "1.8.10"
 wupAndroidMavenPublish = "3.6.2"
