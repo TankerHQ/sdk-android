@@ -1,6 +1,6 @@
 [versions]
-androidGradlePlugin = "8.0.2"
-kotlinAndroid = "1.8.21"
+androidGradlePlugin = "8.1.1"
+kotlinAndroid = "1.9.10"
 dokka = "1.8.10"
 wupAndroidMavenPublish = "3.6.2"
 dexcount = "4.0.0"
