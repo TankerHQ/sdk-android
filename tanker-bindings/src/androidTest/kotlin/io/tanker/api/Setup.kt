@@ -11,10 +11,11 @@ import java.util.*
 data class ConfigData(val appManagementToken: String, val appManagementUrl: String, val environmentName: String, val trustchaindUrl: String, val url: String, val verificationApiToken: String)
 
 data class ConfigOIDC(
-        val clientId: String,
-        val clientSecret: String,
-        val provider: String,
-        val users: Map<String, ConfigOIDCUser>
+    val clientId: String,
+    val clientSecret: String,
+    val displayName: String,
+    val issuer: String,
+    val users: Map<String, ConfigOIDCUser>
 )
 
 data class ConfigOIDCUser(
@@ -105,7 +106,8 @@ class Config {
         instanceOIDC = ConfigOIDC(
                 clientId = safeGetEnv("TANKER_OIDC_CLIENT_ID"),
                 clientSecret = safeGetEnv("TANKER_OIDC_CLIENT_SECRET"),
-                provider = safeGetEnv("TANKER_OIDC_PROVIDER"),
+                displayName = safeGetEnv("TANKER_OIDC_PROVIDER"),
+                issuer = safeGetEnv("TANKER_OIDC_ISSUER"),
                 users = mapOf(Pair("martine",
                         ConfigOIDCUser(
                                 email = safeGetEnv("TANKER_OIDC_MARTINE_EMAIL"),

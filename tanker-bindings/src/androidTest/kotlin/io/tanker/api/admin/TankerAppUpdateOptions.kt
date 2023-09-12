@@ -1,18 +1,14 @@
 package io.tanker.api.admin
 
+open class OidcProviderConfig(val clientId: String, val displayName: String, val issuer: String)
+
 open class TankerAppUpdateOptions {
-    var oidcClientId: String? = null
-    var oidcClientProvider: String? = null
+    var oidcProvider: OidcProviderConfig? = null
     var preverifiedVerification: Boolean? = null
     var userEnrollment: Boolean? = null
 
-    fun setOidcClientId(u: String?): TankerAppUpdateOptions {
-        this.oidcClientId = u
-        return this
-    }
-
-    fun setOidcClientProvider(u: String?): TankerAppUpdateOptions {
-        this.oidcClientProvider = u
+    fun setOidcProvider(p: OidcProviderConfig?): TankerAppUpdateOptions {
+        this.oidcProvider = p
         return this
     }
 }

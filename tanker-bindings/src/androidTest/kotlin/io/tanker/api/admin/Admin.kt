@@ -27,7 +27,7 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
         reqJson.put("name", name)
 
         val request = Request.Builder()
-                .url("$appManagementUrl/v1/apps")
+                .url("$appManagementUrl/v2/apps")
                 .method("POST", reqJson.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
@@ -41,7 +41,7 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
 
     fun deleteApp(appId: String) {
         val request = Request.Builder()
-                .url("$appManagementUrl/v1/apps/${toUrlSafeAppId(appId)}")
+                .url("$appManagementUrl/v2/apps/${toUrlSafeAppId(appId)}")
                 .method("DELETE", null)
                 .build()
 
@@ -56,15 +56,23 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
     fun appUpdate(appId: String, options: TankerAppUpdateOptions) {
         val jsonMapper = ObjectMapper()
         val reqJson = jsonMapper.createObjectNode()
-        if (options.oidcClientId != null)
-            reqJson.put("oidc_client_id", options.oidcClientId)
-        if (options.oidcClientProvider != null)
-            reqJson.put("oidc_provider", options.oidcClientProvider)
+        options.oidcProvider?.let {
+            val provider = jsonMapper.createObjectNode()
+            provider.put("client_id", it.clientId)
+            provider.put("display_name", it.displayName)
+            provider.put("issuer", it.issuer)
+
+            val providers = jsonMapper.createArrayNode()
+            providers.add(provider)
+            @Suppress("DEPRECATION") // It's OK, we don't want to call set() here
+            reqJson.put("oidc_providers", providers)
+            reqJson.put("oidc_providers_allow_delete", true)
+        }
         if (options.userEnrollment != null)
             reqJson.put("enroll_users_enabled", options.userEnrollment!!)
 
         val request = Request.Builder()
-                .url("$appManagementUrl/v1/apps/${toUrlSafeAppId(appId)}")
+                .url("$appManagementUrl/v2/apps/${toUrlSafeAppId(appId)}")
                 .method("PATCH", reqJson.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 

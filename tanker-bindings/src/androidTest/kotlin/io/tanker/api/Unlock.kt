@@ -2,6 +2,7 @@ package io.tanker.api
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.tanker.api.admin.OidcProviderConfig
 import io.tanker.api.admin.TankerAppUpdateOptions
 import io.tanker.api.errors.InvalidArgument
 import io.tanker.api.errors.InvalidVerification
@@ -228,9 +229,9 @@ class UnlockTests : TankerSpec() {
         val martineConfig = oidcConfig.users.getValue("martine")
         val martineIdentity = tc.createIdentity(martineConfig.email)
 
+        val oidcProviderConfig = OidcProviderConfig(oidcConfig.clientId, oidcConfig.displayName, oidcConfig.issuer)
         val appOptions = TankerAppUpdateOptions()
-            .setOidcClientId(oidcConfig.clientId)
-            .setOidcClientProvider(oidcConfig.provider)
+            .setOidcProvider(oidcProviderConfig)
         tc.admin.appUpdate(tc.id(), appOptions)
 
         // Get a fresh OIDC ID token from GOOG
