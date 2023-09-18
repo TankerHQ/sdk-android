@@ -10,13 +10,15 @@ class TankerVerificationMethod(ptr: Pointer) : Structure(ptr) {
     @JvmField
     var type: Byte = 0
     @JvmField
-    var value: String? = null
+    var value1: String? = null
+    @JvmField
+    var value2: String? = null
 
     init {
         super.read()
     }
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "type", "value")
+        return listOf("version", "type", "value1", "value2")
     }
 }
