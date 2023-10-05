@@ -18,18 +18,18 @@ version = "dev"
 android {
     namespace = "io.tanker.tanker_bindings"
 
-    ndkVersion = "25.2.9519653"
+    ndkVersion = "26.0.10792818"
 
-    compileSdk = 33
+    compileSdk = 34
     defaultConfig {
-        minSdk = 19
+        minSdk = 21
 
         // Apps that depend on a library ignore the library's targetSdk entirely (as they should).
         // But we *do* need the field for androidTests, which install a real test app on a device.
         // Google has now deprecated targetSdk for libraries entirely, with no replacement.
         // https://issuetracker.google.com/issues/230625468 tracks the rollout of this mistake.
         @SuppressLint("ExpiredTargetSdkVersion")
-        targetSdk = 33
+        targetSdk = 34
 
         ndk {
             moduleName = "tanker-bindings-jni"
