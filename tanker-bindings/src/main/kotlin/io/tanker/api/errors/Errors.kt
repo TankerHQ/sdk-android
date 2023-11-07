@@ -16,7 +16,6 @@ class GroupTooBig(message: String) : TankerException(ErrorCode.GROUP_TOO_BIG, me
 class InvalidVerification(message: String) : TankerException(ErrorCode.INVALID_VERIFICATION, message)
 class TooManyAttempts(message: String) : TankerException(ErrorCode.TOO_MANY_ATTEMPTS, message)
 class ExpiredVerification(message: String) : TankerException(ErrorCode.EXPIRED_VERIFICATION, message)
-class DeviceRevoked(message: String) : TankerException(ErrorCode.DEVICE_REVOKED, message)
 
 class Conflict(message: String) : TankerException(ErrorCode.CONFLICT, message)
 class UpgradeRequired(message: String) : TankerException(ErrorCode.UPGRADE_REQUIRED, message)
@@ -34,7 +33,6 @@ internal fun toError(error: TankerError): TankerException =
             ErrorCode.INVALID_VERIFICATION.value -> InvalidVerification(error.getErrorMessage())
             ErrorCode.TOO_MANY_ATTEMPTS.value -> TooManyAttempts(error.getErrorMessage())
             ErrorCode.EXPIRED_VERIFICATION.value -> ExpiredVerification(error.getErrorMessage())
-            ErrorCode.DEVICE_REVOKED.value -> DeviceRevoked(error.getErrorMessage())
             ErrorCode.CONFLICT.value -> Conflict(error.getErrorMessage())
             ErrorCode.UPGRADE_REQUIRED.value -> UpgradeRequired(error.getErrorMessage())
             ErrorCode.IDENTITY_ALREADY_ATTACHED.value -> IdentityAlreadyAttached(error.getErrorMessage())

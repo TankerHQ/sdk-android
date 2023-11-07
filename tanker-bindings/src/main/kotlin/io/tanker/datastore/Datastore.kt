@@ -35,8 +35,6 @@ class Datastore private constructor(dataPath: String, cachePath: String) {
         const val LatestCacheVersion = 1
 
         private fun initDb(db: SQLiteDatabase) {
-            // for revocation (when wiping db)
-            db.rawQuery("PRAGMA secure_delete = ON", arrayOf()).close()
             // Check the open succeeded
             db.rawQuery("SELECT count(*) FROM sqlite_master", arrayOf()).close()
 
