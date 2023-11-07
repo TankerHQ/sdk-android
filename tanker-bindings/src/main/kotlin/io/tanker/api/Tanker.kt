@@ -214,20 +214,6 @@ class Tanker(tankerOptions: TankerOptions) {
     }
 
     /**
-     * Gets the current device's ID as a string
-     */
-    @Deprecated("This method has been deprecated and will be removed in the future")
-    fun getDeviceId(): String {
-        val fut = TankerFuture<Pointer>(lib.tanker_device_id(tanker), Pointer::class.java, keepAlive = this)
-        return fut.then<String>(TankerCallback {
-            val ptr = it.get()
-            val str = ptr.getString(0)
-            lib.tanker_free_buffer(ptr)
-            str
-        }).get()
-    }
-
-    /**
      * Generates and registers an verification key that can be used to verify a device.
      * @return The verification key.
      */

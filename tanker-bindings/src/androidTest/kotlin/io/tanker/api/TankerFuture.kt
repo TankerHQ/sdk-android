@@ -1,7 +1,6 @@
 package io.tanker.api
 
 import com.sun.jna.Pointer
-import io.tanker.api.errors.DeviceRevoked
 import io.tanker.api.errors.InvalidArgument
 import io.tanker.bindings.FuturePointer
 import io.tanker.bindings.PromisePointer

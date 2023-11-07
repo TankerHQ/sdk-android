@@ -20,7 +20,7 @@ enum class ErrorCode(val value: Int) {
     TOO_MANY_ATTEMPTS(9),
     EXPIRED_VERIFICATION(10),
     IO_ERROR(11),
-    DEVICE_REVOKED(12),
+//    DEVICE_REVOKED(12),
 
     CONFLICT(13),
     UPGRADE_REQUIRED(14),
