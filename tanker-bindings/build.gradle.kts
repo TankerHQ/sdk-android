@@ -15,21 +15,17 @@ apply(from = "native.gradle")
 group = "io.tanker"
 version = "dev"
 
+val minSdkVersion = 21
+val targetSdkVersion = 34
+
 android {
     namespace = "io.tanker.tanker_bindings"
 
     ndkVersion = "26.0.10792818"
 
-    compileSdk = 34
+    compileSdk = targetSdkVersion
     defaultConfig {
-        minSdk = 21
-
-        // Apps that depend on a library ignore the library's targetSdk entirely (as they should).
-        // But we *do* need the field for androidTests, which install a real test app on a device.
-        // Google has now deprecated targetSdk for libraries entirely, with no replacement.
-        // https://issuetracker.google.com/issues/230625468 tracks the rollout of this mistake.
-        @SuppressLint("ExpiredTargetSdkVersion")
-        targetSdk = 34
+        minSdk = minSdkVersion
 
         ndk {
             moduleName = "tanker-bindings-jni"
@@ -49,6 +45,17 @@ android {
 
     kotlinOptions {
         jvmTarget = "17"
+    }
+
+    lint {
+        targetSdk = targetSdkVersion
+    }
+
+    testOptions {
+        targetSdk = targetSdkVersion
+        unitTests {
+            isIncludeAndroidResources = true
+        }
     }
 
     publishing {
@@ -83,10 +90,6 @@ android {
                 multiDexEnabled = true
             }
         }
-    }
-
-    testOptions.unitTests {
-        isIncludeAndroidResources = true
     }
 
     sourceSets.getByName("main") {
