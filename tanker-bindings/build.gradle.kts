@@ -111,10 +111,9 @@ android {
 // since that part is done earlier in run-ci.py.
 // So there is no distinction between debug/release here,
 // we copy the same native lib (whether debug or release) for both Android debug/release variants
-tasks.register<BuildNative>("buildNativeHostDebug", "host")
-tasks.register<BuildNative>("buildNativeHostRelease", "host")
-tasks.register<BuildNative>("buildNativeAndroidRelease", "android")
-tasks.register<BuildNative>("buildNativeRelease", "all")
+tasks.register<BuildNative>("buildNativeHost", "host")
+tasks.register<BuildNative>("buildNativeAndroid", "android")
+tasks.register<BuildNative>("buildNative", "all")
 tasks.clean {
     delete("${projectDir}/conan")
 }

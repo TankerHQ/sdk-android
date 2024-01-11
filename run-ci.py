@@ -76,7 +76,7 @@ def prepare(
 
 
 def build() -> None:
-    tankerci.run("./gradlew", "tanker-bindings:buildNativeRelease")
+    tankerci.run("./gradlew", "tanker-bindings:buildNative")
     tankerci.run("./gradlew", "tanker-bindings:assembleRelease")
 
     dest_path = Path.cwd() / "artifacts"
