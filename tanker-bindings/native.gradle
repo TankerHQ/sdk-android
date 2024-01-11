@@ -32,12 +32,21 @@ class NativeHelper {
         runCmd("jar cf ${jarName} -C ${installPath} ${prefixLibs.join(" ")}", installPath)
     }
 
-    static def copyTankerLibs(File sourceLibPath, ArrayList libNames, File installLibPath) {
+    static def copyTankerHostLibs(File sourceLibPath, ArrayList libNames, File installLibPath) {
         def libFilePaths = libNames.collect { new File(sourceLibPath, System.mapLibraryName(it)) }
+        NativeHelper.copyTankerLibs(libFilePaths, installLibPath)
+    }
+
+    static def copyTankerAndroidLibs(File sourceLibPath, ArrayList libNames, File installLibPath) {
+        def libFilePaths = libNames.collect { new File(sourceLibPath, "lib${it}.so") }
+        NativeHelper.copyTankerLibs(libFilePaths, installLibPath)
+    }
+
+    static def copyTankerLibs(ArrayList libFilePaths, File installLibPath) {
         for (libFilePath in libFilePaths) {
-          def prefixedLibPath = new File(installLibPath, libFilePath.name)
-          prefixedLibPath.parentFile.mkdirs()
-          prefixedLibPath.bytes = libFilePath.bytes // This is just a file copy in Groovy
+            def prefixedLibPath = new File(installLibPath, libFilePath.name)
+            prefixedLibPath.parentFile.mkdirs()
+            prefixedLibPath.bytes = libFilePath.bytes // This is just a file copy in Groovy
         }
     }
 
@@ -78,19 +87,21 @@ class Builder extends DefaultTask {
         NativeHelper.conanAndroidArchs.each { k, v ->
             def conanOutPath = new File(this.conanPath, NativeHelper.getAndroidProfile(v, this.buildType))
             def tankerDepInfos = NativeHelper.getTankerDepInfos(conanOutPath)
-            NativeHelper.copyTankerLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, new File(this.installPathBaseDebug, k))
-            NativeHelper.copyTankerLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, new File(this.installPathBaseRelease, k))
+            NativeHelper.copyTankerAndroidLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, new File(this.installPathBaseDebug, k))
+            NativeHelper.copyTankerAndroidLibs(new File(tankerDepInfos.lib_paths.first()), tankerDepInfos.libs, new File(this.installPathBaseRelease, k))
         }
     }
 
     void compileForHost() {
-        def conanOutputPath = new File(this.conanPath, "linux-x86_64-shared")
+        // FIXME: Support all of linux & macos (arm/x86)
+        def host_platform = "macos-armv8-shared"
+        def conanOutputPath = new File(this.conanPath, host_platform)
         def conanHostPath = new File(this.conanPath, 'host')
         conanHostPath.mkdirs()
         def tankerDepInfos = NativeHelper.getTankerDepInfos(conanOutputPath)
         def libNames = tankerDepInfos.libs
         def platformPrefix = Platform.getNativeLibraryResourcePrefix()
-        NativeHelper.copyTankerLibs(new File(tankerDepInfos.lib_paths.first()), libNames, new File(conanHostPath, platformPrefix))
+        NativeHelper.copyTankerHostLibs(new File(tankerDepInfos.lib_paths.first()), libNames, new File(conanHostPath, platformPrefix))
         NativeHelper.createNativeLibJar(libNames.collect { new File(platformPrefix, System.mapLibraryName(it)) }, conanHostPath, 'tanker-native.jar')
     }
 }
