@@ -8,7 +8,3 @@ plugins {
     alias(libs.plugins.wup.android.maven.publish) apply false
     alias(libs.plugins.getkeepsafe.dexcount) apply false
 }
-
-tasks.register<Delete>("clean") {
-    delete(rootProject.buildDir)
-}

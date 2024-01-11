@@ -1,4 +1,4 @@
-import android.annotation.SuppressLint
+import io.tanker.build.BuildNative
 
 plugins {
     alias(libs.plugins.android.library)
@@ -8,9 +8,6 @@ plugins {
     alias(libs.plugins.wup.android.maven.publish)
     `maven-publish`
 }
-
-// FIXME: Convert to buildSrc per https://docs.gradle.org/current/userguide/organizing_gradle_projects.html#sec:build_sources
-apply(from = "native.gradle")
 
 group = "io.tanker"
 version = "dev"
@@ -108,6 +105,18 @@ android {
     sourceSets.getByName("release") {
         jniLibs.srcDir("src/release/jniLibs")
     }
+}
+
+// Note that we don't control the conan build type (debug/release) at this point,
+// since that part is done earlier in run-ci.py.
+// So there is no distinction between debug/release here,
+// we copy the same native lib (whether debug or release) for both Android debug/release variants
+tasks.register<BuildNative>("buildNativeHostDebug", "host")
+tasks.register<BuildNative>("buildNativeHostRelease", "host")
+tasks.register<BuildNative>("buildNativeAndroidRelease", "android")
+tasks.register<BuildNative>("buildNativeRelease", "all")
+tasks.clean {
+    delete("${projectDir}/conan")
 }
 
 tasks.withType<Test> {
