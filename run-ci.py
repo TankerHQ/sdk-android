@@ -1,5 +1,6 @@
 import argparse
 import os
+import platform
 import shutil
 import sys
 from pathlib import Path
@@ -15,8 +16,7 @@ import tankerci.git
 import tankerci.gitlab
 from tankerci.conan import Profile, TankerSource
 
-PROFILES = [
-    Profile(["linux-x86_64", "shared"]),
+PROFILES_MOBILE = [
     Profile("android-x86"),
     Profile("android-x86_64"),
     Profile("android-armv7"),
@@ -24,6 +24,25 @@ PROFILES = [
 ]
 
 LATEST_STABLE_REF = "tanker/latest-stable@"
+
+
+def host_profile_name() -> str:
+    if sys.platform == "linux":
+        return "linux-x86_64"
+    elif sys.platform == "darwin":
+        if platform.processor() == "arm":
+            return "macos-armv8"
+        else:
+            return "macos-x86_64"
+    else:
+        raise RuntimeError("Unsupported host platform for conan profile")
+
+
+def all_profiles():
+    return [
+        Profile([host_profile_name(), "shared"]),
+        *PROFILES_MOBILE,
+    ]
 
 
 def parse_profile(profile: str) -> Profile:
@@ -43,21 +62,21 @@ def prepare(
             parse_profile(d.name) for d in artifact_path.iterdir() if d.is_dir()
         ]
     else:
-        profiles = PROFILES
+        profiles = all_profiles()
     if tanker_source == TankerSource.DEPLOYED and not tanker_deployed_ref:
         tanker_deployed_ref = "tanker/latest-stable@"
     tankerci.conan.install_tanker_source(
         tanker_source,
         output_path=Path("tanker-bindings/conan"),
         host_profiles=profiles,
-        build_profile=Profile("linux-x86_64"),
+        build_profile=Profile(host_profile_name()),
         update=update,
         tanker_deployed_ref=tanker_deployed_ref,
     )
 
 
 def build() -> None:
-    tankerci.run("./gradlew", "tanker-bindings:buildNativeRelease")
+    tankerci.run("./gradlew", "tanker-bindings:buildNative")
     tankerci.run("./gradlew", "tanker-bindings:assembleRelease")
 
     dest_path = Path.cwd() / "artifacts"

@@ -1,38 +1,31 @@
 [versions]
-androidGradlePlugin = "8.2.0"
+androidGradlePlugin = "8.2.1"
 kotlinAndroid = "1.9.10"
-dokka = "1.8.10"
-wupAndroidMavenPublish = "3.6.2"
-dexcount = "4.0.0"
-
-androidxAnnotation = "1.6.0"
-androidxCore = "1.5.0"
-androidxJunit = "1.1.5"
-androidxRules = "1.5.0"
-androidxRunner = "1.5.2"
-kotlinxCoroutinesAndroid = "1.7.1"
 jna = "5.13.0"
-okhttp = "4.9.1"
-slf4jNop = "1.7.28"
-jacksonModuleKotlin = "2.12.7"
-assertjCore = "2.9.1"
 
 [libraries]
-androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
-androidx-core = { module = "androidx.test:core", version.ref = "androidxCore" }
-androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
-androidx-rules = { module = "androidx.test:rules", version.ref = "androidxRules" }
-androidx-runner = { module = "androidx.test:runner", version.ref = "androidxRunner" }
-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
-jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jacksonModuleKotlin" }
-assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertjCore" }
+# Official runtimes
+androidx-annotation = { module = "androidx.annotation:annotation", version = "1.7.1" }
+androidx-core = { module = "androidx.test:core", version = "1.5.0" }
+androidx-junit = { module = "androidx.test.ext:junit", version = "1.1.5" }
+androidx-rules = { module = "androidx.test:rules", version = "1.5.0" }
+androidx-runner = { module = "androidx.test:runner", version = "1.5.2" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.6.0" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.7.1" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.7.1" }
+
+# Third-party
+assertj-core = { module = "org.assertj:assertj-core", version = "2.9.1" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
-slf4j-nop = { module = "org.slf4j:slf4j-nop", version.ref = "slf4jNop" }
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version = "2.12.7" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version = "4.9.1" }
+pgreze-kotlin-process = { module = "com.github.pgreze:kotlin-process", version = "1.4.1" }
+slf4j-nop = { module = "org.slf4j:slf4j-nop", version = "1.7.28" }
 
 [plugins]
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinAndroid"}
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka"}
-wup-android-maven-publish = { id = "digital.wup.android-maven-publish", version.ref = "wupAndroidMavenPublish"}
-getkeepsafe-dexcount = { id = "com.getkeepsafe.dexcount", version.ref = "dexcount"}
+dokka = { id = "org.jetbrains.dokka", version = "1.8.10"}
+wup-android-maven-publish = { id = "digital.wup.android-maven-publish", version = "3.6.2"}
+getkeepsafe-dexcount = { id = "com.getkeepsafe.dexcount", version = "4.0.0"}
