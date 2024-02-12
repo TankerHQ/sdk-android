@@ -129,6 +129,7 @@ bridge-dotenv:
     - *global_before_script
   script:
     - poetry run python run-ci.py write-bridge-dotenv --downstream compatibility-tests
+                                                      --downstream sdk-react-native
   artifacts:
     expire_in: 7 days
     reports:
@@ -191,6 +192,56 @@ bridge/compat-deployed:
     project: TankerHQ/compatibility-tests
     branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
+
+.bridge/react-native:
+  stage: bridge-check
+  extends:
+    - .variables/bridge-common
+  needs:
+    - bridge-dotenv
+  variables:
+    UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
+  trigger:
+    project: TankerHQ/sdk-react-native
+    branch: $SDK_REACT_NATIVE_BRIDGE_BRANCH
+    strategy: depend
+
+bridge/react-native-from-sources:
+  extends:
+    - .bridge/react-native
+    - .rules/native-from-sources
+  needs:
+    - !reference [.bridge/react-native, needs]
+    - check/native-from-sources
+  variables:
+    UPSTREAM_JOB_NAME: check/native-from-sources
+
+bridge/react-native-downstream:
+  extends:
+    - .bridge/react-native
+  rules:
+    - if: !reference [.if-upstream-ci-pipeline, if]
+  needs:
+    - !reference [.bridge/react-native, needs]
+    - check/downstream
+  variables:
+    UPSTREAM_JOB_NAME: check/downstream
+
+bridge/react-native-deployed:
+  extends:
+    - .bridge/react-native
+  rules:
+    # only run during standalone SDK releases
+    - if: !reference [.if-invalid-android-release-version, if]
+      when: never
+    - !reference [.rules/web/auto, rules]
+  needs:
+    - !reference [.bridge/react-native, needs]
+    - check/deployed-native
+  variables:
+    UPSTREAM_JOB_NAME: check/deployed-native
+    SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
 
 ################
 # deploy stage #
