@@ -9,6 +9,7 @@ abstract class TankerSpec {
     companion object {
         @JvmStatic
         protected val options = TankerOptions()
+
         @JvmStatic
         lateinit var tc: App
 
@@ -17,10 +18,10 @@ abstract class TankerSpec {
         fun beforeSpec() {
             tc = App()
             options.setAppId(tc.id())
-                    .setUrl(tc.url)
-                    .setPersistentPath(createTmpDir().toString())
-                    .setCachePath(createTmpDir().toString())
-                    .setSdkType("test")
+                .setUrl(tc.url)
+                .setPersistentPath(createTmpDir())
+                .setCachePath(createTmpDir())
+                .setSdkType("test")
             setupTestEnv()
         }
 

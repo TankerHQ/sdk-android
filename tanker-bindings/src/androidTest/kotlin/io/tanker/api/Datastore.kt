@@ -32,7 +32,9 @@ class DatastoreTests : TankerSpec() {
         val datastoreTests = DatastoreTestsLib.create()
         val datastoreOptions = DatastoreOptions(datastoreTests)
 
-        val ret = datastoreTests.tanker_run_datastore_test(datastoreOptions, tempFolder.root.toString())
-        assertThat(ret).withFailMessage("Datastore tests have failed, please read logcat's output").isEqualTo(0)
+        val ret =
+            datastoreTests.tanker_run_datastore_test(datastoreOptions, tempFolder.root.toString())
+        assertThat(ret).withFailMessage("Datastore tests have failed, please read logcat's output")
+            .isEqualTo(0)
     }
 }

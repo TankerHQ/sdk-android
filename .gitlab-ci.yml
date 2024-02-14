@@ -73,29 +73,53 @@ stages:
     - !reference [.rules/web/auto, rules]
     - !reference [.rules/mr/manual, rules]
 
-check/deployed-native:
+.check/deployed-native:
   extends:
     - .rules/check/deployed-native
     - .artifacts
   stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
-    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_CONAN_REFERENCE
+    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=deployed --tanker-ref=$SDK_NATIVE_CONAN_REFERENCE --android-api-level=$ANDROID_API_LEVEL
     - echo $CI_COMMIT_REF_NAME > branch_name.txt
   tags: !reference [.tags/compilation-linux, tags]
 
-check/native-from-sources:
+check/oldest/deployed-native:
+  extends:
+    - .check/deployed-native
+  variables:
+    ANDROID_API_LEVEL: oldest
+
+check/latest/deployed-native:
+  extends:
+    - .check/deployed-native
+  variables:
+    ANDROID_API_LEVEL: latest
+
+.check/native-from-sources:
   extends:
     - .rules/native-from-sources
     - .artifacts
   stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
-    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=same-as-branch
+    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=same-as-branch --android-api-level=$ANDROID_API_LEVEL
     - echo $CI_COMMIT_REF_NAME > branch_name.txt
   tags: !reference [.tags/compilation-linux, tags]
 
-check/downstream:
+check/oldest/native-from-sources:
+  extends:
+    - .check/native-from-sources
+  variables:
+    ANDROID_API_LEVEL: oldest
+
+check/latest/native-from-sources:
+  extends:
+    - .check/native-from-sources
+  variables:
+    ANDROID_API_LEVEL: latest
+
+.check/downstream:
   extends:
     - .before-script/download-artifacts
     - .rules/check/downstream
@@ -103,8 +127,20 @@ check/downstream:
   stage: check
   script:
     - sudo chgrp 1000 -f /dev/kvm
-    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=upstream
+    - poetry run python run-ci.py --remote $CONAN_REMOTE --isolate-conan-user-home build-and-test --use-tanker=upstream --android-api-level=$ANDROID_API_LEVEL
   tags: !reference [.tags/compilation-linux, tags]
+
+check/oldest/downstream:
+  extends:
+    - .check/downstream
+  variables:
+    ANDROID_API_LEVEL: oldest
+
+check/latest/downstream:
+  extends:
+    - .check/downstream
+  variables:
+    ANDROID_API_LEVEL: latest
 
 ######################
 # bridge-check stage #
@@ -136,58 +172,112 @@ bridge-dotenv:
       dotenv: bridge.env
   tags: !reference [.tags/linux, tags]
 
-bridge/compat-from-sources:
+.bridge/compat-variables:
+  variables: 
+    UPSTREAM_JOB_TARGET: android
+    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
+
+.bridge/compat-from-sources:
   stage: bridge-check
   extends:
     - .variables/bridge-common
     - .rules/native-from-sources
+    - .bridge/compat-variables
+
+bridge/latest/compat-from-sources:
+  extends:
+    - .bridge/compat-from-sources
   needs:
-    - check/native-from-sources
+    - check/latest/native-from-sources
     - bridge-dotenv
   variables:
-    UPSTREAM_JOB_NAME: check/native-from-sources
-    UPSTREAM_JOB_TARGET: android
-    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
+    UPSTREAM_JOB_NAME: check/latest/native-from-sources
   trigger:
     project: TankerHQ/compatibility-tests
     branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
-bridge/compat-downstream:
+bridge/oldest/compat-from-sources:
+  extends:
+    - .bridge/compat-from-sources
+  needs:
+    - check/oldest/native-from-sources
+    - bridge-dotenv
+  variables:
+    UPSTREAM_JOB_NAME: check/oldest/native-from-sources
+  trigger:
+    project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
+    strategy: depend
+
+.bridge/compat-downstream:
   stage: bridge-check
   extends:
     - .variables/bridge-common
+    - .bridge/compat-variables
   rules:
     - if: !reference [.if-upstream-ci-pipeline, if]
+
+bridge/latest/compat-downstream:
+  extends:
+    - .bridge/compat-downstream
   needs:
-    - check/downstream
+    - check/latest/downstream
     - bridge-dotenv
   variables:
-    UPSTREAM_JOB_NAME: check/downstream
-    UPSTREAM_JOB_TARGET: android
-    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
+    UPSTREAM_JOB_NAME: check/latest/downstream
   trigger:
     project: TankerHQ/compatibility-tests
     branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
     strategy: depend
 
-bridge/compat-deployed:
+bridge/oldest/compat-downstream:
+  extends:
+    - .bridge/compat-downstream
+  needs:
+    - check/oldest/downstream
+    - bridge-dotenv
+  variables:
+    UPSTREAM_JOB_NAME: check/oldest/downstream
+  trigger:
+    project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
+    strategy: depend
+
+.bridge/compat-deployed:
   stage: bridge-check
   extends:
     - .variables/bridge-common
+    - .bridge/compat-variables
+  variables: 
+    SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
   rules:
     # only run during standalone SDK releases
     - if: !reference [.if-invalid-android-release-version, if]
       when: never
     - !reference [.rules/web/auto, rules]
+
+bridge/latest/compat-deployed:
+  extends:
+    - .bridge/compat-deployed
   needs:
-    - check/deployed-native
+    - check/latest/deployed-native
     - bridge-dotenv
   variables:
-    SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
-    UPSTREAM_JOB_NAME: check/deployed-native
-    UPSTREAM_JOB_TARGET: android
-    UPSTREAM_COMMIT_REF_NAME: $CI_COMMIT_REF_NAME
+    UPSTREAM_JOB_NAME: check/latest/deployed-native
+  trigger:
+    project: TankerHQ/compatibility-tests
+    branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
+    strategy: depend
+
+bridge/oldest/compat-deployed:
+  extends:
+    - .bridge/compat-deployed
+  needs:
+    - check/oldest/deployed-native
+    - bridge-dotenv
+  variables:
+    UPSTREAM_JOB_NAME: check/oldest/deployed-native
   trigger:
     project: TankerHQ/compatibility-tests
     branch: $COMPATIBILITY_TESTS_BRIDGE_BRANCH
@@ -207,28 +297,49 @@ bridge/compat-deployed:
     branch: $SDK_REACT_NATIVE_BRIDGE_BRANCH
     strategy: depend
 
-bridge/react-native-from-sources:
+bridge/oldest/react-native-from-sources:
   extends:
     - .bridge/react-native
     - .rules/native-from-sources
   needs:
     - !reference [.bridge/react-native, needs]
-    - check/native-from-sources
+    - check/oldest/native-from-sources
   variables:
-    UPSTREAM_JOB_NAME: check/native-from-sources
+    UPSTREAM_JOB_NAME: check/oldest/native-from-sources
 
-bridge/react-native-downstream:
+bridge/latest/react-native-from-sources:
+  extends:
+    - .bridge/react-native
+    - .rules/native-from-sources
+  needs:
+    - !reference [.bridge/react-native, needs]
+    - check/latest/native-from-sources
+  variables:
+    UPSTREAM_JOB_NAME: check/latest/native-from-sources
+
+bridge/oldest/react-native-downstream:
   extends:
     - .bridge/react-native
   rules:
     - if: !reference [.if-upstream-ci-pipeline, if]
   needs:
     - !reference [.bridge/react-native, needs]
-    - check/downstream
+    - check/oldest/downstream
   variables:
-    UPSTREAM_JOB_NAME: check/downstream
+    UPSTREAM_JOB_NAME: check/oldest/downstream
 
-bridge/react-native-deployed:
+bridge/latest/react-native-downstream:
+  extends:
+    - .bridge/react-native
+  rules:
+    - if: !reference [.if-upstream-ci-pipeline, if]
+  needs:
+    - !reference [.bridge/react-native, needs]
+    - check/latest/downstream
+  variables:
+    UPSTREAM_JOB_NAME: check/latest/downstream
+
+bridge/oldest/react-native-deployed:
   extends:
     - .bridge/react-native
   rules:
@@ -238,9 +349,24 @@ bridge/react-native-deployed:
     - !reference [.rules/web/auto, rules]
   needs:
     - !reference [.bridge/react-native, needs]
-    - check/deployed-native
+    - check/oldest/deployed-native
   variables:
-    UPSTREAM_JOB_NAME: check/deployed-native
+    UPSTREAM_JOB_NAME: check/oldest/deployed-native
+    SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
+
+bridge/latest/react-native-deployed:
+  extends:
+    - .bridge/react-native
+  rules:
+    # only run during standalone SDK releases
+    - if: !reference [.if-invalid-android-release-version, if]
+      when: never
+    - !reference [.rules/web/auto, rules]
+  needs:
+    - !reference [.bridge/react-native, needs]
+    - check/latest/deployed-native
+  variables:
+    UPSTREAM_JOB_NAME: check/latest/deployed-native
     SDK_NATIVE_CONAN_REFERENCE: $SDK_NATIVE_CONAN_REFERENCE
 
 ################

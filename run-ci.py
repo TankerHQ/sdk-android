@@ -97,12 +97,12 @@ def dump_logcat_for_failed_tests() -> None:
         ui.error("Failed to dump logcat:", e)
 
 
-def test() -> None:
+def test(android_api_level: tankerci.android.ApiLevel) -> None:
     ui.info_1("Building tests")
     tankerci.run("./gradlew", "packageReleaseAndroidTest", "-PandroidTestRelease")
     ui.info_1("Running tests")
     try:
-        with tankerci.android.emulator():
+        with tankerci.android.emulator(api_level=android_api_level):
             try:
                 tankerci.run(
                     "./gradlew", "connectedAndroidTest", "-PandroidTestRelease"
@@ -118,11 +118,13 @@ def test() -> None:
 
 
 def build_and_test(
-    tanker_source: TankerSource, tanker_ref: Optional[str] = None
+    tanker_source: TankerSource,
+    android_api_level: tankerci.android.ApiLevel,
+    tanker_ref: Optional[str] = None,
 ) -> None:
     prepare(tanker_source, False, tanker_ref)
     build()
-    test()
+    test(android_api_level)
 
 
 def deploy(*, version: str, tanker_ref: str) -> None:
@@ -143,6 +145,14 @@ def matching_downstream_branch(repo: str) -> str:
         return current_ref
     else:
         return "master"
+
+
+def parse_android_api_level(android_api_level: str) -> tankerci.android.ApiLevel:
+    return (
+        tankerci.android.ApiLevel.OLDEST
+        if android_api_level == "oldest"
+        else tankerci.android.ApiLevel.LATEST
+    )
 
 
 def main():
@@ -173,6 +183,12 @@ def main():
         dest="tanker_source",
     )
     build_and_test_parser.add_argument("--tanker-ref")
+    build_and_test_parser.add_argument(
+        "--android-api-level",
+        choices=["oldest", "latest"],
+        default="latest",
+        dest="android_api_level",
+    )
 
     build_parser = subparsers.add_parser("build")
     build_parser.add_argument(
@@ -183,7 +199,13 @@ def main():
     )
     build_parser.add_argument("--tanker-ref")
 
-    subparsers.add_parser("test")
+    test_parser = subparsers.add_parser("test")
+    test_parser.add_argument(
+        "--android-api-level",
+        choices=["oldest", "latest"],
+        default="latest",
+        dest="android_api_level",
+    )
 
     prepare_parser = subparsers.add_parser("prepare")
     prepare_parser.add_argument(
@@ -223,19 +245,26 @@ def main():
             tankerci.conan.run("remove", "tanker/*", "--force")
 
     if command == "build-and-test":
-        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
+        with tankerci.conan.ConanContextManager(
+            [args.remote, "conancenter"], conan_home=user_home
+        ):
             build_and_test(
                 tanker_source=args.tanker_source,
+                android_api_level=parse_android_api_level(args.android_api_level),
                 tanker_ref=args.tanker_ref,
             )
     elif command == "build":
-        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
+        with tankerci.conan.ConanContextManager(
+            [args.remote, "conancenter"], conan_home=user_home
+        ):
             prepare(args.tanker_source, False, args.tanker_ref)
             build()
     elif command == "test":
-        test()
+        test(android_api_level=parse_android_api_level(args.android_api_level))
     elif command == "prepare":
-        with tankerci.conan.ConanContextManager([args.remote, "conancenter"], conan_home=user_home):
+        with tankerci.conan.ConanContextManager(
+            [args.remote, "conancenter"], conan_home=user_home
+        ):
             prepare(args.tanker_source, args.update, args.tanker_ref)
     elif command == "deploy":
         with tankerci.conan.ConanContextManager(

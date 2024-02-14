@@ -15,7 +15,7 @@ class InputStreamTests : TankerSpec() {
 
     @Before
     fun beforeTest() {
-        tanker = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        tanker = Tanker(options.setPersistentPath(createTmpDir()).setCachePath(createTmpDir()))
         val st = tanker.start(tc.createIdentity()).get()
         assertThat(st).isEqualTo(Status.IDENTITY_REGISTRATION_NEEDED)
         tanker.registerIdentity(PassphraseVerification("pass")).get()
@@ -40,7 +40,11 @@ class InputStreamTests : TankerSpec() {
         val channel = InputStreamWrapper(array.inputStream())
         val encryptionStream = TankerChannels.toInputStream(tanker.encrypt(channel).get())
         encryptionStream.close()
-        val e = shouldThrow<TankerFutureException> { tanker.decrypt(TankerChannels.fromInputStream(encryptionStream)).get() }
+        val e = shouldThrow<TankerFutureException> {
+            tanker.decrypt(
+                TankerChannels.fromInputStream(encryptionStream)
+            ).get()
+        }
         assertThat(e).hasCauseInstanceOf(IOException::class.java)
     }
 
@@ -55,7 +59,8 @@ class InputStreamTests : TankerSpec() {
     @Test
     fun encrypting_decrypting_a_small_buffer() {
         val channel = TankerChannels.fromInputStream(array.inputStream())
-        val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+        val decryptionStream =
+            TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
         val b = ByteArray(10) { 1 }
         assertThat(decryptionStream.read(b)).isEqualTo(10)
         assertThat(decryptionStream.read()).isEqualTo(-1)
@@ -69,7 +74,8 @@ class InputStreamTests : TankerSpec() {
         array = ByteArray(totalLength) { it.toByte() }
 
         val channel = TankerChannels.fromInputStream(array.inputStream())
-        val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+        val decryptionStream =
+            TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
         val b = ByteArray(totalLength)
         var pos = 0
         while (pos < totalLength) {
@@ -132,7 +138,8 @@ class InputStreamTests : TankerSpec() {
     @Test
     fun reading_into_a_ByteArray_twice() {
         val channel = TankerChannels.fromInputStream(array.inputStream())
-        val decryptionStream = TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
+        val decryptionStream =
+            TankerChannels.toInputStream(tanker.decrypt(tanker.encrypt(channel).get()).get())
         val b = ByteArray(10) { 1 }
         assertThat(decryptionStream.read(b, 0, 5)).isEqualTo(5)
         assertThat(decryptionStream.read(b, 5, 5)).isEqualTo(5)
