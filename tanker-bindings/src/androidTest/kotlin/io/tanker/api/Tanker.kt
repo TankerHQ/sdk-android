@@ -307,8 +307,8 @@ class TankerTests : TankerSpec() {
 
         val plaintext = "plain text"
         val encryptionOptions = EncryptionOptions()
-                .shareWithUsers(Identity.getPublicIdentity(bobId))
-                .shareWithSelf(false)
+            .shareWithUsers(Identity.getPublicIdentity(bobId))
+            .shareWithSelf(false)
         val encrypted = tankerAlice.encrypt(plaintext.toByteArray(), encryptionOptions).get()
 
         val ex = shouldThrow<TankerFutureException> { tankerAlice.decrypt(encrypted).get() }
@@ -536,7 +536,8 @@ class TankerTests : TankerSpec() {
         val attachAliceResult = tankerAlice.attachProvisionalIdentity(provisionalIdentity).get()
         assertThat(attachAliceResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
         val aliceVerificationCode = tc.getEmailVerificationCode(aliceEmail)
-        tankerAlice.verifyProvisionalIdentity(EmailVerification(aliceEmail, aliceVerificationCode)).get()
+        tankerAlice.verifyProvisionalIdentity(EmailVerification(aliceEmail, aliceVerificationCode))
+            .get()
 
         // try to attach/verify with Bob
         val bobId = tc.createIdentity()
@@ -548,9 +549,10 @@ class TankerTests : TankerSpec() {
         assertThat(attachBobResult.status).isEqualTo(Status.IDENTITY_VERIFICATION_NEEDED)
         val bobVerificationCode = tc.getEmailVerificationCode(aliceEmail)
         val e = shouldThrow<TankerFutureException> {
-            tankerBob.verifyProvisionalIdentity(EmailVerification(aliceEmail, bobVerificationCode)).get()
+            tankerBob.verifyProvisionalIdentity(EmailVerification(aliceEmail, bobVerificationCode))
+                .get()
         }
-        assertThat(e).hasCauseInstanceOf(IdentityAlreadyAttached::class.java) 
+        assertThat(e).hasCauseInstanceOf(IdentityAlreadyAttached::class.java)
     }
 
     @Test

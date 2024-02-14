@@ -96,7 +96,7 @@ class FutureTests {
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
         val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
-                .then<String>(TankerCallback { str })
+            .then<String>(TankerCallback { str })
 
         val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.thenUnwrap<String>(TankerUnwrapCallback {
@@ -114,7 +114,7 @@ class FutureTests {
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
         val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
-                .then<String>(TankerCallback { str })
+            .then<String>(TankerCallback { str })
 
         val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.thenUnwrap<String>(TankerUnwrapCallback {
@@ -215,7 +215,7 @@ class FutureTests {
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
         val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
-                .andThen<String>(TankerCallback { str })
+            .andThen<String>(TankerCallback { str })
 
         val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.andThenUnwrap<String>(TankerUnwrapCallback {
@@ -233,7 +233,7 @@ class FutureTests {
         val wrappedCPromise = lib.tanker_promise_create()
         val wrappedCFuture = lib.tanker_promise_get_future(wrappedCPromise)
         val wrappedFuture = TankerFuture<Unit>(wrappedCFuture, Unit::class.java, keepAlive = null)
-                .andThen<String>(TankerCallback { str })
+            .andThen<String>(TankerCallback { str })
 
         val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
         val result = fut.andThenUnwrap<String>(TankerUnwrapCallback {
@@ -252,11 +252,11 @@ class FutureTests {
     fun andThen_stops_executing_a_chain_after_an_error() {
         val except = RuntimeException("Error")
         val fut = TankerFuture<Unit>(tankerFuture, Unit::class.java, keepAlive = null)
-                .andThen<Double>(TankerCallback {
-                    throw except
-                }).andThen<String>(TankerCallback {
-                    "This should never be returned"
-                })
+            .andThen<Double>(TankerCallback {
+                throw except
+            }).andThen<String>(TankerCallback {
+                "This should never be returned"
+            })
         fut.block()
         assertThat(fut.getError()).isEqualTo(except)
     }
@@ -264,8 +264,8 @@ class FutureTests {
     @Test
     fun orElse_can_forward_the_original_value() {
         val fut = TankerFuture<Unit>()
-                .then<Int>(TankerCallback { 25 })
-                .orElse(TankerCallback { -1 })
+            .then<Int>(TankerCallback { 25 })
+            .orElse(TankerCallback { -1 })
         System.gc() // Make sure we got our lifetimes right
         assertThat(fut.get()).isEqualTo(25)
     }
@@ -273,8 +273,8 @@ class FutureTests {
     @Test
     fun orElse_calls_the_callback_on_error() {
         val fut = TankerFuture<Unit>()
-                .then<Int>(TankerCallback { throw RuntimeException("Error") })
-                .orElse(TankerCallback { -1 })
+            .then<Int>(TankerCallback { throw RuntimeException("Error") })
+            .orElse(TankerCallback { -1 })
         System.gc() // Make sure we got our lifetimes right
         assertThat(fut.get()).isEqualTo(-1)
     }
@@ -314,9 +314,12 @@ class FutureTests {
 
     @Test
     fun allOf_returns_the_first_error_if_both_futures_errors_out() {
-        val fut1 = TankerFuture<Unit>().then<Int>(TankerCallback { throw RuntimeException("Error") })
-        val fut2 = TankerFuture<Unit>().then<Int>(TankerCallback { throw RuntimeException("Other Error") })
-        val except = shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
+        val fut1 =
+            TankerFuture<Unit>().then<Int>(TankerCallback { throw RuntimeException("Error") })
+        val fut2 =
+            TankerFuture<Unit>().then<Int>(TankerCallback { throw RuntimeException("Other Error") })
+        val except =
+            shouldThrow<TankerFutureException> { TankerFuture.allOf(arrayOf(fut1, fut2)).get() }
         assertThat(except.cause!!.cause!!.message).isEqualTo("Error")
     }
 }

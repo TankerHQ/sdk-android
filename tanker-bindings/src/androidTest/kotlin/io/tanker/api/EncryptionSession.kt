@@ -80,7 +80,8 @@ class EncryptionSessionTests : TankerSpec() {
         val plaintextChannel = TankerChannels.fromInputStream(plaintext.inputStream())
         val encryptStream = sess.encrypt(plaintextChannel).get()
 
-        val decryptionStream = TankerChannels.toInputStream(tankerAlice.decrypt(encryptStream).get())
+        val decryptionStream =
+            TankerChannels.toInputStream(tankerAlice.decrypt(encryptStream).get())
         val decrypted = ByteArray(plaintext.size) { 0 }
         assertThat(decryptionStream.read(decrypted)).isEqualTo(plaintext.size)
         assertThat(decrypted).isEqualTo(plaintext)
@@ -99,7 +100,11 @@ class EncryptionSessionTests : TankerSpec() {
         val sess2 = tankerAlice.createEncryptionSession(EncryptionOptions()).get()
         val cipher1 = sess1.encrypt("La Fontaine — Fables".toByteArray()).get()
         val cipher2 = sess2.encrypt("Monmoulin — Lettres".toByteArray()).get()
-        assertThat(tankerAlice.getResourceID(cipher1)).isNotEqualTo(tankerAlice.getResourceID(cipher2))
+        assertThat(tankerAlice.getResourceID(cipher1)).isNotEqualTo(
+            tankerAlice.getResourceID(
+                cipher2
+            )
+        )
     }
 
     @Test

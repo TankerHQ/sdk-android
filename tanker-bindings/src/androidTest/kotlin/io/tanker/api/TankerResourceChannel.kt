@@ -1,6 +1,8 @@
 package io.tanker.api
 
+import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.test.filters.SdkSuppress
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -14,7 +16,11 @@ import java.util.concurrent.FutureTask
 class BlockingChannel : TankerAsynchronousByteChannel {
     private var isClosed = false
 
-    override fun <A> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
+    override fun <A> read(
+        dst: ByteBuffer,
+        attachment: A,
+        handler: TankerCompletionHandler<Int, in A>
+    ) {
     }
 
     override fun isOpen(): Boolean {
@@ -30,7 +36,11 @@ class DummyChannel : TankerAsynchronousByteChannel {
     val clearBuffer = ByteBuffer.allocate(1024 * 1024 * 2)
     private var isClosed = false
 
-    override fun <A> read(dst: ByteBuffer, attachment: A, handler: TankerCompletionHandler<Int, in A>) {
+    override fun <A> read(
+        dst: ByteBuffer,
+        attachment: A,
+        handler: TankerCompletionHandler<Int, in A>
+    ) {
         try {
             if (dst.remaining() == 0) {
                 handler.completed(0, attachment)
@@ -59,7 +69,11 @@ class DummyChannel : TankerAsynchronousByteChannel {
 }
 
 @RequiresApi(26)
-class API26StreamChannelTestHelper(tanker: Tanker, chan: TankerAsynchronousByteChannel, decrypt: Boolean) {
+class API26StreamChannelTestHelper(
+    tanker: Tanker,
+    chan: TankerAsynchronousByteChannel,
+    decrypt: Boolean
+) {
     val dummyChannel = DummyChannel()
     val clearChannel = TankerChannels.toAsynchronousByteChannel(dummyChannel)
     var err: Throwable? = null
@@ -89,20 +103,21 @@ class API26StreamChannelTestHelper(tanker: Tanker, chan: TankerAsynchronousByteC
     init {
         val encryptChannel = tanker.encrypt(chan).get()
         outputChannel =
-                if (decrypt)
-                    TankerChannels.toAsynchronousByteChannel(tanker.decrypt(encryptChannel).get())
-                else
-                    TankerChannels.toAsynchronousByteChannel(encryptChannel)
+            if (decrypt)
+                TankerChannels.toAsynchronousByteChannel(tanker.decrypt(encryptChannel).get())
+            else
+                TankerChannels.toAsynchronousByteChannel(encryptChannel)
     }
 }
 
 @RequiresApi(26)
+@SdkSuppress(minSdkVersion = 26)
 class API26StreamChannelTests : TankerSpec() {
     lateinit var tanker: Tanker
 
     @Before
     fun beforeTest() {
-        tanker = Tanker(options.setPersistentPath(createTmpDir().toString()).setCachePath(createTmpDir().toString()))
+        tanker = Tanker(options.setPersistentPath(createTmpDir()).setCachePath(createTmpDir()))
         val st = tanker.start(tc.createIdentity()).get()
         assertThat(st).isEqualTo(Status.IDENTITY_REGISTRATION_NEEDED)
         tanker.registerIdentity(PassphraseVerification("pass")).get()
@@ -129,6 +144,12 @@ class API26StreamChannelTests : TankerSpec() {
         val helper = API26StreamChannelTestHelper(tanker, BlockingChannel(), false)
         val secondBuffer = ByteBuffer.allocate(helper.decryptedBuffer.capacity())
         helper.outputChannel.read(helper.decryptedBuffer, Unit, helper.callback())
-        shouldThrow<ReadPendingException> { helper.outputChannel.read(secondBuffer, Unit, helper.callback()) }
+        shouldThrow<ReadPendingException> {
+            helper.outputChannel.read(
+                secondBuffer,
+                Unit,
+                helper.callback()
+            )
+        }
     }
 }

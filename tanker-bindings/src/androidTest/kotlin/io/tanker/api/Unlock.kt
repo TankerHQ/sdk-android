@@ -25,12 +25,12 @@ class UnlockTests : TankerSpec() {
     fun beforeTest() {
         identity = tc.createIdentity()
         tanker1 = Tanker(
-            options.setPersistentPath(createTmpDir().toString())
-                .setCachePath(createTmpDir().toString())
+            options.setPersistentPath(createTmpDir())
+                .setCachePath(createTmpDir())
         )
         tanker2 = Tanker(
-            options.setPersistentPath(createTmpDir().toString())
-                .setCachePath(createTmpDir().toString())
+            options.setPersistentPath(createTmpDir())
+                .setCachePath(createTmpDir())
         )
     }
 
@@ -229,7 +229,8 @@ class UnlockTests : TankerSpec() {
         val martineConfig = oidcConfig.users.getValue("martine")
         val martineIdentity = tc.createIdentity(martineConfig.email)
 
-        val oidcProviderConfig = OidcProviderConfig(oidcConfig.clientId, oidcConfig.displayName, oidcConfig.issuer)
+        val oidcProviderConfig =
+            OidcProviderConfig(oidcConfig.clientId, oidcConfig.displayName, oidcConfig.issuer)
         val appOptions = TankerAppUpdateOptions()
             .setOidcProvider(oidcProviderConfig)
         tc.admin.appUpdate(tc.id(), appOptions)
