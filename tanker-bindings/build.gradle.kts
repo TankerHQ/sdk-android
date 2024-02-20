@@ -12,7 +12,7 @@ plugins {
 group = "io.tanker"
 version = "dev"
 
-val minSdkVersion = 21
+val minSdkVersion = 23
 val targetSdkVersion = 34
 
 android {
