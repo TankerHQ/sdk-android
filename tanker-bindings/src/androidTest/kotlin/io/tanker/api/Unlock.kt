@@ -7,7 +7,6 @@ import io.tanker.api.admin.TankerAppUpdateOptions
 import io.tanker.api.errors.InvalidArgument
 import io.tanker.api.errors.InvalidVerification
 import io.tanker.api.errors.PreconditionFailed
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -235,24 +234,7 @@ class UnlockTests : TankerSpec() {
             .setOidcProvider(oidcProviderConfig)
         tc.admin.appUpdate(tc.id(), appOptions)
 
-        // Get a fresh OIDC ID token from GOOG
-        val jsonMapper = ObjectMapper()
-        val jsonObj = jsonMapper.createObjectNode()
-        jsonObj.put("grant_type", "refresh_token")
-        jsonObj.put("refresh_token", martineConfig.refreshToken)
-        jsonObj.put("client_id", oidcConfig.clientId)
-        jsonObj.put("client_secret", oidcConfig.clientSecret)
-        val jsonBody = jsonMapper.writeValueAsString(jsonObj)
-
-        val request = Request.Builder()
-            .url("https://www.googleapis.com/oauth2/v4/token")
-            .post(jsonBody.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()!!))
-            .build()
-        val response = OkHttpClient().newCall(request).execute()
-        if (!response.isSuccessful)
-            throw java.lang.RuntimeException("Google OAuth test request failed!")
-        val jsonResponse = jsonMapper.readTree(response.body?.string())
-        val oidcIdToken = jsonResponse.get("id_token").asText()
+        val oidcIdToken = getIDToken(oidcConfig)
 
         // Check that we can use our ID token as a verification method
         val nonce = tanker1.createOidcNonce().get()
@@ -403,6 +385,27 @@ class UnlockTests : TankerSpec() {
     }
 
     @Test
+    fun cannot_register_with_preverified_oidc() {
+        val oidcConfig = Config.getOIDCConfig()
+
+        val oidcProviderConfig =
+            OidcProviderConfig(oidcConfig.clientId, oidcConfig.displayName, oidcConfig.issuer)
+        val appOptions = TankerAppUpdateOptions()
+            .setOidcProvider(oidcProviderConfig)
+        val oidc_provider = tc.admin.appUpdate(tc.id(), appOptions)
+
+        val subject = "subject"
+        val providerID = oidc_provider.get("id").asText()
+
+        tanker1.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker1.registerIdentity(PreverifiedOIDCVerification(subject, providerID)).get()
+        }
+
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
     fun cannot_verify_with_preverified_email() {
         val email = "bob@tanker.io"
 
@@ -429,6 +432,33 @@ class UnlockTests : TankerSpec() {
         tanker2.start(identity).get()
         val e = shouldThrow<TankerFutureException> {
             tanker2.verifyIdentity(PreverifiedPhoneNumberVerification(phoneNumber)).get()
+        }
+
+        assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun cannot_verify_with_preverified_oidc() {
+        val oidcConfig = Config.getOIDCConfig()
+
+        val oidcProviderConfig =
+            OidcProviderConfig(oidcConfig.clientId, oidcConfig.displayName, oidcConfig.issuer)
+        val appOptions = TankerAppUpdateOptions()
+            .setOidcProvider(oidcProviderConfig)
+        val oidc_provider = tc.admin.appUpdate(tc.id(), appOptions)
+        val oidcIdToken = getIDToken(oidcConfig)
+
+        val subject = extractSubject(oidcIdToken)
+        val providerID = oidc_provider.get("id").asText()
+
+        tanker1.start(identity).get()
+        val nonce = tanker1.createOidcNonce().get()
+        tanker1.setOidcTestNonce(nonce).get()
+        tanker1.registerIdentity(OIDCIDTokenVerification(oidcIdToken)).get()
+
+        tanker2.start(identity).get()
+        val e = shouldThrow<TankerFutureException> {
+            tanker2.verifyIdentity(PreverifiedOIDCVerification(subject, providerID)).get()
         }
 
         assertThat(e.cause).hasCauseInstanceOf(InvalidArgument::class.java)
@@ -487,6 +517,43 @@ class UnlockTests : TankerSpec() {
         assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
             PhoneNumberVerificationMethod(phoneNumber), PassphraseVerificationMethod
         )
+
+        tanker1.stop().get()
+        tanker2.stop().get()
+    }
+
+    @Test
+    fun can_set_preverified_oidc_with_setVerificationMethod() {
+        val pass = "PassOne"
+
+        val oidcConfig = Config.getOIDCConfig()
+
+        val oidcProviderConfig =
+            OidcProviderConfig(oidcConfig.clientId, oidcConfig.displayName, oidcConfig.issuer)
+        val appOptions = TankerAppUpdateOptions()
+            .setOidcProvider(oidcProviderConfig)
+        val oidc_provider = tc.admin.appUpdate(tc.id(), appOptions)
+        val oidcIdToken = getIDToken(oidcConfig)
+
+        val subject = extractSubject(oidcIdToken)
+        val providerID = oidc_provider.get("id").asText()
+
+        tanker1.start(identity).get()
+        tanker1.registerIdentity(PassphraseVerification(pass)).get()
+        assertThat(tanker1.getVerificationMethods().get()).containsExactly(
+            PassphraseVerificationMethod
+        )
+
+        tanker1.setVerificationMethod(PreverifiedOIDCVerification(subject, providerID)).get()
+        assertThat(tanker1.getVerificationMethods().get()).containsExactlyInAnyOrder(
+            PassphraseVerificationMethod, OIDCIDTokenVerificationMethod(providerID, oidc_provider.get("display_name").asText())
+        )
+
+        tanker2.start(identity).get()
+        val nonce = tanker2.createOidcNonce().get()
+        tanker2.setOidcTestNonce(nonce).get()
+        tanker2.verifyIdentity(OIDCIDTokenVerification(oidcIdToken)).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
 
         tanker1.stop().get()
         tanker2.stop().get()

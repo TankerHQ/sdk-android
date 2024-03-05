@@ -1,5 +1,6 @@
 package io.tanker.api.admin
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -53,7 +54,7 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
     /**
      * Updates the app properties
      */
-    fun appUpdate(appId: String, options: TankerAppUpdateOptions) {
+    fun appUpdate(appId: String, options: TankerAppUpdateOptions) : JsonNode {
         val jsonMapper = ObjectMapper()
         val reqJson = jsonMapper.createObjectNode()
         options.oidcProvider?.let {
@@ -76,8 +77,11 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
                 .method("PATCH", reqJson.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
-        client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("Unexpected code $response")
-        }
+        val response = client.newCall(request).execute()
+        if (!response.isSuccessful)
+            throw IOException("Unexpected code $response")
+
+        val jsonResponse = jsonMapper.readTree(response.body?.string())
+        return jsonResponse.get("app").get("oidc_providers").get(0)
     }
 }
