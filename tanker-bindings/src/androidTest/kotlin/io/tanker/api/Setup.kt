@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import io.tanker.api.admin.Admin
 import io.tanker.api.admin.TankerApp
@@ -187,7 +188,16 @@ fun setupTestEnv() {
         override fun callback(logRecord: LogRecord) {
             if (logRecord.level == TankerLogLevel.DEBUG.value)
                 return
-            println("${logRecord.category}: ${logRecord.message}")
+
+            val tag = "io.tanker.tanker_bindings"
+            val msg = "${logRecord.category}: ${logRecord.message}"
+
+            when (logRecord.level) {
+                TankerLogLevel.INFO.value -> Log.i(tag, msg)
+                TankerLogLevel.WARNING.value -> Log.w(tag, msg)
+                TankerLogLevel.ERROR.value -> Log.e(tag, msg)
+                else -> Log.i(tag, msg)
+            }
         }
     })
 }
