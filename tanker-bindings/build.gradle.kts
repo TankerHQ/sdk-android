@@ -18,7 +18,7 @@ val targetSdkVersion = 34
 android {
     namespace = "io.tanker.tanker_bindings"
 
-    ndkVersion = "26.0.10792818"
+    ndkVersion = "26.2.11394342"
 
     compileSdk = targetSdkVersion
     defaultConfig {
