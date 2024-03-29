@@ -432,4 +432,16 @@ class Tanker(tankerOptions: TankerOptions) {
             EncryptionSession(csession)
         })
     }
+
+    internal fun authenticateWithIDP(providerID: String, subjectCookie: String): TankerFuture<OIDCAuthorizationCodeVerification> {
+        val fut = TankerFuture<Pointer>(lib.tanker_authenticate_with_idp(tanker, providerID, subjectCookie), Pointer::class.java, keepAlive = this)
+        return fut.then(TankerCallback {
+            val resultPtr = it.get()
+            val cVerification = TankerOIDCAuthorizationCodeVerificationResult(resultPtr)
+            val out = OIDCAuthorizationCodeVerification(cVerification.providerID!!, cVerification.authorizationCode!!, cVerification.state!!)
+            lib.tanker_free_authenticate_with_idp_result(resultPtr)
+
+            out
+        })
+    }
 }

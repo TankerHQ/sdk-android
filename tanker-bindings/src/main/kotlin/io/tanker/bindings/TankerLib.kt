@@ -141,6 +141,9 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
                                     users_to_add: StringArray, nb_users_to_add: Long,
                                     users_to_remove: StringArray, nb_users_to_remove: Long): FuturePointer
 
+    fun tanker_authenticate_with_idp(session: SessionPointer, providerID: String, cookie: String): FuturePointer
+    fun tanker_free_authenticate_with_idp_result(result: Pointer)
+
     fun tanker_http_handle_response(request: TankerHttpRequestPointer, response: TankerHttpResponse)
 
     fun tanker_free_buffer(buffer: Pointer): Void

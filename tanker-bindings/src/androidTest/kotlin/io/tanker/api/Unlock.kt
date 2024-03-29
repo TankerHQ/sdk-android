@@ -257,6 +257,34 @@ class UnlockTests : TankerSpec() {
     }
 
     @Test
+    fun can_use_oidc_authorization_code_as_verification() {
+        val fakeOidcIssuerUrl = Config.getOIDCConfig().fakeOidcIssuerUrl
+        val oidcProviderConfig =
+            OidcProviderConfig("tanker", "fake-oidc", fakeOidcIssuerUrl)
+        val appOptions = TankerAppUpdateOptions()
+            .setOidcProvider(oidcProviderConfig)
+        val oidcProvider = tc.admin.appUpdate(tc.id(), appOptions)
+
+        val providerID = oidcProvider.get("id").asText()
+        val subjectCookie = "fake_oidc_subject=martine"
+
+
+        tanker1.start(identity).get()
+
+        val verification1 = tanker1.authenticateWithIDP(providerID, subjectCookie).get()
+        val verification2 = tanker1.authenticateWithIDP(providerID, subjectCookie).get()
+
+        tanker1.registerIdentity(verification1).get()
+
+        tanker2.start(identity).get()
+        tanker2.verifyIdentity(verification2).get()
+        assertThat(tanker2.getStatus()).isEqualTo(Status.READY)
+
+        tanker1.stop().get()
+        tanker2.stop().get()
+    }
+
+    @Test
     fun can_get_a_session_token_with_registerIdentity() {
         val passphrase = "Offline Last Seen Mar 3rd, 2018"
 

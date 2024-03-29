@@ -17,6 +17,10 @@ class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, 
     }
 
     private val client = OkHttpClient()
+        .newBuilder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .build()
     internal val calls = HashMap<Int, Call>()
     private var lastId = 0
 
