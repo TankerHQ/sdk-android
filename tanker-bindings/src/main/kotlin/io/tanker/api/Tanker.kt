@@ -173,7 +173,7 @@ class Tanker(tankerOptions: TankerOptions) {
             val ptr = it.get()
             val str = ptr.getString(0)
             lib.tanker_free_buffer(ptr)
-            str 
+            str
         })
     }
 
@@ -198,6 +198,8 @@ class Tanker(tankerOptions: TankerOptions) {
             if (method != Pointer.NULL) {
                 outMethod = verificationMethodFromCVerification(TankerVerificationMethod(method))
             }
+
+            lib.tanker_free_attach_result(attachResultPtr)
             AttachResult(Status.fromInt(status), outMethod)
         })
     }
