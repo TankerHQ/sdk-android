@@ -97,6 +97,7 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_set_oidc_test_nonce(tanker: SessionPointer, nonce: String): FuturePointer
 
     fun tanker_attach_provisional_identity(tanker: SessionPointer, provisionalIdentity: String): FuturePointer
+    fun tanker_free_attach_result(result: Pointer)
     fun tanker_verify_provisional_identity(tanker: SessionPointer, verification: TankerVerification): FuturePointer
 
     fun tanker_get_verification_methods(tanker: SessionPointer): FuturePointer
@@ -140,6 +141,9 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_update_group_members(tanker: SessionPointer, group_id: String,
                                     users_to_add: StringArray, nb_users_to_add: Long,
                                     users_to_remove: StringArray, nb_users_to_remove: Long): FuturePointer
+
+    fun tanker_authenticate_with_idp(session: SessionPointer, providerID: String, cookie: String): FuturePointer
+    fun tanker_free_authenticate_with_idp_result(result: Pointer)
 
     fun tanker_http_handle_response(request: TankerHttpRequestPointer, response: TankerHttpResponse)
 

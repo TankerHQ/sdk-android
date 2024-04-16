@@ -10,3 +10,4 @@ data class PreverifiedEmailVerification(val preverifiedEmail: String) : Verifica
 data class PreverifiedPhoneNumberVerification(val preverifiedPhoneNumber: String) : Verification()
 data class E2ePassphraseVerification(val e2ePassphrase: String) : Verification()
 data class PreverifiedOIDCVerification(val subject: String, val providerID: String) : Verification()
+data class OIDCAuthorizationCodeVerification(val providerID: String, val authorizationCode: String, val state: String) : Verification()

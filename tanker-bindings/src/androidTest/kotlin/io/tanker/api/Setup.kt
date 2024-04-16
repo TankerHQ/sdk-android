@@ -1,5 +1,6 @@
 package io.tanker.api
 
+import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import io.tanker.api.admin.Admin
 import io.tanker.api.admin.TankerApp
@@ -21,6 +22,7 @@ data class ConfigOIDC(
     val clientSecret: String,
     val displayName: String,
     val issuer: String,
+    val fakeOidcIssuerUrl: String,
     val users: Map<String, ConfigOIDCUser>
 )
 
@@ -114,6 +116,7 @@ class Config {
             clientSecret = safeGetEnv("TANKER_OIDC_CLIENT_SECRET"),
             displayName = safeGetEnv("TANKER_OIDC_PROVIDER"),
             issuer = safeGetEnv("TANKER_OIDC_ISSUER"),
+            fakeOidcIssuerUrl = safeGetEnv("TANKER_FAKE_OIDC_URL") + "/issuer",
             users = mapOf(
                 Pair(
                     "martine",
@@ -187,7 +190,16 @@ fun setupTestEnv() {
         override fun callback(logRecord: LogRecord) {
             if (logRecord.level == TankerLogLevel.DEBUG.value)
                 return
-            println("${logRecord.category}: ${logRecord.message}")
+
+            val tag = "io.tanker.tanker_bindings"
+            val msg = "${logRecord.category}: ${logRecord.message}"
+
+            when (logRecord.level) {
+                TankerLogLevel.INFO.value -> Log.i(tag, msg)
+                TankerLogLevel.WARNING.value -> Log.w(tag, msg)
+                TankerLogLevel.ERROR.value -> Log.e(tag, msg)
+                else -> Log.i(tag, msg)
+            }
         }
     })
 }

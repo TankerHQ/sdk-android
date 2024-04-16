@@ -173,7 +173,7 @@ class Tanker(tankerOptions: TankerOptions) {
             val ptr = it.get()
             val str = ptr.getString(0)
             lib.tanker_free_buffer(ptr)
-            str 
+            str
         })
     }
 
@@ -198,6 +198,8 @@ class Tanker(tankerOptions: TankerOptions) {
             if (method != Pointer.NULL) {
                 outMethod = verificationMethodFromCVerification(TankerVerificationMethod(method))
             }
+
+            lib.tanker_free_attach_result(attachResultPtr)
             AttachResult(Status.fromInt(status), outMethod)
         })
     }
@@ -430,6 +432,18 @@ class Tanker(tankerOptions: TankerOptions) {
             it.getError()?.let { throw it }
             val csession = it.get()
             EncryptionSession(csession)
+        })
+    }
+
+    fun authenticateWithIDP(providerID: String, subjectCookie: String): TankerFuture<OIDCAuthorizationCodeVerification> {
+        val fut = TankerFuture<Pointer>(lib.tanker_authenticate_with_idp(tanker, providerID, subjectCookie), Pointer::class.java, keepAlive = this)
+        return fut.then(TankerCallback {
+            val resultPtr = it.get()
+            val cVerification = TankerOIDCAuthorizationCodeVerificationResult(resultPtr)
+            val out = OIDCAuthorizationCodeVerification(cVerification.providerID!!, cVerification.authorizationCode!!, cVerification.state!!)
+            lib.tanker_free_authenticate_with_idp_result(resultPtr)
+
+            out
         })
     }
 }

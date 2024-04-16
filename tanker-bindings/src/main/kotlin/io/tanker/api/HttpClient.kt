@@ -2,6 +2,7 @@ package io.tanker.api
 
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
+import io.tanker.bindings.TankerHttpHeader
 import io.tanker.bindings.TankerHttpRequest
 import io.tanker.bindings.TankerHttpResponse
 import io.tanker.bindings.TankerLib
@@ -16,6 +17,10 @@ class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, 
     }
 
     private val client = OkHttpClient()
+        .newBuilder()
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .build()
     internal val calls = HashMap<Int, Call>()
     private var lastId = 0
 
@@ -35,14 +40,15 @@ class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, 
             val requestBuilder = Request.Builder()
                     .url(crequest.url!!)
                     .method(crequest.method!!, body?.toRequestBody(JSON))
+
+            for (header in crequest.getHeaders()) {
+                requestBuilder.addHeader(header.name, header.value)
+            }
+
+            requestBuilder
                     .header("X-Tanker-SdkType", sdkType)
                     .header("X-Tanker-SdkVersion", sdkVersion)
-            if (crequest.authorization != null)
-                requestBuilder.header("Authorization", crequest.authorization!!)
-            if (crequest.instanceId != null)
-                requestBuilder.header("X-Tanker-Instanceid", crequest.instanceId!!)
             val request = requestBuilder.build()
-
 
             val call = client.newCall(request)
             val requestId = synchronized(this) {
@@ -67,7 +73,11 @@ class HttpClient(private val tankerLib: TankerLib, private val sdkType: String, 
                     response.use {
                         val cresponse = TankerHttpResponse()
                         cresponse.statusCode = it.code
-                        cresponse.contentType = it.header("content-type")
+
+                        cresponse.headers = it.headers.map { hdr ->
+                            TankerHttpHeader(hdr.first, hdr.second)
+                        }.toTypedArray()
+
                         val bodyData = it.body?.bytes()
                         if (bodyData != null && bodyData.isNotEmpty()) {
                             val bodyMemory = Memory(bodyData.size.toLong())
