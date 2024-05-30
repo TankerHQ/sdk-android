@@ -4,7 +4,7 @@
 [license-link]: https://opensource.org/licenses/Apache-2.0
 [maven-badge]: https://img.shields.io/static/v1.svg?label=Maven&message=compatible&color=brightgreen
 
-<a href="#readme"><img src="https://tanker.io/images/github-logo.png" alt="Tanker logo" width="180" /></a>
+<a href="#readme"><img src="https://raw.githubusercontent.com/TankerHQ/spec/master/img/tanker-logotype-blue-nomargin-350.png" alt="Tanker logo" width="175" /></a>
 
 [![License][license-badge]][license-link]
 ![Maven][maven-badge]
@@ -13,7 +13,7 @@
 
 # Encryption SDK for Android
 
-[Overview](#overview) · [Getting started](#getting-started) · [Documentation](#documentation) · [Release notes](#release-notes) · [Contributing](#contributing) · [License](#license)
+[Overview](#overview) · [Getting started](#getting-started) · [Documentation](#documentation) · [Release notes](#release-notes) · [Contributing](#contributing)
 
 ## Overview
 
@@ -50,7 +50,3 @@ Detailed changes for each release are documented in the [release notes](https://
 We welcome feedback. Feel free to open any issue on the Github bug tracker.
 
 We are actively working to allow external developers to build and test this sdk from source.
-
-## License
-
-The Tanker Android SDK is licensed under the [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
