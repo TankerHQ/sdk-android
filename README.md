@@ -13,7 +13,7 @@
 
 # Encryption SDK for Android
 
-[Overview](#overview) · [Getting started](#getting-started) · [Documentation](#documentation) · [Release notes](#release-notes) · [Contributing](#contributing) · [License](#license)
+[Overview](#overview) · [Getting started](#getting-started) · [Documentation](#documentation) · [Release notes](#release-notes) · [Contributing](#contributing)
 
 ## Overview
 
@@ -50,7 +50,3 @@ Detailed changes for each release are documented in the [release notes](https://
 We welcome feedback. Feel free to open any issue on the Github bug tracker.
 
 We are actively working to allow external developers to build and test this sdk from source.
-
-## License
-
-The Tanker Android SDK is licensed under the [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
