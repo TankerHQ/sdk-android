@@ -4,7 +4,7 @@
 [license-link]: https://opensource.org/licenses/Apache-2.0
 [maven-badge]: https://img.shields.io/static/v1.svg?label=Maven&message=compatible&color=brightgreen
 
-<a href="#readme"><img src="https://tanker.io/images/github-logo.png" alt="Tanker logo" width="180" /></a>
+<a href="#readme"><img src="https://raw.githubusercontent.com/TankerHQ/spec/master/img/tanker-logotype-blue-nomargin-350.png" alt="Tanker logo" width="175" /></a>
 
 [![License][license-badge]][license-link]
 ![Maven][maven-badge]
