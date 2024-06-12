@@ -167,6 +167,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Create an Oidc nonce
      */
+    @Deprecated("The entire OIDC flow has been reworked in version 4.2.0, method 'createOidcNonce' has been deprecated as a result")
     fun createOidcNonce(): TankerFuture<String> {
         val fut = TankerFuture<Pointer>(lib.tanker_create_oidc_nonce(tanker), Pointer::class.java, keepAlive = this)
         return fut.then(TankerCallback {
@@ -180,6 +181,7 @@ class Tanker(tankerOptions: TankerOptions) {
     /**
      * Set the Oidc nonce to use during the next verification
      */
+    @Deprecated("The entire OIDC flow has been reworked in version 4.2.0, method 'setOidcTestNonce' has been deprecated as a result")
     fun setOidcTestNonce(nonce: String): TankerFuture<Unit> {
         return TankerFuture(lib.tanker_set_oidc_test_nonce(tanker, nonce), Pointer::class.java, keepAlive = this)
     }
