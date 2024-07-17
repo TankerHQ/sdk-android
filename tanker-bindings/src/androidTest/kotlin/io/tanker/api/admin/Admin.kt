@@ -62,6 +62,7 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
             provider.put("client_id", it.clientId)
             provider.put("display_name", it.displayName)
             provider.put("issuer", it.issuer)
+            provider.put("oidc_provider_group_id", it.oidcProviderGroupId)
 
             val providers = jsonMapper.createArrayNode()
             providers.add(provider)
