@@ -116,7 +116,7 @@ class Config {
             clientSecret = safeGetEnv("TANKER_OIDC_CLIENT_SECRET"),
             displayName = safeGetEnv("TANKER_OIDC_PROVIDER"),
             issuer = safeGetEnv("TANKER_OIDC_ISSUER"),
-            fakeOidcIssuerUrl = safeGetEnv("TANKER_FAKE_OIDC_URL") + "/issuer",
+            fakeOidcIssuerUrl = safeGetEnv("TANKER_FAKE_OIDC_URL") + "/issuers/main",
             users = mapOf(
                 Pair(
                     "martine",
