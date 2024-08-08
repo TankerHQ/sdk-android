@@ -1,6 +1,6 @@
 [versions]
-androidGradlePlugin = "8.2.1"
-kotlinAndroid = "1.9.10"
+androidGradlePlugin = "8.5.1"
+kotlinAndroid = "1.9.23"
 jna = "5.13.0"
 
 [libraries]
