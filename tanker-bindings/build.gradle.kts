@@ -66,9 +66,6 @@ android {
         }
         getByName("debug") {
             multiDexEnabled = true
-            packaging {
-                jniLibs.keepDebugSymbols.add("**/*.so")
-            }
         }
     }
 
@@ -85,6 +82,23 @@ android {
         buildTypes {
             release {
                 multiDexEnabled = true
+            }
+        }
+    } else {
+        // We want to exclude our datastoretest library in production builds,
+        // except when building for connected androidTests.
+        // (Please consult a doctor if your internal screaming lasts more than 4h)
+        buildTypes {
+            debug {
+                packaging.jniLibs {
+                    keepDebugSymbols.add("**/*.so")
+                    excludes.add("**/libtankerdatastoretests.so")
+                }
+            }
+            release {
+                packaging.jniLibs {
+                    excludes.add("**/libtankerdatastoretests.so")
+                }
             }
         }
     }
