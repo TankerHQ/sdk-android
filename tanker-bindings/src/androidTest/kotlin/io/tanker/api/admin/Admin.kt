@@ -70,8 +70,6 @@ class Admin(private val appManagementUrl: String, private val appManagementToken
             reqJson.put("oidc_providers", providers)
             reqJson.put("oidc_providers_allow_delete", true)
         }
-        if (options.userEnrollment != null)
-            reqJson.put("enroll_users_enabled", options.userEnrollment!!)
 
         val request = Request.Builder()
                 .url("$appManagementUrl/v2/apps/${toUrlSafeAppId(appId)}")
