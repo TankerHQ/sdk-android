@@ -53,6 +53,15 @@ class Tanker(tankerOptions: TankerOptions) {
             lib.tanker_free_buffer(ptr)
             return str
         }
+
+        @JvmStatic
+        fun prehashAndEncryptPassword(password: String, publicKey: String): String {
+            val fut = TankerFuture<Pointer>(lib.tanker_prehash_and_encrypt_password(password, publicKey), Pointer::class.java, keepAlive = null)
+            val ptr = fut.get()
+            val str = ptr.getString(0)
+            lib.tanker_free_buffer(ptr)
+            return str
+        }
     }
 
     private val tanker: Pointer

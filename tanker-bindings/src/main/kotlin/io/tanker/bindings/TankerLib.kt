@@ -151,4 +151,5 @@ interface TankerLib : AsyncLib, DatastoreLib, Library {
     fun tanker_free_verification_method_list(list: Pointer): Void
 
     fun tanker_prehash_password(password: String): ExpectedPointer
+    fun tanker_prehash_and_encrypt_password(password: String, publicKey: String): ExpectedPointer
 }
