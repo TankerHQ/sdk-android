@@ -15,11 +15,12 @@ class TankerVerification : Structure() {
         const val TypeE2ePassphrase: Byte = 8
         const val TypePreverifiedOIDC: Byte = 9
         const val TypeOIDCAuthorizationCode: Byte = 10
+        const val TypePrehashedAndEncryptedPassphrase: Byte = 11
     }
 
     // NOTE: Remember to keep the version in sync w/ the c++!
     @JvmField
-    var version: Byte = 8
+    var version: Byte = 9
     @JvmField
     var type: Byte = 0
     @JvmField
@@ -42,9 +43,11 @@ class TankerVerification : Structure() {
     var preverifiedOIDCVerification: TankerPreverifiedOIDCVerification? = null
     @JvmField
     var oidcAuthorizationCodeVerification: TankerOIDCAuthorizationCodeVerification? = null
+    @JvmField
+    var prehashedAndEncryptedPassphrase: String? = null
 
     override fun getFieldOrder(): List<String> {
-        return listOf("version", "type", "verificationKey", "emailVerification", "passphrase", "e2ePassphrase", "oidcIDToken", "phoneNumberVerification", "preverifiedEmail", "preverifiedPhoneNumber", "preverifiedOIDCVerification", "oidcAuthorizationCodeVerification")
+        return listOf("version", "type", "verificationKey", "emailVerification", "passphrase", "e2ePassphrase", "oidcIDToken", "phoneNumberVerification", "preverifiedEmail", "preverifiedPhoneNumber", "preverifiedOIDCVerification", "oidcAuthorizationCodeVerification", "prehashedAndEncryptedPassphrase")
     }
 }
 
@@ -99,6 +102,10 @@ fun Verification.toCVerification(): TankerVerification {
                 .setProviderID(this.providerID)
                 .setAuthorizationCode(this.authorizationCode)
                 .setState(this.state)
+        }
+        is PrehashedAndEncryptedPassphraseVerification -> {
+            out.type = TankerVerification.TypePrehashedAndEncryptedPassphrase
+            out.prehashedAndEncryptedPassphrase = this.prehashedAndEncryptedPassphrase
         }
     }
     return out
