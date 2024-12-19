@@ -1,6 +1,7 @@
 package io.tanker.api
 
 import io.tanker.api.Tanker.Companion.prehashPassword
+import io.tanker.api.Tanker.Companion.prehashAndEncryptPassword
 import io.tanker.api.errors.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
@@ -575,5 +576,41 @@ class TankerTests : TankerSpec() {
         val expected = "Pkn/pjub2uwkBDpt2HUieWOXP5xLn0Zlen16ID4C7jI="
 
         assertThat(prehashPassword(input)).isEqualTo(expected)
+    }
+
+    @Test
+    fun prehashAndEncryptPassword_empty_password() {
+        val publicKey = "iFpHADRaRYQbErZhHMDruROvqkRF3XkgJxKk+7eP1hI="
+        val e = shouldThrow<TankerFutureException> { prehashAndEncryptPassword("", publicKey) }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun prehashAndEncryptPassword_empty_public_key() {
+        val password = "super secretive password"
+        val e = shouldThrow<TankerFutureException> { prehashAndEncryptPassword(password, "") }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun prehashAndEncryptPassword_non_b64_public_key() {
+        val password = "super secretive password"
+        val e = shouldThrow<TankerFutureException> { prehashAndEncryptPassword(password, "&") }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun prehashAndEncryptPassword_bad_public_key() {
+        val password = "super secretive password"
+        val e = shouldThrow<TankerFutureException> { prehashAndEncryptPassword(password, "fake") }
+        assertThat(e).hasCauseInstanceOf(InvalidArgument::class.java)
+    }
+
+    @Test
+    fun prehashAndEncryptPassword_good_params() {
+        val password = "super secretive password"
+        val publicKey = "iFpHADRaRYQbErZhHMDruROvqkRF3XkgJxKk+7eP1hI="
+        assertThat(prehashAndEncryptPassword(password, publicKey)).isNotEmpty()
+        assertThat(prehashAndEncryptPassword(password, publicKey)).doesNotContain(password)
     }
 }
