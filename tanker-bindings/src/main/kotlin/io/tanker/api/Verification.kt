@@ -12,3 +12,4 @@ data class PreverifiedPhoneNumberVerification(val preverifiedPhoneNumber: String
 data class E2ePassphraseVerification(val e2ePassphrase: String) : Verification()
 data class PreverifiedOIDCVerification(val subject: String, val providerID: String) : Verification()
 data class OIDCAuthorizationCodeVerification(val providerID: String, val authorizationCode: String, val state: String) : Verification()
+data class PrehashedAndEncryptedPassphraseVerification(val prehashedAndEncryptedPassphrase: String) : Verification()
